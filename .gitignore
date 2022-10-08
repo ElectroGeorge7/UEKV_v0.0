@@ -1,0 +1,11 @@
+*.json
+*.launch
+*.bin
+*.elf
+*.list
+*.map
+*.d
+*.o
+*.su
+*.mk
+*.list
