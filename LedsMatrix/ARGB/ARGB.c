@@ -45,8 +45,10 @@
  */
 
 #include "ARGB.h"  // include header file
-#include "math.h"
 
+#include "main.h"    ///< Main project file
+#include "math.h"
+#include <string.h>  ///< Lib for memcpy, strlen, etc
 /**
  * @addtogroup ARGB_Driver
  * @{

@@ -11,6 +11,7 @@ RM := rm -rf
 -include PortExpander/subdir.mk
 -include LedsMatrix/lm_hardware/subdir.mk
 -include LedsMatrix/ARGB/subdir.mk
+-include LedsMatrix/subdir.mk
 -include Drivers/STM32F4xx_HAL_Driver/Src/subdir.mk
 -include Core/Startup/subdir.mk
 -include Core/Src/subdir.mk

@@ -2,7 +2,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "lm_timer.h"
-#include "ARGB.h"
+#include "leds_matrix.h"
+
 
 /* Private variables ---------------------------------------------------------*/
 CAN_HandleTypeDef hcan1;
@@ -37,6 +38,8 @@ static void MX_TIM12_Init(void);
 static void MX_USART6_UART_Init(void);
 
 
+extern uint16_t ledsMatrix[];
+
 int main(void)
 {
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
@@ -49,65 +52,178 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
 
-  lm_timer_init();
-
-  ARGB_Init();  // Initialization
-
-  ARGB_Clear(); // Clear stirp
-  while (ARGB_Show() != ARGB_OK); // Update - Option 1
-
-  ARGB_SetBrightness(10);  // Set global brightness to 40%
+  leds_matrix_init();
 
   while (1)
   {
-	  ARGB_Clear(); // Clear stirp
-	  while (ARGB_Show() != ARGB_OK); // Update - Option 1
 
-	  ARGB_SetRGB(2, 0, 255, 0); // Set LED №3 with 255 Green
-	  while (!ARGB_Show());  // Update - Option 2
+	  // Arrow animation
+	  ledsMatrix[1] = 0xc0;
+	  leds_matrix_show_result();
+	  HAL_Delay(200);
+	  leds_matrix_clear();
 
-	  HAL_Delay(2000);
+	  ledsMatrix[1] = 0x1e0;
+	  ledsMatrix[2] = 0xc0;
+	  leds_matrix_show_result();
+	  HAL_Delay(200);
+	  leds_matrix_clear();
 
-	  ARGB_SetHSV(0, 0, 255, 255); // Set LED №1 with Red
-	  while (!ARGB_Ready()); // Update - Option 3
-	  ARGB_Show();
+	  ledsMatrix[1] = 0x3f0;
+	  ledsMatrix[2] = 0x1e0;
+	  ledsMatrix[3] = 0xc0;
+	  leds_matrix_show_result();
+	  HAL_Delay(200);
+	  leds_matrix_clear();
 
-	  HAL_Delay(2000);
+	  ledsMatrix[1] = 0x7f8;
+	  ledsMatrix[2] = 0x3f0;
+	  ledsMatrix[3] = 0x1e0;
+	  ledsMatrix[4] = 0xc0;
+	  leds_matrix_show_result();
+	  HAL_Delay(200);
+	  leds_matrix_clear();
 
-	  ARGB_FillRGB(50, 0, 0); // Fill all the strip with Red
-	  while (!ARGB_Show());
+	  ledsMatrix[1] = 0xffc;
+	  ledsMatrix[2] = 0x7f8;
+	  ledsMatrix[3] = 0x3f0;
+	  ledsMatrix[4] = 0x1e0;
+	  ledsMatrix[5] = 0xc0;
+	  leds_matrix_show_result();
+	  HAL_Delay(200);
+	  leds_matrix_clear();
 
-	  HAL_Delay(2000);
+	  ledsMatrix[1] = 0x1ffe;
+	  ledsMatrix[2] = 0xffc;
+	  ledsMatrix[3] = 0x7f8;
+	  ledsMatrix[4] = 0x3f0;
+	  ledsMatrix[5] = 0x1e0;
+	  ledsMatrix[6] = 0xc0;
+	  leds_matrix_show_result();
+	  HAL_Delay(200);
+	  leds_matrix_clear();
 
-	  ARGB_FillRGB(0, 50, 0); // Fill all the strip with Red
-	  while (!ARGB_Show());
+	  ledsMatrix[1] = 0xc0;
+	  ledsMatrix[2] = 0x1ffe;
+	  ledsMatrix[3] = 0xffc;
+	  ledsMatrix[4] = 0x7f8;
+	  ledsMatrix[5] = 0x3f0;
+	  ledsMatrix[6] = 0x1e0;
+	  ledsMatrix[7] = 0xc0;
+	  leds_matrix_show_result();
+	  HAL_Delay(200);
+	  leds_matrix_clear();
 
-	  HAL_Delay(2000);
+	  ledsMatrix[1] = 0xc0;
+	  ledsMatrix[2] = 0xc0;
+	  ledsMatrix[3] = 0x1ffe;
+	  ledsMatrix[4] = 0xffc;
+	  ledsMatrix[5] = 0x7f8;
+	  ledsMatrix[6] = 0x3f0;
+	  ledsMatrix[7] = 0x1e0;
+	  ledsMatrix[8] = 0xc0;
+	  leds_matrix_show_result();
+	  HAL_Delay(200);
+	  leds_matrix_clear();
 
-	  ARGB_FillRGB(0, 0, 50); // Fill all the strip with Red
-	  while (!ARGB_Show());
+	  ledsMatrix[1] = 0xc0;
+	  ledsMatrix[2] = 0xc0;
+	  ledsMatrix[3] = 0xc0;
+	  ledsMatrix[4] = 0x1ffe;
+	  ledsMatrix[5] = 0xffc;
+	  ledsMatrix[6] = 0x7f8;
+	  ledsMatrix[7] = 0x3f0;
+	  ledsMatrix[8] = 0x1e0;
+	  ledsMatrix[9] = 0xc0;
+	  leds_matrix_show_result();
+	  HAL_Delay(200);
+	  leds_matrix_clear();
 
-	  HAL_Delay(2000);
+	  HAL_Delay(1000);
 
-	  ARGB_FillRGB(50, 50, 0); // Fill all the strip with Red
-	  while (!ARGB_Show());
+	  ledsMatrix[9] = 0xc0;
+	  leds_matrix_show_result();
+	  HAL_Delay(200);
+	  leds_matrix_clear();
 
-	  HAL_Delay(2000);
+	  ledsMatrix[9] = 0x1e0;
+	  ledsMatrix[8] = 0xc0;
+	  leds_matrix_show_result();
+	  HAL_Delay(200);
+	  leds_matrix_clear();
 
-	  ARGB_FillRGB(0, 50, 50); // Fill all the strip with Red
-	  while (!ARGB_Show());
+	  ledsMatrix[9] = 0x3f0;
+	  ledsMatrix[8] = 0x1e0;
+	  ledsMatrix[7] = 0xc0;
+	  leds_matrix_show_result();
+	  HAL_Delay(200);
+	  leds_matrix_clear();
 
-	  HAL_Delay(2000);
+	  ledsMatrix[9] = 0x7f8;
+	  ledsMatrix[8] = 0x3f0;
+	  ledsMatrix[7] = 0x1e0;
+	  ledsMatrix[6] = 0xc0;
+	  leds_matrix_show_result();
+	  HAL_Delay(200);
+	  leds_matrix_clear();
 
-	  ARGB_FillRGB(50, 0, 50); // Fill all the strip with Red
-	  while (!ARGB_Show());
+	  ledsMatrix[9] = 0xffc;
+	  ledsMatrix[8] = 0x7f8;
+	  ledsMatrix[7] = 0x3f0;
+	  ledsMatrix[6] = 0x1e0;
+	  ledsMatrix[5] = 0xc0;
+	  leds_matrix_show_result();
+	  HAL_Delay(200);
+	  leds_matrix_clear();
 
-	  HAL_Delay(2000);
+	  ledsMatrix[9] = 0x1ffe;
+	  ledsMatrix[8] = 0xffc;
+	  ledsMatrix[7] = 0x7f8;
+	  ledsMatrix[6] = 0x3f0;
+	  ledsMatrix[5] = 0x1e0;
+	  ledsMatrix[4] = 0xc0;
+	  leds_matrix_show_result();
+	  HAL_Delay(200);
+	  leds_matrix_clear();
 
-	  ARGB_FillRGB(50, 50, 50); // Fill all the strip with Red
-	  while (!ARGB_Show());
+	  ledsMatrix[9] = 0xc0;
+	  ledsMatrix[8] = 0x1ffe;
+	  ledsMatrix[7] = 0xffc;
+	  ledsMatrix[6] = 0x7f8;
+	  ledsMatrix[5] = 0x3f0;
+	  ledsMatrix[4] = 0x1e0;
+	  ledsMatrix[3] = 0xc0;
+	  leds_matrix_show_result();
+	  HAL_Delay(200);
+	  leds_matrix_clear();
 
-	  HAL_Delay(2000);
+	  ledsMatrix[9] = 0xc0;
+	  ledsMatrix[8] = 0xc0;
+	  ledsMatrix[7] = 0x1ffe;
+	  ledsMatrix[6] = 0xffc;
+	  ledsMatrix[5] = 0x7f8;
+	  ledsMatrix[4] = 0x3f0;
+	  ledsMatrix[3] = 0x1e0;
+	  ledsMatrix[2] = 0xc0;
+	  leds_matrix_show_result();
+	  HAL_Delay(200);
+	  leds_matrix_clear();
+
+	  ledsMatrix[9] = 0xc0;
+	  ledsMatrix[8] = 0xc0;
+	  ledsMatrix[7] = 0xc0;
+	  ledsMatrix[6] = 0x1ffe;
+	  ledsMatrix[5] = 0xffc;
+	  ledsMatrix[4] = 0x7f8;
+	  ledsMatrix[3] = 0x3f0;
+	  ledsMatrix[2] = 0x1e0;
+	  ledsMatrix[1] = 0xc0;
+	  leds_matrix_show_result();
+	  HAL_Delay(200);
+	  leds_matrix_clear();
+
+	  HAL_Delay(1000);
+
   }
  
 }
