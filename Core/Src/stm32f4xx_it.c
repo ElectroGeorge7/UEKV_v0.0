@@ -172,7 +172,6 @@ void SysTick_Handler(void)
   */
 void DMA2_Stream6_IRQHandler(void)
 {
-	lm_timer_stop();
   HAL_DMA_IRQHandler(&hdma_tim1_ch3);
 }
 
