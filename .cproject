@@ -51,6 +51,8 @@
 									<listOptionValue builtIn="false" value="../LedsMatrix/lm_hardware/"/>
 									<listOptionValue builtIn="false" value="../LedsMatrix/ARGB/"/>
 									<listOptionValue builtIn="false" value="../LedsMatrix/leds_matrix/"/>
+									<listOptionValue builtIn="false" value="../ResultCheck/"/>
+									<listOptionValue builtIn="false" value="../ResultCheck/rch_hardware/"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.809967985" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c"/>
 							</tool>
@@ -80,7 +82,7 @@
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="LedsMatrix"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="PortExpander"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="ResultCheck"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -159,7 +161,7 @@
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="LedMatrix"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="PortExpander"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="ResultCheck"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

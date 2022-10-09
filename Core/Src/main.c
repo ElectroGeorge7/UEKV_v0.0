@@ -1,8 +1,8 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "lm_timer.h"
 #include "leds_matrix.h"
+#include "rch_timer.h"
 
 
 /* Private variables ---------------------------------------------------------*/
@@ -31,7 +31,6 @@ static void MX_I2C1_Init(void);
 static void MX_SDIO_SD_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_SPI2_Init(void);
-static void MX_TIM9_Init(void);
 static void MX_UART4_Init(void);
 static void MX_I2C3_Init(void);
 static void MX_TIM12_Init(void);
@@ -52,177 +51,12 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
 
-  leds_matrix_init();
+  //leds_matrix_init();
+  rch_timer_init();
 
   while (1)
   {
 
-	  // Arrow animation
-	  ledsMatrix[1] = 0xc0;
-	  leds_matrix_show_result();
-	  HAL_Delay(200);
-	  leds_matrix_clear();
-
-	  ledsMatrix[1] = 0x1e0;
-	  ledsMatrix[2] = 0xc0;
-	  leds_matrix_show_result();
-	  HAL_Delay(200);
-	  leds_matrix_clear();
-
-	  ledsMatrix[1] = 0x3f0;
-	  ledsMatrix[2] = 0x1e0;
-	  ledsMatrix[3] = 0xc0;
-	  leds_matrix_show_result();
-	  HAL_Delay(200);
-	  leds_matrix_clear();
-
-	  ledsMatrix[1] = 0x7f8;
-	  ledsMatrix[2] = 0x3f0;
-	  ledsMatrix[3] = 0x1e0;
-	  ledsMatrix[4] = 0xc0;
-	  leds_matrix_show_result();
-	  HAL_Delay(200);
-	  leds_matrix_clear();
-
-	  ledsMatrix[1] = 0xffc;
-	  ledsMatrix[2] = 0x7f8;
-	  ledsMatrix[3] = 0x3f0;
-	  ledsMatrix[4] = 0x1e0;
-	  ledsMatrix[5] = 0xc0;
-	  leds_matrix_show_result();
-	  HAL_Delay(200);
-	  leds_matrix_clear();
-
-	  ledsMatrix[1] = 0x1ffe;
-	  ledsMatrix[2] = 0xffc;
-	  ledsMatrix[3] = 0x7f8;
-	  ledsMatrix[4] = 0x3f0;
-	  ledsMatrix[5] = 0x1e0;
-	  ledsMatrix[6] = 0xc0;
-	  leds_matrix_show_result();
-	  HAL_Delay(200);
-	  leds_matrix_clear();
-
-	  ledsMatrix[1] = 0xc0;
-	  ledsMatrix[2] = 0x1ffe;
-	  ledsMatrix[3] = 0xffc;
-	  ledsMatrix[4] = 0x7f8;
-	  ledsMatrix[5] = 0x3f0;
-	  ledsMatrix[6] = 0x1e0;
-	  ledsMatrix[7] = 0xc0;
-	  leds_matrix_show_result();
-	  HAL_Delay(200);
-	  leds_matrix_clear();
-
-	  ledsMatrix[1] = 0xc0;
-	  ledsMatrix[2] = 0xc0;
-	  ledsMatrix[3] = 0x1ffe;
-	  ledsMatrix[4] = 0xffc;
-	  ledsMatrix[5] = 0x7f8;
-	  ledsMatrix[6] = 0x3f0;
-	  ledsMatrix[7] = 0x1e0;
-	  ledsMatrix[8] = 0xc0;
-	  leds_matrix_show_result();
-	  HAL_Delay(200);
-	  leds_matrix_clear();
-
-	  ledsMatrix[1] = 0xc0;
-	  ledsMatrix[2] = 0xc0;
-	  ledsMatrix[3] = 0xc0;
-	  ledsMatrix[4] = 0x1ffe;
-	  ledsMatrix[5] = 0xffc;
-	  ledsMatrix[6] = 0x7f8;
-	  ledsMatrix[7] = 0x3f0;
-	  ledsMatrix[8] = 0x1e0;
-	  ledsMatrix[9] = 0xc0;
-	  leds_matrix_show_result();
-	  HAL_Delay(200);
-	  leds_matrix_clear();
-
-	  HAL_Delay(1000);
-
-	  ledsMatrix[9] = 0xc0;
-	  leds_matrix_show_result();
-	  HAL_Delay(200);
-	  leds_matrix_clear();
-
-	  ledsMatrix[9] = 0x1e0;
-	  ledsMatrix[8] = 0xc0;
-	  leds_matrix_show_result();
-	  HAL_Delay(200);
-	  leds_matrix_clear();
-
-	  ledsMatrix[9] = 0x3f0;
-	  ledsMatrix[8] = 0x1e0;
-	  ledsMatrix[7] = 0xc0;
-	  leds_matrix_show_result();
-	  HAL_Delay(200);
-	  leds_matrix_clear();
-
-	  ledsMatrix[9] = 0x7f8;
-	  ledsMatrix[8] = 0x3f0;
-	  ledsMatrix[7] = 0x1e0;
-	  ledsMatrix[6] = 0xc0;
-	  leds_matrix_show_result();
-	  HAL_Delay(200);
-	  leds_matrix_clear();
-
-	  ledsMatrix[9] = 0xffc;
-	  ledsMatrix[8] = 0x7f8;
-	  ledsMatrix[7] = 0x3f0;
-	  ledsMatrix[6] = 0x1e0;
-	  ledsMatrix[5] = 0xc0;
-	  leds_matrix_show_result();
-	  HAL_Delay(200);
-	  leds_matrix_clear();
-
-	  ledsMatrix[9] = 0x1ffe;
-	  ledsMatrix[8] = 0xffc;
-	  ledsMatrix[7] = 0x7f8;
-	  ledsMatrix[6] = 0x3f0;
-	  ledsMatrix[5] = 0x1e0;
-	  ledsMatrix[4] = 0xc0;
-	  leds_matrix_show_result();
-	  HAL_Delay(200);
-	  leds_matrix_clear();
-
-	  ledsMatrix[9] = 0xc0;
-	  ledsMatrix[8] = 0x1ffe;
-	  ledsMatrix[7] = 0xffc;
-	  ledsMatrix[6] = 0x7f8;
-	  ledsMatrix[5] = 0x3f0;
-	  ledsMatrix[4] = 0x1e0;
-	  ledsMatrix[3] = 0xc0;
-	  leds_matrix_show_result();
-	  HAL_Delay(200);
-	  leds_matrix_clear();
-
-	  ledsMatrix[9] = 0xc0;
-	  ledsMatrix[8] = 0xc0;
-	  ledsMatrix[7] = 0x1ffe;
-	  ledsMatrix[6] = 0xffc;
-	  ledsMatrix[5] = 0x7f8;
-	  ledsMatrix[4] = 0x3f0;
-	  ledsMatrix[3] = 0x1e0;
-	  ledsMatrix[2] = 0xc0;
-	  leds_matrix_show_result();
-	  HAL_Delay(200);
-	  leds_matrix_clear();
-
-	  ledsMatrix[9] = 0xc0;
-	  ledsMatrix[8] = 0xc0;
-	  ledsMatrix[7] = 0xc0;
-	  ledsMatrix[6] = 0x1ffe;
-	  ledsMatrix[5] = 0xffc;
-	  ledsMatrix[4] = 0x7f8;
-	  ledsMatrix[3] = 0x3f0;
-	  ledsMatrix[2] = 0x1e0;
-	  ledsMatrix[1] = 0xc0;
-	  leds_matrix_show_result();
-	  HAL_Delay(200);
-	  leds_matrix_clear();
-
-	  HAL_Delay(1000);
 
   }
  
@@ -498,43 +332,6 @@ static void MX_SPI2_Init(void)
 }
 
 
-/**
-  * @brief TIM9 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM9_Init(void)
-{
-
-  /* USER CODE BEGIN TIM9_Init 0 */
-
-  /* USER CODE END TIM9_Init 0 */
-
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-
-  /* USER CODE BEGIN TIM9_Init 1 */
-
-  /* USER CODE END TIM9_Init 1 */
-  htim9.Instance = TIM9;
-  htim9.Init.Prescaler = 0;
-  htim9.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim9.Init.Period = 65535;
-  htim9.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim9.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim9) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim9, &sClockSourceConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM9_Init 2 */
-
-  /* USER CODE END TIM9_Init 2 */
-
-}
 
 /**
   * @brief TIM12 Initialization Function

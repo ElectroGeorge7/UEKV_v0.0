@@ -36,7 +36,7 @@ extern "C" {
 void Error_Handler(void);
 
 /* Private defines -----------------------------------------------------------*/
-#define LED_ERROR_Pin GPIO_PIN_13
+#define LED_ERROR_Pin GPIO_PIN_12
 #define LED_ERROR_GPIO_Port GPIOC
 #define TEMP_SENS_CS1_Pin GPIO_PIN_0
 #define TEMP_SENS_CS1_GPIO_Port GPIOC
@@ -52,7 +52,7 @@ void Error_Handler(void);
 #define SPI_ETT_CS3_GPIO_Port GPIOB
 #define SPI_ETT_CS4_Pin GPIO_PIN_15
 #define SPI_ETT_CS4_GPIO_Port GPIOB
-#define LED_PROCESS_Pin GPIO_PIN_12
+#define LED_PROCESS_Pin GPIO_PIN_13
 #define LED_PROCESS_GPIO_Port GPIOC
 #define uSD_DETECT_Pin GPIO_PIN_4
 #define uSD_DETECT_GPIO_Port GPIOB
