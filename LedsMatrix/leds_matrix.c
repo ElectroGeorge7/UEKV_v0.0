@@ -41,14 +41,24 @@ HAL_StatusTypeDef leds_matrix_clear(void){
 
 ///@todo add timeout for ARGB_Show()
 HAL_StatusTypeDef leds_matrix_show_result(void){
+	uint8_t curRowNum = 0;
+	uint8_t curColNum = 0;
+
 	for(uint8_t rowNum = 0; rowNum < LEDS_MATRIX_ROW_NUM; rowNum++){
+
+		curRowNum = LEDS_MATRIX_ROW_NUM - 1 - rowNum;
+
 		for(uint8_t colNum = 0; colNum < LEDS_MATRIX_COL_NUM; colNum++){
+
+			curColNum = ( rowNum % 2 ) ? colNum : LEDS_MATRIX_COL_NUM - 1 - colNum;
+
 			if ( ledsBitMatrix[rowNum] & (1 << colNum) )
-				ARGB_SetRGB(colNum+rowNum*LEDS_MATRIX_COL_NUM, LED_COLOR_OK);
+				ARGB_SetRGB(curColNum+curRowNum*LEDS_MATRIX_COL_NUM, LED_COLOR_OK);
 			else
-				ARGB_SetRGB(colNum+rowNum*LEDS_MATRIX_COL_NUM, LED_COLOR_FAULT);
+				ARGB_SetRGB(curColNum+curRowNum*LEDS_MATRIX_COL_NUM, LED_COLOR_FAULT);
 		}
 	}
+
 	 while (!ARGB_Show());  // Update - Option 2
 	 return HAL_OK;
 }

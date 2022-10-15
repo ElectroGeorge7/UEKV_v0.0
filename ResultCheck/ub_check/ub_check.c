@@ -36,18 +36,10 @@ HAL_StatusTypeDef ub_check(){
 
 	while (checkRepeatCnt--){
 		HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
-/*		for(uint8_t i = 0; i < 16; i++){
-			if (i % 2){
-				// odd digits
-				rowBitArray |= ( portExpPacket & (1<<i) ) >> (i/2 + 1);
-			}else{
-				// even digits
-				colBitArray |= ( portExpPacket & (1<<i) ) >> (i/2);
-			}
-		}
-*/
+
 		colBitArray = (uint8_t)portExpPacket;
 		rowBitArray = (uint8_t) (portExpPacket >> 8);
+
 		for (uint8_t rowNum = 0; rowNum < UB_MATRIX_ROW_NUM; rowNum++){
 			if ( rowBitArray & (1<<rowNum) ){
 				ubMatrix[rowNum] |= colBitArray;
@@ -61,15 +53,7 @@ HAL_StatusTypeDef ub_check(){
 
 HAL_StatusTypeDef ub_res_clear(void){
 	memset(ubMatrix, 0, sizeof(ubMatrix));
-/*	ubMatrix[0] = 0;
-	ubMatrix[1] = 0;
-	ubMatrix[2] = 0;
-	ubMatrix[3] = 0;
-	ubMatrix[4] = 0;
-	ubMatrix[5] = 0;
-	ubMatrix[6] = 0;
-	ubMatrix[7] = 0;
-*/
+
 	portExpPacket = 0;
 	rowBitArray = 0;
 	colBitArray = 0;
