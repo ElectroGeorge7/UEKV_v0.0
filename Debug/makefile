@@ -8,8 +8,9 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
+-include ResultCheck/ub_check/subdir.mk
 -include ResultCheck/rch_hardware/subdir.mk
--include ResultCheck/PortExpander/subdir.mk
+-include ResultCheck/subdir.mk
 -include LedsMatrix/lm_hardware/subdir.mk
 -include LedsMatrix/ARGB/subdir.mk
 -include LedsMatrix/subdir.mk

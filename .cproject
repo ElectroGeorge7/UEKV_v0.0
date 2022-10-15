@@ -53,6 +53,7 @@
 									<listOptionValue builtIn="false" value="../LedsMatrix/leds_matrix/"/>
 									<listOptionValue builtIn="false" value="../ResultCheck/"/>
 									<listOptionValue builtIn="false" value="../ResultCheck/rch_hardware/"/>
+									<listOptionValue builtIn="false" value="../ResultCheck/ub_check/"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.809967985" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c"/>
 							</tool>

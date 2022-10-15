@@ -2,12 +2,47 @@
 
 #include "main.h"
 
+#include <string.h>
+#include "result_check.h"
+#include "ub_check.h"
+#include "leds_matrix.h"
+
+extern uint16_t ledsBitMatrix[];
+
 TIM_HandleTypeDef htim9;
 
 static void TIM9_Init(void);
 
+///@todo remove long functions from interrupt callback (use RTOS)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+	static uint8_t interruptNum = 0;
+	uint8_t rowNum = UB_MATRIX_ROW_NUM;
+
+	ub_check();
+	for (uint8_t rowNum = 0; rowNum < UB_MATRIX_ROW_NUM; rowNum++){
+		resultMatrix[rowNum] |= ubMatrix[rowNum];
+	}
+	ub_res_clear();
+
+	if (interruptNum < 5){
+		interruptNum++;
+		//ledsBitMatrix[1] = 0x0c;
+		//ledsBitMatrix[7] = 0xc0;
+		//leds_matrix_show_result();
+		//HAL_Delay(100);
+		//leds_matrix_clear();
+	}else{
+		interruptNum = 0;
+		leds_matrix_clear();
+		HAL_Delay(50);
+		memcpy(ledsBitMatrix, resultMatrix, sizeof(resultMatrix));
+		//ledsBitMatrix[1] = 0xc0;
+		//ledsBitMatrix[7] = 0x0c;
+		leds_matrix_show_result();
+		result_check_clear();
+	}
+
 	HAL_GPIO_TogglePin(GPIOC, LED_PROCESS_Pin);
 }
 
@@ -46,7 +81,7 @@ static void TIM9_Init(void)
   }
 
   /* TIM9 interrupt Init */
-  HAL_NVIC_SetPriority(TIM1_BRK_TIM9_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(TIM1_BRK_TIM9_IRQn, 7, 0);
   HAL_NVIC_EnableIRQ(TIM1_BRK_TIM9_IRQn);
 
   HAL_TIM_Base_Start_IT(&htim9);

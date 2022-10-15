@@ -19,31 +19,36 @@
 #define LED_COLOR_OK		0, LED_RESULT_BRIGHTNESS, 0
 #define LED_COLOR_FAULT		0, 0, 0//LED_RESULT_BRIGHTNESS, 0, 0
 
-uint16_t ledsMatrix[LEDS_MATRIX_ROW_NUM] = {0};
+uint16_t ledsBitMatrix[LEDS_MATRIX_ROW_NUM] = {0};
 
-void leds_matrix_init(void){
+HAL_StatusTypeDef leds_matrix_init(void){
   lm_timer_init();
   ARGB_Init();  // Initialization
 
   leds_matrix_clear();
+
+  return HAL_OK;
 }
 
-void leds_matrix_clear(void){
-	memset(ledsMatrix, 0, LEDS_MATRIX_ROW_NUM *sizeof(uint16_t));
+HAL_StatusTypeDef leds_matrix_clear(void){
+	memset(ledsBitMatrix, 0, LEDS_MATRIX_ROW_NUM *sizeof(uint16_t));
 
 	ARGB_Clear(); // Clear stirp
 	while (ARGB_Show() != ARGB_OK); // Update - Option 1
+
+	return HAL_OK;
 }
 
-
-void leds_matrix_show_result(void){
+///@todo add timeout for ARGB_Show()
+HAL_StatusTypeDef leds_matrix_show_result(void){
 	for(uint8_t rowNum = 0; rowNum < LEDS_MATRIX_ROW_NUM; rowNum++){
 		for(uint8_t colNum = 0; colNum < LEDS_MATRIX_COL_NUM; colNum++){
-			if ( ledsMatrix[rowNum] & (1 << colNum) )
+			if ( ledsBitMatrix[rowNum] & (1 << colNum) )
 				ARGB_SetRGB(colNum+rowNum*LEDS_MATRIX_COL_NUM, LED_COLOR_OK);
 			else
 				ARGB_SetRGB(colNum+rowNum*LEDS_MATRIX_COL_NUM, LED_COLOR_FAULT);
 		}
 	}
 	 while (!ARGB_Show());  // Update - Option 2
+	 return HAL_OK;
 }

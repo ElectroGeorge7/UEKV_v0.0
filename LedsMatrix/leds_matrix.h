@@ -8,8 +8,10 @@
 #ifndef LEDS_MATRIX_H_
 #define LEDS_MATRIX_H_
 
-void leds_matrix_init(void);
-void leds_matrix_show_result(void);
-void leds_matrix_clear(void);
+#include "stm32f4xx_hal.h"
+
+HAL_StatusTypeDef leds_matrix_init(void);
+HAL_StatusTypeDef leds_matrix_show_result(void);
+HAL_StatusTypeDef leds_matrix_clear(void);
 
 #endif /* LEDS_MATRIX_H_ */
