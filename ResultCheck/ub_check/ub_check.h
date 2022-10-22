@@ -1,6 +1,6 @@
 
-#ifndef UB_CHECK__
-#define UB_CHECK__
+#ifndef UB_CHECK_H_
+#define UB_CHECK_H_
 
 #include "stm32f4xx_hal.h"
 
