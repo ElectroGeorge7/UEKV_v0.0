@@ -54,8 +54,7 @@ void Error_Handler(void);
 #define SPI_ETT_CS4_GPIO_Port GPIOB
 #define LED_PROCESS_Pin GPIO_PIN_13
 #define LED_PROCESS_GPIO_Port GPIOC
-#define uSD_DETECT_Pin GPIO_PIN_4
-#define uSD_DETECT_GPIO_Port GPIOB
+
 #define SPI_ETT_CS_Pin GPIO_PIN_5
 #define SPI_ETT_CS_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */

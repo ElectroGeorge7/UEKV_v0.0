@@ -12,7 +12,7 @@
 /* Private variables ---------------------------------------------------------*/
 CAN_HandleTypeDef hcan1;
 
-SD_HandleTypeDef hsd;
+
 
 SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi2;
@@ -28,7 +28,6 @@ UART_HandleTypeDef huart6;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_CAN1_Init(void);
-static void MX_SDIO_SD_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_UART4_Init(void);
@@ -83,12 +82,13 @@ int main(void)
   LCD_Init(&lcd, 0x38, 16, 2);
   LCD_Backlight(&lcd, 1); //Backlight on
   LCD_SendString(&lcd, "Hello World!");
+  LCD_SetCursor(&lcd, 0, 1);
 
-  MX_SDIO_SD_Init();
-  MX_FATFS_Init();
+  fatfs_init();
 
   gfr = f_mount(&sdFatFs, "", 1);
   fRead("Test1.txt", gfileBuf, 10, gbr);
+  LCD_SendString(&lcd, gfileBuf);
   fRead("Test2.txt", gfileBuf, 10, gbr);
   fRead("Test3.txt", gfileBuf, 10, gbr);
   fRead("test1.txt", gfileBuf, 10, gbr);
@@ -193,42 +193,6 @@ static void MX_CAN1_Init(void)
 }
 
 
-
-/**
-  * @brief SDIO Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_SDIO_SD_Init(void)
-{
-
-  /* USER CODE BEGIN SDIO_Init 0 */
-
-  /* USER CODE END SDIO_Init 0 */
-
-  /* USER CODE BEGIN SDIO_Init 1 */
-
-  /* USER CODE END SDIO_Init 1 */
-  hsd.Instance = SDIO;
-  hsd.Init.ClockEdge = SDIO_CLOCK_EDGE_RISING;
-  hsd.Init.ClockBypass = SDIO_CLOCK_BYPASS_DISABLE;
-  hsd.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
-  hsd.Init.BusWide = SDIO_BUS_WIDE_1B;
-  hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_ENABLE; // flow control should be enable
-  hsd.Init.ClockDiv = 0;
-  if (HAL_SD_Init(&hsd) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_SD_ConfigWideBusOperation(&hsd, SDIO_BUS_WIDE_4B) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN SDIO_Init 2 */
-
-  /* USER CODE END SDIO_Init 2 */
-
-}
 
 /**
   * @brief SPI1 Initialization Function
@@ -476,12 +440,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : uSD_DETECT_Pin */
-  GPIO_InitStruct.Pin = uSD_DETECT_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(uSD_DETECT_GPIO_Port, &GPIO_InitStruct);
 
 }
 

@@ -60,6 +60,7 @@
 									<listOptionValue builtIn="false" value="../FATFS/FatFs/src/option"/>
 									<listOptionValue builtIn="false" value="../FATFS/App/"/>
 									<listOptionValue builtIn="false" value="../FATFS/Target/"/>
+									<listOptionValue builtIn="false" value="../FATFS/sdmc_hardware/"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.809967985" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c"/>
 							</tool>

@@ -14,6 +14,7 @@ RM := rm -rf
 -include LedsMatrix/lm_hardware/subdir.mk
 -include LedsMatrix/ARGB/subdir.mk
 -include LedsMatrix/subdir.mk
+-include FATFS/sdmc_hardware/subdir.mk
 -include FATFS/Target/subdir.mk
 -include FATFS/FatFs/src/option/subdir.mk
 -include FATFS/FatFs/src/subdir.mk

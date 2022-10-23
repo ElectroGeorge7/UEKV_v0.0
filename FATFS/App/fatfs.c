@@ -24,16 +24,17 @@ FATFS SDFatFS;    /* File system object for SD logical drive */
 FIL SDFile;       /* File object for SD */
 
 /* USER CODE BEGIN Variables */
-
+#include "sdmc_hardware.h"
 /* USER CODE END Variables */
 
-void MX_FATFS_Init(void)
+void fatfs_init(void)
 {
   /*## FatFS: Link the SD driver ###########################*/
   retSD = FATFS_LinkDriver(&SD_Driver, SDPath);
 
   /* USER CODE BEGIN Init */
   /* additional user code for init */
+  sdio_sd_init();
   /* USER CODE END Init */
 }
 
