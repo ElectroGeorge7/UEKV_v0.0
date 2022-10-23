@@ -14,6 +14,10 @@ RM := rm -rf
 -include LedsMatrix/lm_hardware/subdir.mk
 -include LedsMatrix/ARGB/subdir.mk
 -include LedsMatrix/subdir.mk
+-include FATFS/Target/subdir.mk
+-include FATFS/FatFs/src/option/subdir.mk
+-include FATFS/FatFs/src/subdir.mk
+-include FATFS/App/subdir.mk
 -include Drivers/STM32F4xx_HAL_Driver/Src/subdir.mk
 -include Display/display_hardware/subdir.mk
 -include Display/subdir.mk

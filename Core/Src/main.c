@@ -7,6 +7,8 @@
 #include "LCD_i2c.h"
 #include <stdio.h>
 
+#include "fatfs.h"
+
 /* Private variables ---------------------------------------------------------*/
 CAN_HandleTypeDef hcan1;
 
@@ -38,6 +40,26 @@ extern uint16_t ledsBitMatrix[];
 
 LCD_I2C_t lcd;
 
+static FATFS sdFatFs;
+static FIL sdFile;
+FRESULT gfr;
+
+uint8_t gfileBuf[80] = {0};
+uint32_t gbr;
+void fRead(char *configFileName, uint8_t *buf, uint32_t num, uint32_t *br){
+  FIL readFile;
+
+  do{
+      //fr = open_append(&sdFile, "camconf.txt");
+      gfr = f_open(&readFile, configFileName, FA_READ);
+  }while (gfr);
+
+  gfr = f_read(&readFile, buf, num, br);
+
+  // Close the file
+  f_close(&readFile);
+}
+
 int main(void)
 {
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
@@ -62,14 +84,20 @@ int main(void)
   LCD_Backlight(&lcd, 1); //Backlight on
   LCD_SendString(&lcd, "Hello World!");
 
-  char msg[10] = {0}; //buffer
-  uint8_t counter = 0;
+  MX_SDIO_SD_Init();
+  MX_FATFS_Init();
+
+  gfr = f_mount(&sdFatFs, "", 1);
+  fRead("Test1.txt", gfileBuf, 10, gbr);
+  fRead("Test2.txt", gfileBuf, 10, gbr);
+  fRead("Test3.txt", gfileBuf, 10, gbr);
+  fRead("test1.txt", gfileBuf, 10, gbr);
+  fRead("test2.txt", gfileBuf, 10, gbr);
+  fRead("test3.txt", gfileBuf, 10, gbr);
 
   while (1)
   {
-	LCD_SetCursor(&lcd, 0, 1);
-	sprintf(msg, "%d  ", counter++);
-	LCD_SendString(&lcd, msg);
+
 
   }
  
@@ -186,7 +214,7 @@ static void MX_SDIO_SD_Init(void)
   hsd.Init.ClockBypass = SDIO_CLOCK_BYPASS_DISABLE;
   hsd.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
   hsd.Init.BusWide = SDIO_BUS_WIDE_1B;
-  hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_DISABLE;
+  hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_ENABLE; // flow control should be enable
   hsd.Init.ClockDiv = 0;
   if (HAL_SD_Init(&hsd) != HAL_OK)
   {
