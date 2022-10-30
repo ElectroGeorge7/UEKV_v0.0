@@ -34,6 +34,8 @@ static void MX_UART4_Init(void);
 static void MX_TIM12_Init(void);
 static void MX_USART6_UART_Init(void);
 
+HAL_StatusTypeDef rs485Res = HAL_ERROR;
+char rs485String[] = "Hello RS485 \n";
 
 extern uint16_t ledsBitMatrix[];
 
@@ -95,9 +97,16 @@ int main(void)
   fRead("test2.txt", gfileBuf, 10, gbr);
   fRead("test3.txt", gfileBuf, 10, gbr);
 
+  // check RS485
+  MX_UART4_Init();
+  HAL_GPIO_WritePin(GPIOA, RS485_nRE_Pin|RS485_DE_Pin, GPIO_PIN_SET); // only transmit
+  HAL_Delay(100);
+
+  rs485Res = HAL_UART_Transmit(&huart4, &rs485String, sizeof(rs485String), 0xfffff);
+  HAL_Delay(1000);
+
   while (1)
   {
-
 
   }
  
@@ -340,7 +349,7 @@ static void MX_UART4_Init(void)
 
   /* USER CODE END UART4_Init 1 */
   huart4.Instance = UART4;
-  huart4.Init.BaudRate = 115200;
+  huart4.Init.BaudRate = 9600;
   huart4.Init.WordLength = UART_WORDLENGTH_8B;
   huart4.Init.StopBits = UART_STOPBITS_1;
   huart4.Init.Parity = UART_PARITY_NONE;
