@@ -39,10 +39,6 @@ void Error_Handler(void);
 #define LED_ERROR_Pin GPIO_PIN_12
 #define LED_ERROR_GPIO_Port GPIOC
 
-#define RS485_nRE_Pin GPIO_PIN_2
-#define RS485_nRE_GPIO_Port GPIOA
-#define RS485_DE_Pin GPIO_PIN_3
-#define RS485_DE_GPIO_Port GPIOA
 #define SPI_ETT_CS2_Pin GPIO_PIN_12
 #define SPI_ETT_CS2_GPIO_Port GPIOB
 #define SPI_ETT_CS3_Pin GPIO_PIN_13
