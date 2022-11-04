@@ -3,6 +3,8 @@
 #include "main.h"
 #include "leds_matrix.h"
 #include "result_check.h"
+#include "ts_spi.h"
+#include "MAX6675.h"
 
 #include "LCD_i2c.h"
 #include <stdio.h>
@@ -12,14 +14,10 @@
 /* Private variables ---------------------------------------------------------*/
 CAN_HandleTypeDef hcan1;
 
-
-
 SPI_HandleTypeDef hspi1;
-SPI_HandleTypeDef hspi2;
 
-TIM_HandleTypeDef htim9;
+
 TIM_HandleTypeDef htim12;
-DMA_HandleTypeDef hdma_tim1_ch3;
 
 UART_HandleTypeDef huart4;
 UART_HandleTypeDef huart6;
@@ -29,13 +27,15 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_CAN1_Init(void);
 static void MX_SPI1_Init(void);
-static void MX_SPI2_Init(void);
 static void MX_UART4_Init(void);
 static void MX_TIM12_Init(void);
 static void MX_USART6_UART_Init(void);
 
 HAL_StatusTypeDef rs485Res = HAL_ERROR;
 char rs485String[] = "Hello RS485 \n";
+
+char tsResString[10];
+float tempRes=0;
 
 extern uint16_t ledsBitMatrix[];
 
@@ -84,13 +84,14 @@ int main(void)
   LCD_Init(&lcd, 0x38, 16, 2);
   LCD_Backlight(&lcd, 1); //Backlight on
   LCD_SendString(&lcd, "Hello World!");
-  LCD_SetCursor(&lcd, 0, 1);
+  LCD_Clear(&lcd);
+  //LCD_SetCursor(&lcd, 0, 1);
 
   fatfs_init();
 
   gfr = f_mount(&sdFatFs, "", 1);
   fRead("Test1.txt", gfileBuf, 10, gbr);
-  LCD_SendString(&lcd, gfileBuf);
+  //LCD_SendString(&lcd, gfileBuf);
   fRead("Test2.txt", gfileBuf, 10, gbr);
   fRead("Test3.txt", gfileBuf, 10, gbr);
   fRead("test1.txt", gfileBuf, 10, gbr);
@@ -98,16 +99,23 @@ int main(void)
   fRead("test3.txt", gfileBuf, 10, gbr);
 
   // check RS485
-  MX_UART4_Init();
-  HAL_GPIO_WritePin(GPIOA, RS485_nRE_Pin|RS485_DE_Pin, GPIO_PIN_SET); // only transmit
-  HAL_Delay(100);
+  //MX_UART4_Init();
+  //HAL_GPIO_WritePin(GPIOA, RS485_nRE_Pin|RS485_DE_Pin, GPIO_PIN_SET); // only transmit
+  //HAL_Delay(100);
 
-  rs485Res = HAL_UART_Transmit(&huart4, &rs485String, sizeof(rs485String), 0xfffff);
-  HAL_Delay(1000);
+  //rs485Res = HAL_UART_Transmit(&huart4, &rs485String, sizeof(rs485String), 0xfffff);
+  //HAL_Delay(1000);
+
+  ts_spi_init();
 
   while (1)
   {
-
+	  tempRes = Max6675_Read_Temp();
+	  snprintf(tsResString, 7, "%f", tempRes);
+	  LCD_SetCursor(&lcd, 0, 0);
+	  LCD_SendString(&lcd, tsResString);
+	  HAL_Delay(1000);
+	  LCD_Clear(&lcd);
   }
  
 }
@@ -238,44 +246,6 @@ static void MX_SPI1_Init(void)
   /* USER CODE BEGIN SPI1_Init 2 */
 
   /* USER CODE END SPI1_Init 2 */
-
-}
-
-/**
-  * @brief SPI2 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_SPI2_Init(void)
-{
-
-  /* USER CODE BEGIN SPI2_Init 0 */
-
-  /* USER CODE END SPI2_Init 0 */
-
-  /* USER CODE BEGIN SPI2_Init 1 */
-
-  /* USER CODE END SPI2_Init 1 */
-  /* SPI2 parameter configuration*/
-  hspi2.Instance = SPI2;
-  hspi2.Init.Mode = SPI_MODE_MASTER;
-  hspi2.Init.Direction = SPI_DIRECTION_2LINES_RXONLY;
-  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi2.Init.NSS = SPI_NSS_SOFT;
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
-  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
-  hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
-  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-  hspi2.Init.CRCPolynomial = 10;
-  if (HAL_SPI_Init(&hspi2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN SPI2_Init 2 */
-
-  /* USER CODE END SPI2_Init 2 */
 
 }
 
@@ -421,16 +391,13 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOC, LED_ERROR_Pin|LED_PROCESS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, TEMP_SENS_CS1_Pin|TEMP_SENS_CS2_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, RS485_nRE_Pin|RS485_DE_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS2_Pin|SPI_ETT_CS3_Pin|SPI_ETT_CS4_Pin|SPI_ETT_CS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : LED_ERROR_Pin TEMP_SENS_CS1_Pin TEMP_SENS_CS2_Pin LED_PROCESS_Pin */
-  GPIO_InitStruct.Pin = LED_ERROR_Pin|TEMP_SENS_CS1_Pin|TEMP_SENS_CS2_Pin|LED_PROCESS_Pin;
+  GPIO_InitStruct.Pin = LED_ERROR_Pin|LED_PROCESS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

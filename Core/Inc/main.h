@@ -38,10 +38,7 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define LED_ERROR_Pin GPIO_PIN_12
 #define LED_ERROR_GPIO_Port GPIOC
-#define TEMP_SENS_CS1_Pin GPIO_PIN_0
-#define TEMP_SENS_CS1_GPIO_Port GPIOC
-#define TEMP_SENS_CS2_Pin GPIO_PIN_1
-#define TEMP_SENS_CS2_GPIO_Port GPIOC
+
 #define RS485_nRE_Pin GPIO_PIN_2
 #define RS485_nRE_GPIO_Port GPIOA
 #define RS485_DE_Pin GPIO_PIN_3
