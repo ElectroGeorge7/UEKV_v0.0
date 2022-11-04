@@ -14,6 +14,7 @@ RM := rm -rf
 -include LedsMatrix/lm_hardware/subdir.mk
 -include LedsMatrix/ARGB/subdir.mk
 -include LedsMatrix/subdir.mk
+-include LabPowerSupply/rs485_hardware/subdir.mk
 -include FATFS/sdmc_hardware/subdir.mk
 -include FATFS/Target/subdir.mk
 -include FATFS/FatFs/src/option/subdir.mk
@@ -68,7 +69,7 @@ main-build: UEKV_v0.0.elf secondary-outputs
 
 # Tool invocations
 UEKV_v0.0.elf: $(OBJS) $(USER_OBJS) G:\Milandr\UEKV\Software\UEKV_FW\UEKV_v0.0\STM32F446RETX_FLASH.ld
-	arm-none-eabi-gcc -o "UEKV_v0.0.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"G:\Milandr\UEKV\Software\UEKV_FW\UEKV_v0.0\STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="UEKV_v0.0.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+	arm-none-eabi-gcc -o "UEKV_v0.0.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"G:\Milandr\UEKV\Software\UEKV_FW\UEKV_v0.0\STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="UEKV_v0.0.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

@@ -21,7 +21,7 @@ TIM_HandleTypeDef htim9;
 TIM_HandleTypeDef htim12;
 DMA_HandleTypeDef hdma_tim1_ch3;
 
-UART_HandleTypeDef huart4;
+
 UART_HandleTypeDef huart6;
 
 /* Private function prototypes -----------------------------------------------*/
@@ -30,12 +30,8 @@ static void MX_GPIO_Init(void);
 static void MX_CAN1_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_SPI2_Init(void);
-static void MX_UART4_Init(void);
 static void MX_TIM12_Init(void);
 static void MX_USART6_UART_Init(void);
-
-HAL_StatusTypeDef rs485Res = HAL_ERROR;
-char rs485String[] = "Hello RS485 \n";
 
 extern uint16_t ledsBitMatrix[];
 
@@ -96,14 +92,6 @@ int main(void)
   fRead("test1.txt", gfileBuf, 10, gbr);
   fRead("test2.txt", gfileBuf, 10, gbr);
   fRead("test3.txt", gfileBuf, 10, gbr);
-
-  // check RS485
-  MX_UART4_Init();
-  HAL_GPIO_WritePin(GPIOA, RS485_nRE_Pin|RS485_DE_Pin, GPIO_PIN_SET); // only transmit
-  HAL_Delay(100);
-
-  rs485Res = HAL_UART_Transmit(&huart4, &rs485String, sizeof(rs485String), 0xfffff);
-  HAL_Delay(1000);
 
   while (1)
   {
@@ -333,38 +321,6 @@ static void MX_TIM12_Init(void)
 
 }
 
-/**
-  * @brief UART4 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_UART4_Init(void)
-{
-
-  /* USER CODE BEGIN UART4_Init 0 */
-
-  /* USER CODE END UART4_Init 0 */
-
-  /* USER CODE BEGIN UART4_Init 1 */
-
-  /* USER CODE END UART4_Init 1 */
-  huart4.Instance = UART4;
-  huart4.Init.BaudRate = 9600;
-  huart4.Init.WordLength = UART_WORDLENGTH_8B;
-  huart4.Init.StopBits = UART_STOPBITS_1;
-  huart4.Init.Parity = UART_PARITY_NONE;
-  huart4.Init.Mode = UART_MODE_TX_RX;
-  huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart4.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart4) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN UART4_Init 2 */
-
-  /* USER CODE END UART4_Init 2 */
-
-}
 
 /**
   * @brief USART6 Initialization Function
@@ -424,9 +380,6 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOC, TEMP_SENS_CS1_Pin|TEMP_SENS_CS2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, RS485_nRE_Pin|RS485_DE_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS2_Pin|SPI_ETT_CS3_Pin|SPI_ETT_CS4_Pin|SPI_ETT_CS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : LED_ERROR_Pin TEMP_SENS_CS1_Pin TEMP_SENS_CS2_Pin LED_PROCESS_Pin */
@@ -435,13 +388,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : RS485_nRE_Pin RS485_DE_Pin */
-  GPIO_InitStruct.Pin = RS485_nRE_Pin|RS485_DE_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : SPI_ETT_CS2_Pin SPI_ETT_CS3_Pin SPI_ETT_CS4_Pin SPI_ETT_CS_Pin */
   GPIO_InitStruct.Pin = SPI_ETT_CS2_Pin|SPI_ETT_CS3_Pin|SPI_ETT_CS4_Pin|SPI_ETT_CS_Pin;
