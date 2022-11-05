@@ -24,6 +24,7 @@
 /* External variables --------------------------------------------------------*/
 extern DMA_HandleTypeDef hdma_tim1_ch3;
 extern TIM_HandleTypeDef htim9;
+extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
 
 /******************************************************************************/
@@ -131,6 +132,11 @@ void DMA2_Stream6_IRQHandler(void)
 void TIM1_BRK_TIM9_IRQHandler(void)
 {
   HAL_TIM_IRQHandler(&htim9);
+}
+
+void OTG_FS_IRQHandler(void)
+{
+  HAL_PCD_IRQHandler(&hpcd_USB_OTG_FS);
 }
 
 

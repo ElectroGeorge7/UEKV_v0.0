@@ -11,6 +11,8 @@
 
 #include "fatfs.h"
 
+#include "usb_device.h"
+
 
 /* Private variables ---------------------------------------------------------*/
 CAN_HandleTypeDef hcan1;
@@ -70,7 +72,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
 
-  leds_matrix_init();
+  //leds_matrix_init();
   //ledsBitMatrix[1] = 0x0c;
   //ledsBitMatrix[7] = 0xc0;
   //leds_matrix_show_result();
@@ -78,11 +80,11 @@ int main(void)
   //leds_matrix_clear();
   //result_check_init();
 
-  //LCD_Init(&lcd, 0x38, 16, 2);
-  //LCD_Backlight(&lcd, 1); //Backlight on
-  //LCD_SendString(&lcd, "Hello World!");
-  //LCD_Clear(&lcd);
-  //LCD_SetCursor(&lcd, 0, 1);
+  LCD_Init(&lcd, 0x38, 16, 2);
+  LCD_Backlight(&lcd, 1); //Backlight on
+  LCD_SendString(&lcd, "Hello World!");
+  LCD_Clear(&lcd);
+  LCD_SetCursor(&lcd, 0, 1);
 
   fatfs_init();
   gfr = f_mount(&sdFatFs, "", 1);
@@ -91,14 +93,21 @@ int main(void)
 
   ts_spi_init();
 
+  MX_USB_DEVICE_Init();
+  uint8_t usbString[] = "UEKV_v0.0, USB Test\n\r";
+
   while (1)
   {
+/*
 	  tempRes = Max6675_Read_Temp();
 	  snprintf(tsResString, 7, "%f", tempRes);
 	  LCD_SetCursor(&lcd, 0, 0);
 	  LCD_SendString(&lcd, tsResString);
 	  HAL_Delay(1000);
 	  LCD_Clear(&lcd);
+*/
+	  CDC_Transmit_FS(usbString, sizeof(usbString));
+	  HAL_Delay(1000);
   }
  
 }
