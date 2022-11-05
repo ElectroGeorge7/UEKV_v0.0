@@ -11,6 +11,7 @@
 
 #include "fatfs.h"
 
+
 /* Private variables ---------------------------------------------------------*/
 CAN_HandleTypeDef hcan1;
 
@@ -33,6 +34,9 @@ static void MX_USART6_UART_Init(void);
 extern uint16_t ledsBitMatrix[];
 
 LCD_I2C_t lcd;
+
+char tsResString[10];
+float tempRes=0;
 
 static FATFS sdFatFs;
 static FIL sdFile;
@@ -74,22 +78,16 @@ int main(void)
   //leds_matrix_clear();
   //result_check_init();
 
-  LCD_Init(&lcd, 0x38, 16, 2);
-  LCD_Backlight(&lcd, 1); //Backlight on
-  LCD_SendString(&lcd, "Hello World!");
-  LCD_Clear(&lcd);
+  //LCD_Init(&lcd, 0x38, 16, 2);
+  //LCD_Backlight(&lcd, 1); //Backlight on
+  //LCD_SendString(&lcd, "Hello World!");
+  //LCD_Clear(&lcd);
   //LCD_SetCursor(&lcd, 0, 1);
 
   fatfs_init();
-
   gfr = f_mount(&sdFatFs, "", 1);
   fRead("Test1.txt", gfileBuf, 10, gbr);
   //LCD_SendString(&lcd, gfileBuf);
-  fRead("Test2.txt", gfileBuf, 10, gbr);
-  fRead("Test3.txt", gfileBuf, 10, gbr);
-  fRead("test1.txt", gfileBuf, 10, gbr);
-  fRead("test2.txt", gfileBuf, 10, gbr);
-  fRead("test3.txt", gfileBuf, 10, gbr);
 
   ts_spi_init();
 
@@ -118,7 +116,7 @@ void SystemClock_Config(void)
 	  /** Configure the main internal regulator output voltage
 	  */
 	  __HAL_RCC_PWR_CLK_ENABLE();
-	  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
+	  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 	  /** Initializes the RCC Oscillators according to the specified parameters
 	  * in the RCC_OscInitTypeDef structure.
 	  */
@@ -127,30 +125,41 @@ void SystemClock_Config(void)
 	  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
 	  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
 	  RCC_OscInitStruct.PLL.PLLM = 12;
-	  RCC_OscInitStruct.PLL.PLLN = 144;
+	  RCC_OscInitStruct.PLL.PLLN = 360;
 	  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-	  RCC_OscInitStruct.PLL.PLLQ = 6;
+	  RCC_OscInitStruct.PLL.PLLQ = 5;
 	  RCC_OscInitStruct.PLL.PLLR = 2;
 	  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
 	  {
 	    Error_Handler();
 	  }
+
+    if (HAL_PWREx_EnableOverDrive() != HAL_OK)
+    {
+      Error_Handler();
+    }
+
 	  /** Initializes the CPU, AHB and APB buses clocks
 	  */
 	  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
 	                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
 	  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
 	  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-	  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-	  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+	  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+	  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-	  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+	  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
 	  {
 	    Error_Handler();
 	  }
 	  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_SDIO|RCC_PERIPHCLK_CLK48;
-	  PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48CLKSOURCE_PLLQ;
+	  PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48CLKSOURCE_PLLSAIP;
 	  PeriphClkInitStruct.SdioClockSelection = RCC_SDIOCLKSOURCE_CLK48;
+	  PeriphClkInitStruct.PLLSAI.PLLSAIM = 6;
+	  PeriphClkInitStruct.PLLSAI.PLLSAIN = 96;
+	  PeriphClkInitStruct.PLLSAI.PLLSAIQ = 2;
+	  PeriphClkInitStruct.PLLSAI.PLLSAIP = RCC_PLLSAIP_DIV4;
+	  PeriphClkInitStruct.PLLSAIDivQ = 1;
 	  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
 	  {
 	    Error_Handler();
