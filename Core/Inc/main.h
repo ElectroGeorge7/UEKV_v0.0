@@ -30,29 +30,15 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 
-//#include "lm_timer.h"
-
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
 /* Private defines -----------------------------------------------------------*/
 #define LED_ERROR_Pin GPIO_PIN_12
 #define LED_ERROR_GPIO_Port GPIOC
-
-#define SPI_ETT_CS2_Pin GPIO_PIN_12
-#define SPI_ETT_CS2_GPIO_Port GPIOB
-#define SPI_ETT_CS3_Pin GPIO_PIN_13
-#define SPI_ETT_CS3_GPIO_Port GPIOB
-#define SPI_ETT_CS4_Pin GPIO_PIN_15
-#define SPI_ETT_CS4_GPIO_Port GPIOB
 #define LED_PROCESS_Pin GPIO_PIN_13
 #define LED_PROCESS_GPIO_Port GPIOC
 
-#define SPI_ETT_CS_Pin GPIO_PIN_5
-#define SPI_ETT_CS_GPIO_Port GPIOB
-/* USER CODE BEGIN Private defines */
-
-/* USER CODE END Private defines */
 
 #ifdef __cplusplus
 }

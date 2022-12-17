@@ -55,6 +55,7 @@
 									<listOptionValue builtIn="false" value="../ResultCheck/"/>
 									<listOptionValue builtIn="false" value="../ResultCheck/rch_hardware/"/>
 									<listOptionValue builtIn="false" value="../ResultCheck/ub_check/"/>
+									<listOptionValue builtIn="false" value="../ResultCheck/ett_check/"/>
 									<listOptionValue builtIn="false" value="../Display/"/>
 									<listOptionValue builtIn="false" value="../Display/display_hardware/"/>
 									<listOptionValue builtIn="false" value="../FATFS/FatFs/src/"/>
@@ -132,6 +133,7 @@
 									<listOptionValue builtIn="false" value="../ResultCheck/"/>
 									<listOptionValue builtIn="false" value="../ResultCheck/rch_hardware/"/>
 									<listOptionValue builtIn="false" value="../ResultCheck/ub_check/"/>
+									<listOptionValue builtIn="false" value="../ResultCheck/ett_check/"/>
 									<listOptionValue builtIn="false" value="../Display/"/>
 									<listOptionValue builtIn="false" value="../Display/display_hardware/"/>
 									<listOptionValue builtIn="false" value="../FATFS/FatFs/src/"/>

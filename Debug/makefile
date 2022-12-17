@@ -14,6 +14,7 @@ RM := rm -rf
 -include TempSensors/ts_hardware/subdir.mk
 -include ResultCheck/ub_check/subdir.mk
 -include ResultCheck/rch_hardware/subdir.mk
+-include ResultCheck/ett_check/subdir.mk
 -include ResultCheck/subdir.mk
 -include Middlewares/ST/STM32_USB_Device_Library/Core/Src/subdir.mk
 -include Middlewares/ST/STM32_USB_Device_Library/Class/CDC/subdir.mk
