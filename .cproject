@@ -70,6 +70,12 @@
 									<listOptionValue builtIn="false" value="../USB_DEVICE/App/"/>
 									<listOptionValue builtIn="false" value="../USB_DEVICE/Target/"/>
 									<listOptionValue builtIn="false" value="../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/"/>
+									<listOptionValue builtIn="false" value="../FreeRTOS/"/>
+									<listOptionValue builtIn="false" value="../FreeRTOS/Source/"/>
+									<listOptionValue builtIn="false" value="../FreeRTOS/Source/CMSIS_RTOS_V2/"/>
+									<listOptionValue builtIn="false" value="../FreeRTOS/Source/include/"/>
+									<listOptionValue builtIn="false" value="../FreeRTOS/Source/portable/GCC/ARM_CM4F/"/>
+									<listOptionValue builtIn="false" value="../FreeRTOS/Source/portable/MemMang/"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.809967985" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c"/>
 							</tool>
@@ -141,6 +147,12 @@
 									<listOptionValue builtIn="false" value="../USB_DEVICE/App/"/>
 									<listOptionValue builtIn="false" value="../USB_DEVICE/Target/"/>
 									<listOptionValue builtIn="false" value="../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/"/>
+									<listOptionValue builtIn="false" value="../FreeRTOS/"/>
+									<listOptionValue builtIn="false" value="../FreeRTOS/Source/"/>
+									<listOptionValue builtIn="false" value="../FreeRTOS/Source/CMSIS_RTOS_V2/"/>
+									<listOptionValue builtIn="false" value="../FreeRTOS/Source/include/"/>
+									<listOptionValue builtIn="false" value="../FreeRTOS/Source/portable/GCC/ARM_CM4F/"/>
+									<listOptionValue builtIn="false" value="../FreeRTOS/Source/portable/MemMang/"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.1454084800" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c"/>
 							</tool>
