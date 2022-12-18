@@ -4,6 +4,8 @@
 
 #include "stm32f4xx_sysclock.h"
 
+#include "buttons_hardware.h"
+
 #include "leds_matrix.h"
 #include "result_check.h"
 #include "ts_spi.h"
@@ -16,15 +18,12 @@
 
 #include "usb_device.h"
 
-
 TIM_HandleTypeDef htim12;
-UART_HandleTypeDef huart6;
 
 /* Private function prototypes -----------------------------------------------*/
 
 static void MX_GPIO_Init(void);
 static void MX_TIM12_Init(void);
-static void MX_USART6_UART_Init(void);
 
 extern uint16_t ledsBitMatrix[];
 
@@ -64,6 +63,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  buttons_init();
 
   //leds_matrix_init();
   //ledsBitMatrix[1] = 0x0c;
@@ -76,7 +76,7 @@ int main(void)
   LCD_Init(&lcd, 0x38, 16, 2);
   LCD_Backlight(&lcd, 1); //Backlight on
   LCD_SendString(&lcd, "Hello World!");
-  LCD_Clear(&lcd);
+  //LCD_Clear(&lcd);
   LCD_SetCursor(&lcd, 0, 1);
 
   fatfs_init();
@@ -98,9 +98,10 @@ int main(void)
 	  LCD_SendString(&lcd, tsResString);
 	  HAL_Delay(1000);
 	  LCD_Clear(&lcd);
-*/
+
 	  CDC_Transmit_FS(usbString, sizeof(usbString));
 	  HAL_Delay(1000);
+*/
   }
  
 }
@@ -155,30 +156,6 @@ static void MX_TIM12_Init(void)
 
   /* USER CODE END TIM12_Init 2 */
   HAL_TIM_MspPostInit(&htim12);
-
-}
-
-
-/**
-  * @brief USART6 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_USART6_UART_Init(void)
-{
-
-  huart6.Instance = USART6;
-  huart6.Init.BaudRate = 115200;
-  huart6.Init.WordLength = UART_WORDLENGTH_8B;
-  huart6.Init.StopBits = UART_STOPBITS_1;
-  huart6.Init.Parity = UART_PARITY_NONE;
-  huart6.Init.Mode = UART_MODE_TX_RX;
-  huart6.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart6.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart6) != HAL_OK)
-  {
-    Error_Handler();
-  }
 
 }
 

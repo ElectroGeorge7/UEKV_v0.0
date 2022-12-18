@@ -10,6 +10,7 @@ RM := rm -rf
 -include sources.mk
 -include USB_DEVICE/Target/subdir.mk
 -include USB_DEVICE/App/subdir.mk
+-include Terminal/subdir.mk
 -include TempSensors/ts_max6675/subdir.mk
 -include TempSensors/ts_hardware/subdir.mk
 -include ResultCheck/ub_check/subdir.mk
@@ -18,6 +19,7 @@ RM := rm -rf
 -include ResultCheck/subdir.mk
 -include Middlewares/ST/STM32_USB_Device_Library/Core/Src/subdir.mk
 -include Middlewares/ST/STM32_USB_Device_Library/Class/CDC/subdir.mk
+-include Menu/buttons_hardware/subdir.mk
 -include LedsMatrix/lm_hardware/subdir.mk
 -include LedsMatrix/ARGB/subdir.mk
 -include LedsMatrix/subdir.mk

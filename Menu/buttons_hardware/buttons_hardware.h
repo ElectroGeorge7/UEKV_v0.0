@@ -1,0 +1,21 @@
+#ifndef BUTTONS_HARDWARE_H_
+#define BUTTONS_HARDWARE_H_
+
+#include "stm32f4xx_hal.h"
+
+#define BUTTON_UP_Pin GPIO_PIN_3
+#define BUTTON_UP_GPIO_Port GPIOC
+#define BUTTON_UP_EXTI_IRQn EXTI3_IRQn
+#define BUTTON_DOWN_Pin GPIO_PIN_4
+#define BUTTON_DOWN_GPIO_Port GPIOC
+#define BUTTON_DOWN_EXTI_IRQn EXTI4_IRQn
+#define BUTTON_RIGHT_Pin GPIO_PIN_5
+#define BUTTON_RIGHT_GPIO_Port GPIOC
+#define BUTTON_RIGHT_EXTI_IRQn EXTI9_5_IRQn
+#define BUTTON_LEFT_Pin GPIO_PIN_10
+#define BUTTON_LEFT_GPIO_Port GPIOC
+#define BUTTON_LEFT_EXTI_IRQn EXTI15_10_IRQn
+
+HAL_StatusTypeDef buttons_init(void);
+
+#endif

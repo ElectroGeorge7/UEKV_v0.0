@@ -127,7 +127,7 @@ HAL_StatusTypeDef uart_terminal_cmd_def(void){
 static void uart6_init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-  if(huart->Instance==USART6)
+  if(huart6.Instance==USART6)
   {
   /* USER CODE BEGIN USART6_MspInit 0 */
 

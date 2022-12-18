@@ -6,7 +6,9 @@
  */
 
 #include "stm32f4xx_sysclock.h"
+
 #include "stm32f4xx_hal.h"
+#include "main.h"
 
 /**
   * @brief System Clock Configuration
