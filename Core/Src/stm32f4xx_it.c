@@ -24,6 +24,7 @@
 /* External variables --------------------------------------------------------*/
 extern DMA_HandleTypeDef hdma_tim1_ch3;
 extern TIM_HandleTypeDef htim9;
+extern TIM_HandleTypeDef htim13;
 extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
 
@@ -108,7 +109,7 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
-  HAL_IncTick();
+  //HAL_IncTick();
 }
 
 /******************************************************************************/
@@ -169,6 +170,14 @@ void EXTI9_5_IRQHandler(void)
 void EXTI15_10_IRQHandler(void)
 {
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_10);
+}
+
+/**
+  * @brief This function handles TIM8 update interrupt and TIM13 global interrupt.
+  */
+void TIM8_UP_TIM13_IRQHandler(void)
+{
+  HAL_TIM_IRQHandler(&htim13);
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

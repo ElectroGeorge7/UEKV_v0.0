@@ -19,6 +19,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	static uint8_t interruptNum = 0;
 	uint8_t rowNum = UB_MATRIX_ROW_NUM;
 
+	 if (htim->Instance == TIM13) {
+	   HAL_IncTick();
+	 }else{
+
 	ub_check();
 	for (uint8_t rowNum = 0; rowNum < UB_MATRIX_ROW_NUM; rowNum++){
 		resultMatrix[rowNum] |= ubMatrix[rowNum];
@@ -44,6 +48,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	}
 
 	HAL_GPIO_TogglePin(GPIOC, LED_PROCESS_Pin);
+
+	 }
 }
 
 HAL_StatusTypeDef rch_timer_init(void){

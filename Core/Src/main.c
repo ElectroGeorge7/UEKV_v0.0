@@ -54,12 +54,12 @@ void fRead(char *configFileName, uint8_t *buf, uint32_t num, uint32_t *br){
 
 int main(void)
 {
+  /* Configure the system clock */
+  SystemClock_Config();
+
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
   HAL_Delay(500);
-
-  /* Configure the system clock */
-  SystemClock_Config();
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
