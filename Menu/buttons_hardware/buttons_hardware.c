@@ -2,12 +2,26 @@
 #include "buttons_hardware.h"
 
 #include "main.h"
+#include "cmsis_os2.h"
+
+extern osMessageQueueId_t eventQueueHandler;
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
-	if ( (GPIO_Pin == BUTTON_UP_Pin) || (GPIO_Pin == BUTTON_DOWN_Pin) )
-		HAL_GPIO_WritePin(GPIOC, LED_PROCESS_Pin, GPIO_PIN_SET);
-	else
-		HAL_GPIO_WritePin(GPIOC, LED_PROCESS_Pin, GPIO_PIN_RESET);
+
+    osStatus_t osRes;
+	uint8_t event;
+
+	if ( GPIO_Pin == BUTTON_UP_Pin ){
+		event = BUTTON_UP_PRESS_EVENT;
+	} else if ( GPIO_Pin == BUTTON_DOWN_Pin ){
+		event = BUTTON_DOWN_PRESS_EVENT;
+	} else if ( GPIO_Pin == BUTTON_LEFT_Pin ){
+		event = BUTTON_LEFT_PRESS_EVENT;
+	} else if ( GPIO_Pin == BUTTON_RIGHT_Pin ){
+		event = BUTTON_RIGHT_PRESS_EVENT;
+	};
+
+	osRes = osMessageQueuePut (eventQueueHandler, &event, 0, 0);
 }
 
 /**
@@ -29,16 +43,20 @@ HAL_StatusTypeDef buttons_init(void)
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI3_IRQn, 0, 0);
+  /*
+   * @note all FreeRTOS safe ISR should have priority <= configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY
+   * see FreeRTOSConfig.h
+   */
+  HAL_NVIC_SetPriority(EXTI3_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(EXTI3_IRQn);
 
-  HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(EXTI4_IRQn);
 
-  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
-  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
   return HAL_OK;

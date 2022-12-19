@@ -61,19 +61,44 @@ const osThreadAttr_t controlTask_attributes = {
   .stack_size = 768 * 4
 };
 
+#define EVENT_QUEUE_OBJECTS 10
+#define EVENT_QUEUE_OBJ_SIZE 1
+osMessageQueueId_t eventQueueHandler;
+const osMessageQueueAttr_t eventQueue = {
+	.name = "eventQueue"
+};
+
 void ControlTask(void *argument)
 {
 	uint8_t tempVal = 0;
 	char tempStr[8] = {0};
 
+	osStatus_t res;
+	uint8_t event;
+
   for(;;)
   {
-	  LCD_Clear(&lcd);
-	  snprintf(tempStr, 7, "%d", tempVal++);
-	  LCD_SetCursor(&lcd, 0, 0);
-	  LCD_SendString(&lcd, "Cur numb:");
-	  //LCD_SetCursor(&lcd, 0, 1);
-	  LCD_SendString(&lcd, tempStr);
+	res = osMessageQueueGet(eventQueueHandler, &event, NULL, osWaitForever);
+
+	if( res == osOK )
+	{
+		if ( event == BUTTON_UP_PRESS_EVENT )
+			tempVal++;
+		else if ( event == BUTTON_DOWN_PRESS_EVENT )
+			tempVal--;
+		else if ( event == BUTTON_RIGHT_PRESS_EVENT )
+			tempVal = 255;
+		else if ( event == BUTTON_LEFT_PRESS_EVENT )
+			tempVal = 0;
+		else
+			tempVal = 127;
+	}
+
+	LCD_Clear(&lcd);
+	snprintf(tempStr, 7, "%d", tempVal);
+	LCD_SetCursor(&lcd, 0, 0);
+	LCD_SendString(&lcd, "tempVal: ");
+	LCD_SendString(&lcd, tempStr);
     osDelay(1000);
   }
 }
@@ -119,6 +144,8 @@ int main(void)
 
 
   osKernelInitialize();
+
+  eventQueueHandler = osMessageQueueNew (EVENT_QUEUE_OBJECTS, EVENT_QUEUE_OBJ_SIZE, &eventQueue);
 
   controlTaskHandle = osThreadNew(ControlTask, NULL, &controlTask_attributes);
 

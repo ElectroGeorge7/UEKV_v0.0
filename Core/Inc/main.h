@@ -39,6 +39,10 @@ void Error_Handler(void);
 #define LED_PROCESS_Pin GPIO_PIN_13
 #define LED_PROCESS_GPIO_Port GPIOC
 
+#define BUTTON_UP_PRESS_EVENT 		1
+#define BUTTON_DOWN_PRESS_EVENT 	2
+#define BUTTON_RIGHT_PRESS_EVENT 	3
+#define BUTTON_LEFT_PRESS_EVENT 	4
 
 #ifdef __cplusplus
 }
