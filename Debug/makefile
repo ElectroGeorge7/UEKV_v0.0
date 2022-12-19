@@ -24,6 +24,10 @@ RM := rm -rf
 -include LedsMatrix/ARGB/subdir.mk
 -include LedsMatrix/subdir.mk
 -include LabPowerSupply/rs485_hardware/subdir.mk
+-include FreeRTOS/Source/portable/MemMang/subdir.mk
+-include FreeRTOS/Source/portable/GCC/ARM_CM4F/subdir.mk
+-include FreeRTOS/Source/CMSIS_RTOS_V2/subdir.mk
+-include FreeRTOS/Source/subdir.mk
 -include FATFS/sdmc_hardware/subdir.mk
 -include FATFS/Target/subdir.mk
 -include FATFS/FatFs/src/option/subdir.mk

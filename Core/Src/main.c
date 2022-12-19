@@ -18,6 +18,8 @@
 
 #include "usb_device.h"
 
+#include "cmsis_os2.h"
+
 TIM_HandleTypeDef htim12;
 
 /* Private function prototypes -----------------------------------------------*/
@@ -52,6 +54,31 @@ void fRead(char *configFileName, uint8_t *buf, uint32_t num, uint32_t *br){
   f_close(&readFile);
 }
 
+osThreadId_t controlTaskHandle;
+const osThreadAttr_t controlTask_attributes = {
+  .name = "controlTask",
+  .priority = (osPriority_t) osPriorityNormal3,
+  .stack_size = 768 * 4
+};
+
+void ControlTask(void *argument)
+{
+	uint8_t tempVal = 0;
+	char tempStr[8] = {0};
+
+  for(;;)
+  {
+	  LCD_Clear(&lcd);
+	  snprintf(tempStr, 7, "%d", tempVal++);
+	  LCD_SetCursor(&lcd, 0, 0);
+	  LCD_SendString(&lcd, "Cur numb:");
+	  //LCD_SetCursor(&lcd, 0, 1);
+	  LCD_SendString(&lcd, tempStr);
+    osDelay(1000);
+  }
+}
+
+
 int main(void)
 {
   /* Configure the system clock */
@@ -73,6 +100,7 @@ int main(void)
   //leds_matrix_clear();
   //result_check_init();
 
+
   LCD_Init(&lcd, 0x38, 16, 2);
   LCD_Backlight(&lcd, 1); //Backlight on
   LCD_SendString(&lcd, "Hello World!");
@@ -88,6 +116,13 @@ int main(void)
 
   MX_USB_DEVICE_Init();
   uint8_t usbString[] = "UEKV_v0.0, USB Test\n\r";
+
+
+  osKernelInitialize();
+
+  controlTaskHandle = osThreadNew(ControlTask, NULL, &controlTask_attributes);
+
+  osKernelStart();
 
   while (1)
   {
