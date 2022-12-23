@@ -20,6 +20,7 @@ RM := rm -rf
 -include Middlewares/ST/STM32_USB_Device_Library/Core/Src/subdir.mk
 -include Middlewares/ST/STM32_USB_Device_Library/Class/CDC/subdir.mk
 -include Menu/buttons_hardware/subdir.mk
+-include Menu/subdir.mk
 -include LedsMatrix/lm_hardware/subdir.mk
 -include LedsMatrix/ARGB/subdir.mk
 -include LedsMatrix/subdir.mk

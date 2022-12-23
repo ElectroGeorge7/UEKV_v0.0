@@ -15,6 +15,8 @@
 #include "LCD1602.h"
 #include <stdio.h>
 
+#include "menu.h"
+
 #include "fatfs.h"
 
 #include "usb_device.h"
@@ -87,26 +89,16 @@ void ControlTask(void *argument)
 	if( res == osOK )
 	{
 		if ( event == BUTTON_UP_PRESS_EVENT )
-			tempVal++;
+			menu_view_update(DOWN_CMD);
 		else if ( event == BUTTON_DOWN_PRESS_EVENT )
-			tempVal--;
+			menu_view_update(DOWN_CMD);
 		else if ( event == BUTTON_RIGHT_PRESS_EVENT )
-			tempVal = 255;
+			menu_view_update(SELECT_CMD);
 		else if ( event == BUTTON_LEFT_PRESS_EVENT )
-			tempVal = 0;
+			menu_view_update(BACK_CMD);
 		else
-			tempVal = 127;
+			menu_view_update(START_CMD);
 	}
-
-	//LCD_Clear(&lcd);
-	LCD_Clear();
-	snprintf(tempStr, 7, "%d", tempVal);
-	LCD_SetCursor( 0, 0 );
-	LCD_PrintString(rusString);
-	LCD_PrintString(tempStr);
-	//LCD_SetCursor(&lcd, 0, 0);
-	//LCD_SendString(&lcd, rusString);
-	//LCD_SendString(&lcd, tempStr);
 
     osDelay(1000);
   }
@@ -126,36 +118,14 @@ int main(void)
   MX_GPIO_Init();
   buttons_init();
 
-  //leds_matrix_init();
-  //ledsBitMatrix[1] = 0x0c;
-  //ledsBitMatrix[7] = 0xc0;
-  //leds_matrix_show_result();
-  //HAL_Delay(1000);
-  //leds_matrix_clear();
-  //result_check_init();
-
-
-  //LCD_Init(&lcd, 0x38, 16, 2);
-  //LCD_Backlight(&lcd, 1); //Backlight on
-  //LCD_SendString(&lcd, enString);
-  //LCD_Clear(&lcd);
-  //LCD_SetCursor(&lcd, 0, 1);
-
   LCD_Init();
-  LCD_SetCursor( 0, 0 );
-  LCD_PrintString("Hello Odessa");
-  LCD_SetCursor( 0, 1 );
-  LCD_PrintString("Привет Одесса");
+
+  menu_init();
 
   fatfs_init();
   gfr = f_mount(&sdFatFs, "", 1);
-  fRead("Test1.txt", gfileBuf, 10, gbr);
-  //LCD_SendString(&lcd, gfileBuf);
-
-  ts_spi_init();
 
   MX_USB_DEVICE_Init();
-  uint8_t usbString[] = "UEKV_v0.0, USB Test\n\r";
 
 
   osKernelInitialize();
@@ -168,17 +138,7 @@ int main(void)
 
   while (1)
   {
-/*
-	  tempRes = Max6675_Read_Temp();
-	  snprintf(tsResString, 7, "%f", tempRes);
-	  LCD_SetCursor(&lcd, 0, 0);
-	  LCD_SendString(&lcd, tsResString);
-	  HAL_Delay(1000);
-	  LCD_Clear(&lcd);
 
-	  CDC_Transmit_FS(usbString, sizeof(usbString));
-	  HAL_Delay(1000);
-*/
   }
  
 }
