@@ -11,7 +11,8 @@
 #include "ts_spi.h"
 #include "MAX6675.h"
 
-#include "LCD_i2c.h"
+//#include "LCD_i2c.h"
+#include "LCD1602.h"
 #include <stdio.h>
 
 #include "fatfs.h"
@@ -29,10 +30,13 @@ static void MX_TIM12_Init(void);
 
 extern uint16_t ledsBitMatrix[];
 
-LCD_I2C_t lcd;
+//LCD_I2C_t lcd;
 
 char tsResString[10];
 float tempRes=0;
+
+char enString[] = "Hello world";
+char rusString[] = "тек пер:";
 
 static FATFS sdFatFs;
 static FIL sdFile;
@@ -94,11 +98,16 @@ void ControlTask(void *argument)
 			tempVal = 127;
 	}
 
-	LCD_Clear(&lcd);
+	//LCD_Clear(&lcd);
+	LCD_Clear();
 	snprintf(tempStr, 7, "%d", tempVal);
-	LCD_SetCursor(&lcd, 0, 0);
-	LCD_SendString(&lcd, "tempVal: ");
-	LCD_SendString(&lcd, tempStr);
+	LCD_SetCursor( 0, 0 );
+	LCD_PrintString(rusString);
+	LCD_PrintString(tempStr);
+	//LCD_SetCursor(&lcd, 0, 0);
+	//LCD_SendString(&lcd, rusString);
+	//LCD_SendString(&lcd, tempStr);
+
     osDelay(1000);
   }
 }
@@ -126,11 +135,17 @@ int main(void)
   //result_check_init();
 
 
-  LCD_Init(&lcd, 0x38, 16, 2);
-  LCD_Backlight(&lcd, 1); //Backlight on
-  LCD_SendString(&lcd, "Hello World!");
+  //LCD_Init(&lcd, 0x38, 16, 2);
+  //LCD_Backlight(&lcd, 1); //Backlight on
+  //LCD_SendString(&lcd, enString);
   //LCD_Clear(&lcd);
-  LCD_SetCursor(&lcd, 0, 1);
+  //LCD_SetCursor(&lcd, 0, 1);
+
+  LCD_Init();
+  LCD_SetCursor( 0, 0 );
+  LCD_PrintString("Hello Odessa");
+  LCD_SetCursor( 0, 1 );
+  LCD_PrintString("Привет Одесса");
 
   fatfs_init();
   gfr = f_mount(&sdFatFs, "", 1);
