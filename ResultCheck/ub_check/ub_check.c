@@ -17,6 +17,7 @@
 I2C_HandleTypeDef hi2c1;
 
 uint16_t portExpPacket = 0;
+uint16_t portInitPacket = 0xffff;
 uint8_t rowBitArray = 0;
 uint8_t colBitArray = 0;
 
@@ -26,7 +27,7 @@ static void I2C1_Init(void);
 
 HAL_StatusTypeDef ub_check_init(){
 	I2C1_Init();
-	HAL_I2C_Master_Transmit(&hi2c1, PCF8575_WRITE_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
+	HAL_I2C_Master_Transmit(&hi2c1, PCF8575_WRITE_ADDR, (uint8_t *)&portInitPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
 	HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
 	return HAL_OK;
 }

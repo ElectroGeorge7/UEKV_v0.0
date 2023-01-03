@@ -82,6 +82,9 @@ void ControlTask(void *argument)
 	osStatus_t res;
 	uint8_t event;
 
+	  leds_matrix_init();
+	  result_check_init();
+
   for(;;)
   {
 	res = osMessageQueueGet(eventQueueHandler, &event, NULL, osWaitForever);
