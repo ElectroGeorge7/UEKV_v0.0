@@ -82,8 +82,8 @@ void ControlTask(void *argument)
 	osStatus_t res;
 	uint8_t event;
 
-	  leds_matrix_init();
-	  result_check_init();
+	leds_matrix_init();
+	//result_check_init();
 
   for(;;)
   {
@@ -103,6 +103,171 @@ void ControlTask(void *argument)
 			menu_view_update(START_CMD);
 	}
 
+		// Arrow animation
+		ledsBitMatrix[1] = 0xc0;
+		leds_matrix_show_result();
+		HAL_Delay(200);
+		leds_matrix_clear();
+
+		ledsBitMatrix[1] = 0x1e0;
+		ledsBitMatrix[2] = 0xc0;
+		leds_matrix_show_result();
+		HAL_Delay(200);
+		leds_matrix_clear();
+
+		ledsBitMatrix[1] = 0x3f0;
+		ledsBitMatrix[2] = 0x1e0;
+		ledsBitMatrix[3] = 0xc0;
+		leds_matrix_show_result();
+		HAL_Delay(200);
+		leds_matrix_clear();
+
+		ledsBitMatrix[1] = 0x7f8;
+		ledsBitMatrix[2] = 0x3f0;
+		ledsBitMatrix[3] = 0x1e0;
+		ledsBitMatrix[4] = 0xc0;
+		leds_matrix_show_result();
+		HAL_Delay(200);
+		leds_matrix_clear();
+
+		ledsBitMatrix[1] = 0xffc;
+		ledsBitMatrix[2] = 0x7f8;
+		ledsBitMatrix[3] = 0x3f0;
+		ledsBitMatrix[4] = 0x1e0;
+		ledsBitMatrix[5] = 0xc0;
+		leds_matrix_show_result();
+		HAL_Delay(200);
+		leds_matrix_clear();
+
+		ledsBitMatrix[1] = 0x1ffe;
+		ledsBitMatrix[2] = 0xffc;
+		ledsBitMatrix[3] = 0x7f8;
+		ledsBitMatrix[4] = 0x3f0;
+		ledsBitMatrix[5] = 0x1e0;
+		ledsBitMatrix[6] = 0xc0;
+		leds_matrix_show_result();
+		HAL_Delay(200);
+		leds_matrix_clear();
+
+		ledsBitMatrix[1] = 0xc0;
+		ledsBitMatrix[2] = 0x1ffe;
+		ledsBitMatrix[3] = 0xffc;
+		ledsBitMatrix[4] = 0x7f8;
+		ledsBitMatrix[5] = 0x3f0;
+		ledsBitMatrix[6] = 0x1e0;
+		ledsBitMatrix[7] = 0xc0;
+		leds_matrix_show_result();
+		HAL_Delay(200);
+		leds_matrix_clear();
+
+		ledsBitMatrix[1] = 0xc0;
+		ledsBitMatrix[2] = 0xc0;
+		ledsBitMatrix[3] = 0x1ffe;
+		ledsBitMatrix[4] = 0xffc;
+		ledsBitMatrix[5] = 0x7f8;
+		ledsBitMatrix[6] = 0x3f0;
+		ledsBitMatrix[7] = 0x1e0;
+		ledsBitMatrix[8] = 0xc0;
+		leds_matrix_show_result();
+		HAL_Delay(200);
+		leds_matrix_clear();
+
+		ledsBitMatrix[1] = 0xc0;
+		ledsBitMatrix[2] = 0xc0;
+		ledsBitMatrix[3] = 0xc0;
+		ledsBitMatrix[4] = 0x1ffe;
+		ledsBitMatrix[5] = 0xffc;
+		ledsBitMatrix[6] = 0x7f8;
+		ledsBitMatrix[7] = 0x3f0;
+		ledsBitMatrix[8] = 0x1e0;
+		ledsBitMatrix[9] = 0xc0;
+		leds_matrix_show_result();
+		HAL_Delay(200);
+		leds_matrix_clear();
+
+		HAL_Delay(1000);
+
+		ledsBitMatrix[9] = 0xc0;
+		leds_matrix_show_result();
+		HAL_Delay(200);
+		leds_matrix_clear();
+
+		ledsBitMatrix[9] = 0x1e0;
+		ledsBitMatrix[8] = 0xc0;
+		leds_matrix_show_result();
+		HAL_Delay(200);
+		leds_matrix_clear();
+
+		ledsBitMatrix[9] = 0x3f0;
+		ledsBitMatrix[8] = 0x1e0;
+		ledsBitMatrix[7] = 0xc0;
+		leds_matrix_show_result();
+		HAL_Delay(200);
+		leds_matrix_clear();
+
+		ledsBitMatrix[9] = 0x7f8;
+		ledsBitMatrix[8] = 0x3f0;
+		ledsBitMatrix[7] = 0x1e0;
+		ledsBitMatrix[6] = 0xc0;
+		leds_matrix_show_result();
+		HAL_Delay(200);
+		leds_matrix_clear();
+
+		ledsBitMatrix[9] = 0xffc;
+		ledsBitMatrix[8] = 0x7f8;
+		ledsBitMatrix[7] = 0x3f0;
+		ledsBitMatrix[6] = 0x1e0;
+		ledsBitMatrix[5] = 0xc0;
+		leds_matrix_show_result();
+		HAL_Delay(200);
+		leds_matrix_clear();
+
+		ledsBitMatrix[9] = 0x1ffe;
+		ledsBitMatrix[8] = 0xffc;
+		ledsBitMatrix[7] = 0x7f8;
+		ledsBitMatrix[6] = 0x3f0;
+		ledsBitMatrix[5] = 0x1e0;
+		ledsBitMatrix[4] = 0xc0;
+		leds_matrix_show_result();
+		HAL_Delay(200);
+		leds_matrix_clear();
+
+		ledsBitMatrix[9] = 0xc0;
+		ledsBitMatrix[8] = 0x1ffe;
+		ledsBitMatrix[7] = 0xffc;
+		ledsBitMatrix[6] = 0x7f8;
+		ledsBitMatrix[5] = 0x3f0;
+		ledsBitMatrix[4] = 0x1e0;
+		ledsBitMatrix[3] = 0xc0;
+		leds_matrix_show_result();
+		HAL_Delay(200);
+		leds_matrix_clear();
+
+		ledsBitMatrix[9] = 0xc0;
+		ledsBitMatrix[8] = 0xc0;
+		ledsBitMatrix[7] = 0x1ffe;
+		ledsBitMatrix[6] = 0xffc;
+		ledsBitMatrix[5] = 0x7f8;
+		ledsBitMatrix[4] = 0x3f0;
+		ledsBitMatrix[3] = 0x1e0;
+		ledsBitMatrix[2] = 0xc0;
+		leds_matrix_show_result();
+		HAL_Delay(200);
+		leds_matrix_clear();
+
+		ledsBitMatrix[9] = 0xc0;
+		ledsBitMatrix[8] = 0xc0;
+		ledsBitMatrix[7] = 0xc0;
+		ledsBitMatrix[6] = 0x1ffe;
+		ledsBitMatrix[5] = 0xffc;
+		ledsBitMatrix[4] = 0x7f8;
+		ledsBitMatrix[3] = 0x3f0;
+		ledsBitMatrix[2] = 0x1e0;
+		ledsBitMatrix[1] = 0xc0;
+		leds_matrix_show_result();
+		HAL_Delay(200);
+		leds_matrix_clear();
+
     osDelay(1000);
   }
 }
@@ -116,6 +281,7 @@ int main(void)
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
   HAL_Delay(500);
+
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();

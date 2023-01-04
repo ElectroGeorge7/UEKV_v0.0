@@ -80,9 +80,9 @@
 
 /// Timer's RCC Bus
 #if TIM_NUM == 1 || (TIM_NUM >= 8 && TIM_NUM <= 11)
-#define APB1
-#else
 #define APB2
+#else
+#define APB1
 #endif
 
 /// DMA Size
