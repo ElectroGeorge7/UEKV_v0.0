@@ -10,6 +10,8 @@
 uint8_t ubMatrix[8];
 
 HAL_StatusTypeDef ub_check_init();
+HAL_StatusTypeDef ub_check_freq_adjust();
+HAL_StatusTypeDef ub_row1_sig_wait();
 HAL_StatusTypeDef ub_check();
 HAL_StatusTypeDef ub_res_clear(void);
 

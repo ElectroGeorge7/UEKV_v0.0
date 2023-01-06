@@ -127,11 +127,7 @@ HAL_StatusTypeDef uart_terminal_cmd_def(void){
 static void uart6_init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-  if(huart6.Instance==USART6)
-  {
-  /* USER CODE BEGIN USART6_MspInit 0 */
 
-  /* USER CODE END USART6_MspInit 0 */
 	/* Peripheral clock enable */
 	__HAL_RCC_USART6_CLK_ENABLE();
 
@@ -146,7 +142,6 @@ static void uart6_init(void)
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
 	GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-  }
 
   huart6.Instance = USART6;
   huart6.Init.BaudRate = 115200;
@@ -160,6 +155,7 @@ static void uart6_init(void)
   {
 	Error_Handler();
   }
+
 }
 
 
