@@ -13,6 +13,7 @@ RM := rm -rf
 -include Terminal/subdir.mk
 -include TempSensors/ts_max6675/subdir.mk
 -include TempSensors/ts_hardware/subdir.mk
+-include Tasks/subdir.mk
 -include ResultCheck/ub_check/subdir.mk
 -include ResultCheck/rch_hardware/subdir.mk
 -include ResultCheck/ett_check/subdir.mk

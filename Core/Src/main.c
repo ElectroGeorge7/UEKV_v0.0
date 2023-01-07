@@ -19,11 +19,11 @@
 
 #include "menu.h"
 
-#include "fatfs.h"
-
 #include "usb_device.h"
 
 #include "cmsis_os2.h"
+#include "control_task.h"
+#include "storage_task.h"
 
 
 TIM_HandleTypeDef htim12;
@@ -35,37 +35,16 @@ static void MX_TIM12_Init(void);
 
 extern uint16_t ledsBitMatrix[];
 
-//LCD_I2C_t lcd;
-
-char tsResString[10];
-float tempRes=0;
-
-char enString[] = "Hello world";
-char rusString[] = "тек пер:";
-
-static FATFS sdFatFs;
-static FIL sdFile;
-FRESULT gfr;
-
-uint8_t gfileBuf[80] = {0};
-uint32_t gbr;
-void fRead(char *configFileName, uint8_t *buf, uint32_t num, uint32_t *br){
-  FIL readFile;
-
-  do{
-      //fr = open_append(&sdFile, "camconf.txt");
-      gfr = f_open(&readFile, configFileName, FA_READ);
-  }while (gfr);
-
-  gfr = f_read(&readFile, buf, num, br);
-
-  // Close the file
-  f_close(&readFile);
-}
-
 osThreadId_t controlTaskHandle;
 const osThreadAttr_t controlTask_attributes = {
   .name = "controlTask",
+  .priority = (osPriority_t) osPriorityNormal3,
+  .stack_size = 768 * 4
+};
+
+osThreadId_t storageTaskHandle;
+const osThreadAttr_t storageTask_attributes = {
+  .name = "storageTask",
   .priority = (osPriority_t) osPriorityNormal3,
   .stack_size = 768 * 4
 };
@@ -76,39 +55,6 @@ osMessageQueueId_t eventQueueHandler;
 const osMessageQueueAttr_t eventQueue = {
 	.name = "eventQueue"
 };
-
-void ControlTask(void *argument)
-{
-	uint8_t tempVal = 0;
-	char tempStr[8] = {0};
-
-	osStatus_t res;
-	uint8_t event;
-
-	leds_matrix_init();
-	result_check_init();
-
-  for(;;)
-  {
-	res = osMessageQueueGet(eventQueueHandler, &event, NULL, osWaitForever);
-
-	if( res == osOK )
-	{
-		if ( event == BUTTON_UP_PRESS_EVENT )
-			menu_view_update(DOWN_CMD);
-		else if ( event == BUTTON_DOWN_PRESS_EVENT )
-			menu_view_update(DOWN_CMD);
-		else if ( event == BUTTON_RIGHT_PRESS_EVENT )
-			menu_view_update(SELECT_CMD);
-		else if ( event == BUTTON_LEFT_PRESS_EVENT )
-			menu_view_update(BACK_CMD);
-		else
-			menu_view_update(START_CMD);
-	}
-
-    osDelay(1000);
-  }
-}
 
 
 int main(void)
@@ -131,17 +77,14 @@ int main(void)
 
   menu_init();
 
-  fatfs_init();
-  gfr = f_mount(&sdFatFs, "", 1);
-
   MX_USB_DEVICE_Init();
-
 
   osKernelInitialize();
 
   eventQueueHandler = osMessageQueueNew (EVENT_QUEUE_OBJECTS, EVENT_QUEUE_OBJ_SIZE, &eventQueue);
 
   controlTaskHandle = osThreadNew(ControlTask, NULL, &controlTask_attributes);
+  storageTaskHandle = osThreadNew(StorageTask, NULL, &storageTask_attributes);
 
   osKernelStart();
 
