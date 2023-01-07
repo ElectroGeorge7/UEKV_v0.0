@@ -24,7 +24,7 @@
 #include "cmsis_os2.h"
 #include "control_task.h"
 #include "storage_task.h"
-
+#include "ub_check_task.h"
 
 TIM_HandleTypeDef htim12;
 
@@ -49,6 +49,13 @@ const osThreadAttr_t storageTask_attributes = {
   .stack_size = 768 * 4
 };
 
+osThreadId_t ubCheckTaskHandle;
+const osThreadAttr_t ubCheckTask_attributes = {
+  .name = "ubCheckTask",
+  .priority = (osPriority_t) osPriorityNormal3,
+  .stack_size = 768 * 4
+};
+
 #define EVENT_QUEUE_OBJECTS 10
 #define EVENT_QUEUE_OBJ_SIZE 1
 osMessageQueueId_t eventQueueHandler;
@@ -56,6 +63,14 @@ const osMessageQueueAttr_t eventQueue = {
 	.name = "eventQueue"
 };
 
+#define LOG_QUEUE_OBJECTS 3
+#define LOG_QUEUE_OBJ_SIZE sizeof(Log_t)
+osMessageQueueId_t logQueueHandler;
+const osMessageQueueAttr_t logQueue = {
+	.name = "logQueue"
+};
+
+osSemaphoreId_t ubCheckSem;
 
 int main(void)
 {
@@ -82,9 +97,16 @@ int main(void)
   osKernelInitialize();
 
   eventQueueHandler = osMessageQueueNew (EVENT_QUEUE_OBJECTS, EVENT_QUEUE_OBJ_SIZE, &eventQueue);
+  logQueueHandler = osMessageQueueNew (LOG_QUEUE_OBJECTS, LOG_QUEUE_OBJ_SIZE, &logQueue);
+
+  ubCheckSem = osSemaphoreNew(1U, 0U, NULL);
+  if (ubCheckSem == NULL) {
+	  uartprintf("Semaphore object not created");
+  }
 
   controlTaskHandle = osThreadNew(ControlTask, NULL, &controlTask_attributes);
   storageTaskHandle = osThreadNew(StorageTask, NULL, &storageTask_attributes);
+  ubCheckTaskHandle = osThreadNew(UbCheckTask, NULL, &ubCheckTask_attributes);
 
   osKernelStart();
 

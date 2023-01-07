@@ -44,6 +44,35 @@ void Error_Handler(void);
 #define BUTTON_RIGHT_PRESS_EVENT 	3
 #define BUTTON_LEFT_PRESS_EVENT 	4
 
+typedef struct {
+	uint8_t sec;
+	uint8_t min;
+	uint8_t hour;
+	uint8_t day;
+	uint8_t mon;
+	uint16_t year;
+} DataTime_t;
+
+
+typedef struct {
+	char intVal;
+	uint16_t fracVal;
+} Current_t;
+
+typedef struct {
+	char intVal;
+	uint16_t fracVal;
+} Voltage_t;
+
+typedef struct {
+	uint32_t index;
+	DataTime_t dataTime;
+	uint16_t result[10];
+	float temp[2];
+	Current_t supplyCurrents[32];
+	Voltage_t supplyVoltages[32];
+} Log_t;
+
 #ifdef __cplusplus
 }
 #endif

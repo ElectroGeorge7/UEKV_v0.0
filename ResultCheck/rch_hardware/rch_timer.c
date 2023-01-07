@@ -9,9 +9,13 @@
 #include "ub_check.h"
 #include "leds_matrix.h"
 
+#include "cmsis_os2.h"
+
 extern uint16_t ledsBitMatrix[];
 
 TIM_HandleTypeDef htim9;
+
+extern osSemaphoreId_t ubCheckSem;
 
 static void TIM9_Init(void);
 
@@ -26,25 +30,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 	} else if (htim->Instance == TIM9) {
 
-		uartprintf("TIM9 interrupt time: %d", HAL_GetTick());
-
-
-
-		ub_check();
-		for (uint8_t rowNum = 0; rowNum < UB_MATRIX_ROW_NUM; rowNum++){
-			resultMatrix[rowNum] |= ubMatrix[rowNum];
-		}
-		ub_res_clear();
-
-		leds_matrix_clear();
-		HAL_Delay(50);
-		memcpy(ledsBitMatrix, resultMatrix, sizeof(resultMatrix));
-		//ledsBitMatrix[1] = 0xc0;
-		//ledsBitMatrix[7] = 0x0c;
-		leds_matrix_show_result();
-		result_check_clear();
-
-		HAL_GPIO_TogglePin(GPIOC, LED_PROCESS_Pin);
+		osSemaphoreRelease(ubCheckSem);
 
 	 }
 }
