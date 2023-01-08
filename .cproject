@@ -79,6 +79,7 @@
 									<listOptionValue builtIn="false" value="../FreeRTOS/Source/portable/MemMang/"/>
 									<listOptionValue builtIn="false" value="../Terminal/"/>
 									<listOptionValue builtIn="false" value="../Menu/buttons_hardware/"/>
+									<listOptionValue builtIn="false" value="../Menu/rtc_hardware/"/>
 									<listOptionValue builtIn="false" value="../Menu/"/>
 									<listOptionValue builtIn="false" value="../Tasks/"/>
 								</option>
@@ -161,6 +162,7 @@
 									<listOptionValue builtIn="false" value="../FreeRTOS/Source/portable/MemMang/"/>
 									<listOptionValue builtIn="false" value="../Terminal/"/>
 									<listOptionValue builtIn="false" value="../Menu/buttons_hardware/"/>
+									<listOptionValue builtIn="false" value="../Menu/rtc_hardware/"/>
 									<listOptionValue builtIn="false" value="../Menu/"/>
 									<listOptionValue builtIn="false" value="../Tasks/"/>
 								</option>

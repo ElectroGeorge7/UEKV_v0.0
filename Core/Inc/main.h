@@ -44,15 +44,8 @@ void Error_Handler(void);
 #define BUTTON_RIGHT_PRESS_EVENT 	3
 #define BUTTON_LEFT_PRESS_EVENT 	4
 
-typedef struct {
-	uint8_t sec;
-	uint8_t min;
-	uint8_t hour;
-	uint8_t day;
-	uint8_t mon;
-	uint16_t year;
-} DataTime_t;
 
+#include "rtc_hardware.h"
 
 typedef struct {
 	char intVal;

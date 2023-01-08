@@ -13,8 +13,8 @@
 #include "uart_terminal.h"
 #include "usb_device.h"
 
-__section (".ram_d3") static char __aligned(32) uartprintbuf[256 + 3] = {'\0'};
-__section (".ram_d3") static char __aligned(32) usbprintbuf[256 + 3] = {'\0'};
+static char __aligned(32) uartprintbuf[256 + 3] = {'\0'};
+static char __aligned(32) usbprintbuf[256 + 3] = {'\0'};
 
 /// @brief Init uart terminal
 /// @note Usb terminal is inited by USB stack init

@@ -56,7 +56,7 @@ void StorageTask(void *argument) {
 
 	  prNum = snprintf(pBuf1, sizeof(Log_t), "%d. ", curLog.index);
 	  buf = pBuf1+prNum;
-	  prNum = snprintf(buf, sizeof(Log_t), "%d:%d:%d %d.%d.%d ", curLog.dataTime.sec, curLog.dataTime.min, curLog.dataTime.hour, curLog.dataTime.day, curLog.dataTime.mon, curLog.dataTime.year );
+	  prNum = snprintf(buf, sizeof(Log_t), "%d:%d:%d %d.%d.%d ", curLog.dataTime.hour, curLog.dataTime.min, curLog.dataTime.sec, curLog.dataTime.day, curLog.dataTime.mon, curLog.dataTime.year );
 	  buf = buf+prNum;
 	  prNum = snprintf(buf, sizeof(Log_t), "%x,%x,%x,%x,%x,%x,%x,%x,%x,%x ", curLog.result[0], curLog.result[1], curLog.result[2], curLog.result[3], curLog.result[4], curLog.result[5], curLog.result[6], curLog.result[7], curLog.result[8], curLog.result[9]);
 	  buf = buf+prNum;
@@ -67,6 +67,8 @@ void StorageTask(void *argument) {
 	  prNum = snprintf(buf, sizeof(Log_t), "%d.%d ", curLog.supplyCurrents[0].intVal, curLog.supplyCurrents[0].fracVal);
 	  buf = buf+prNum;
 	  prNum = snprintf(buf, sizeof(Log_t), "%d.%d \n", curLog.supplyVoltages[0].intVal, curLog.supplyVoltages[0].fracVal);
+
+	  uartprintf(pBuf1);
 
 	  gfr = f_write(&writeFile, pBuf1, strlen(pBuf1), &bw);
 	  gfr = f_sync(&writeFile);

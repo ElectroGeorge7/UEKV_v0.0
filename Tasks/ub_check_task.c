@@ -16,6 +16,8 @@
 #include "ub_check.h"
 #include "leds_matrix.h"
 
+#include "rtc_hardware.h"
+
 extern uint16_t ledsBitMatrix[];
 
 static uint32_t logNum = 0;
@@ -47,12 +49,16 @@ void UbCheckTask(void *argument){
 		leds_matrix_show_result();
 
 		curLog.index = logNum++;
-		curLog.dataTime.sec = 00;
-		curLog.dataTime.min = 30;
-		curLog.dataTime.hour = 10;
-		curLog.dataTime.day = 16;
-		curLog.dataTime.mon = 2;
-		curLog.dataTime.year = 2023;
+
+		DataTime_t dataTime;
+		rtc_get(&dataTime);
+		curLog.dataTime.sec = dataTime.sec;
+		curLog.dataTime.min = dataTime.min;
+		curLog.dataTime.hour = dataTime.hour;
+		curLog.dataTime.day = dataTime.day;
+		curLog.dataTime.mon = dataTime.mon;
+		curLog.dataTime.year = dataTime.year;
+
 		memcpy(curLog.result, resultMatrix, sizeof(resultMatrix));
 		curLog.temp[0] = 125.125;
 		curLog.temp[1] = 150.375;

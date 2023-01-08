@@ -7,6 +7,7 @@
 #include "terminal.h"
 
 #include "buttons_hardware.h"
+#include "rtc_hardware.h"
 
 #include "leds_matrix.h"
 #include "result_check.h"
@@ -91,6 +92,16 @@ int main(void)
   LCD_Init();
 
   menu_init();
+  rtc_init();
+
+  DataTime_t dataTime;
+	dataTime.sec = 0;
+	dataTime.min = 0;
+	dataTime.hour = 1;
+	dataTime.day = 8;
+	dataTime.mon = 1;
+	dataTime.year = 2023;
+  rtc_set(&dataTime);
 
   MX_USB_DEVICE_Init();
 
