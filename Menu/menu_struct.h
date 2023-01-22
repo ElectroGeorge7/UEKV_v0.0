@@ -41,7 +41,7 @@ MAKE_MENU_ITEM(Tests, NULL_MENU_ITEM, TestConfig, NULL_MENU_ITEM, Reliability, N
 		//MAKE_MENU_ITEM(TestConfig, Item14, NULL_MENU_ITEM, Tests, NULL_MENU_ITEM, NULL_FUNC, "Конфигурация");
 MAKE_MENU_ITEM(TestConfig, Tests, Time, NULL_MENU_ITEM, NULL_MENU_ITEM, NULL_ACTIVITY, "Конфигурация"); // способ общения с платой тестировния и количество COL и ROW
 // Главное меню - Дата и время
-MAKE_MENU_ITEM(Time, TestConfig, Network, NULL_MENU_ITEM, NULL_MENU_ITEM, NULL_ACTIVITY, "Дата и время");
+MAKE_MENU_ITEM(Time, TestConfig, Network, NULL_MENU_ITEM, NULL_MENU_ITEM, DATE_TIME_ACTIVITY, "Дата и время");
 
 // Главное меню - Сеть
 MAKE_MENU_ITEM(Network, Time, Item4, NULL_MENU_ITEM, NULL_MENU_ITEM, NULL_ACTIVITY, "Сеть");

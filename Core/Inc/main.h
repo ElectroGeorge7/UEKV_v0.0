@@ -66,6 +66,12 @@ typedef struct {
 	Voltage_t supplyVoltages[32];
 } Log_t;
 
+typedef struct {
+	uint8_t index;
+	uint8_t event;
+	char eventStr[256];
+} Event_t;
+
 #ifdef __cplusplus
 }
 #endif

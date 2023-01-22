@@ -9,19 +9,19 @@ extern osMessageQueueId_t eventQueueHandler;
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 
     osStatus_t osRes;
-	uint8_t event;
+    Event_t msg;
 
 	if ( GPIO_Pin == BUTTON_UP_Pin ){
-		event = BUTTON_UP_PRESS_EVENT;
+		msg.event = BUTTON_UP_PRESS_EVENT;
 	} else if ( GPIO_Pin == BUTTON_DOWN_Pin ){
-		event = BUTTON_DOWN_PRESS_EVENT;
+		msg.event = BUTTON_DOWN_PRESS_EVENT;
 	} else if ( GPIO_Pin == BUTTON_LEFT_Pin ){
-		event = BUTTON_LEFT_PRESS_EVENT;
+		msg.event = BUTTON_LEFT_PRESS_EVENT;
 	} else if ( GPIO_Pin == BUTTON_RIGHT_Pin ){
-		event = BUTTON_RIGHT_PRESS_EVENT;
+		msg.event = BUTTON_RIGHT_PRESS_EVENT;
 	};
 
-	osRes = osMessageQueuePut (eventQueueHandler, &event, 0, 0);
+	osRes = osMessageQueuePut (eventQueueHandler, &msg, 0, 0);
 }
 
 /**
@@ -39,7 +39,7 @@ HAL_StatusTypeDef buttons_init(void)
   /*Configure GPIO pins : BUTTON_UP_Pin BUTTON_DOWN_Pin BUTTON_RIGHT_Pin BUTTON_LEFT_Pin */
   GPIO_InitStruct.Pin = BUTTON_UP_Pin|BUTTON_DOWN_Pin|BUTTON_RIGHT_Pin|BUTTON_LEFT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/

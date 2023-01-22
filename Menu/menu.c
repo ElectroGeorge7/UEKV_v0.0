@@ -7,6 +7,7 @@
 #include "activity.h"
 
 #include "main.h"
+#include "terminal.h"
 #include "LCD1602.h"
 
 Menu_t *CurrentMenu;	//указатель на текущее меню
@@ -126,8 +127,13 @@ HAL_StatusTypeDef menu_init(void){
 }
 
 
-HAL_StatusTypeDef menu_view_update(Command_t menuAction){
+HAL_StatusTypeDef menu_view_update(Command_t menuAction, uint8_t *data){
 	uint8_t i = 0;	
+
+	uartprintf("Menu action: %d", menuAction);
+	uartprintf("currentItem: %s", currentItem->ItemName);
+	uartprintf("firstViewItem: %s", firstViewItem->ItemName);
+	uartprintf("lastViewItem: %s", lastViewItem->ItemName);
 		
 	switch (menuAction){
 		case START_CMD:
@@ -139,7 +145,7 @@ HAL_StatusTypeDef menu_view_update(Command_t menuAction){
 					currentItem = currentItem->Previous;
 					LCD_SetCursor( 15, --currentMenuListRowNmbr%2 );
 				}else{
-					currentItem = currentItem->Previous;
+					currentItem = lastViewItem = currentItem->Previous;
 					currentMenuListRowNmbr--;
 					for ( i=0; (i < 2) && (firstViewItem->Previous != &NULL_MENU_ITEM); i++)
 						firstViewItem = firstViewItem->Previous;
@@ -170,7 +176,7 @@ HAL_StatusTypeDef menu_view_update(Command_t menuAction){
 				menu_list_display();
 			}else {
 				if (currentItem->ChildActivity != NULL_ACTIVITY){
-					//ActivityChange(currentItem->ChildActivity);
+					activity_change(currentItem->ChildActivity);
 				}
 			}
 			break;

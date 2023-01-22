@@ -2,42 +2,42 @@
 #include "activity.h"
 
 #include "menu.h"
-//#include "time.h"
+#include "date_time_activity.h"
 //#include "network.h"
 
 static Activity_t gActivity = NULL_ACTIVITY;
 
-static ActivityViewUpdateCb_t ActivityViewUpdateCbArray[ACTIVITY_NMBR] = {0};
+static ActivityViewUpdateCb_t activityViewUpdateCbArray[ACTIVITY_NMBR] = {0};
 
-void ActivityInit(void){
-	MenuRegisterActivityCb(&(ActivityViewUpdateCbArray[MENU_ACTIVITY]));
-	TestRegisterActivityCb(&ActivityViewUpdateCbArray[TEST_ACTIVITY]);
-	//TimeRegisterActivityCb(&ActivityViewUpdateCbArray[TIME_ACTIVITY]);
+void activity_init(void){
+	MenuRegisterActivityCb(&(activityViewUpdateCbArray[MENU_ACTIVITY]));
+	//TestRegisterActivityCb(&ActivityViewUpdateCbArray[TEST_ACTIVITY]);
+	date_time_reg_activity_cb(&activityViewUpdateCbArray[DATE_TIME_ACTIVITY]);
 	//NetworkRegisterActivityCb(&ActivityViewUpdateCbArray[NETWORK_ACTIVITY]); 
 	
-	ActivityViewUpdate(START_CMD);
+	activity_cmd_execute(START_CMD, NULL);
 };
 
-void ActivityViewUpdate(Command_t cmd){
+void activity_cmd_execute(Command_t cmd, uint8_t *data){
 	
 	ActivityViewUpdateCb_t activityViewFunc = 0;
 	
 	if (NULL_ACTIVITY != gActivity){
-		activityViewFunc = ActivityViewUpdateCbArray[gActivity];
-		activityViewFunc(cmd);
+		activityViewFunc = activityViewUpdateCbArray[gActivity];
+		activityViewFunc(cmd, data);
 	}else{
 		gActivity = MENU_ACTIVITY;
-		ActivityViewUpdate(START_CMD);
+		activity_cmd_execute(START_CMD, NULL);
 	}
 	
 };
 
 
-void ActivityChange(Activity_t newActivity){
+void activity_change(Activity_t newActivity){
 	
 	if(NULL_ACTIVITY != newActivity){
 		gActivity = newActivity;
-		ActivityViewUpdate(UPDATE_CMD);
+		activity_cmd_execute(UPDATE_CMD, NULL);
 	}
 }
 

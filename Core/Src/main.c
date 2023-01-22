@@ -39,8 +39,8 @@ extern uint16_t ledsBitMatrix[];
 osThreadId_t controlTaskHandle;
 const osThreadAttr_t controlTask_attributes = {
   .name = "controlTask",
-  .priority = (osPriority_t) osPriorityNormal3,
-  .stack_size = 768 * 4
+  .priority = (osPriority_t) osPriorityNormal5,
+  .stack_size = 1024 * 4
 };
 
 osThreadId_t storageTaskHandle;
@@ -57,8 +57,8 @@ const osThreadAttr_t ubCheckTask_attributes = {
   .stack_size = 768 * 4
 };
 
-#define EVENT_QUEUE_OBJECTS 10
-#define EVENT_QUEUE_OBJ_SIZE 1
+#define EVENT_QUEUE_OBJECTS 3
+#define EVENT_QUEUE_OBJ_SIZE sizeof(Event_t)
 osMessageQueueId_t eventQueueHandler;
 const osMessageQueueAttr_t eventQueue = {
 	.name = "eventQueue"
@@ -83,7 +83,12 @@ int main(void)
   HAL_Delay(500);
 
   terminal_init();
-  uartprintf("UEKV Hello world");
+  uartprintf("UEKV v.2");
+  uartprintf("UART terminal init");
+
+  MX_USB_DEVICE_Init();
+  HAL_Delay(500);
+  usbprintf("USB terminal init");
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
@@ -103,7 +108,6 @@ int main(void)
 	dataTime.year = 2023;
   rtc_set(&dataTime);
 
-  MX_USB_DEVICE_Init();
 
   osKernelInitialize();
 

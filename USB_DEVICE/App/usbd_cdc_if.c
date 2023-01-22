@@ -23,7 +23,8 @@
 #include "usbd_cdc_if.h"
 
 /* USER CODE BEGIN INCLUDE */
-
+#include "cmsis_os2.h"
+#include "activity.h"
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -110,7 +111,7 @@ uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
 extern USBD_HandleTypeDef hUsbDeviceFS;
 
 /* USER CODE BEGIN EXPORTED_VARIABLES */
-
+extern osMessageQueueId_t eventQueueHandler;
 /* USER CODE END EXPORTED_VARIABLES */
 
 /**
@@ -261,11 +262,24 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
   */
 static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 {
-  /* USER CODE BEGIN 6 */
+	Event_t msg;
+	osStatus_t res;
+
+  // in addition to useful data, some extra characters (less then 20) remain in the buffer,
+  // so clear the buffer from them
+  memset(Buf + *Len, '\0', 20);
+
+  msg.event = TERMINAL_CMD;
+  memcpy(msg.eventStr, Buf, sizeof(msg.eventStr));
+
+  res = osMessageQueuePut (eventQueueHandler, &msg, 0, 0);
+
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+
+  osThreadYield();
+
   return (USBD_OK);
-  /* USER CODE END 6 */
 }
 
 /**
