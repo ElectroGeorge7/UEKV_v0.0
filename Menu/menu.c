@@ -177,6 +177,7 @@ HAL_StatusTypeDef menu_view_update(Command_t menuAction, uint8_t *data){
 			}else {
 				if (currentItem->ChildActivity != NULL_ACTIVITY){
 					activity_change(currentItem->ChildActivity);
+					activity_cmd_execute(SELECT_CMD, NULL);
 				}
 			}
 			break;

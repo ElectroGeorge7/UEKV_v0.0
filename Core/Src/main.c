@@ -99,16 +99,6 @@ int main(void)
   menu_init();
   rtc_init();
 
-  DataTime_t dataTime;
-	dataTime.sec = 0;
-	dataTime.min = 0;
-	dataTime.hour = 1;
-	dataTime.day = 8;
-	dataTime.mon = 1;
-	dataTime.year = 2023;
-  rtc_set(&dataTime);
-
-
   osKernelInitialize();
 
   eventQueueHandler = osMessageQueueNew (EVENT_QUEUE_OBJECTS, EVENT_QUEUE_OBJ_SIZE, &eventQueue);
