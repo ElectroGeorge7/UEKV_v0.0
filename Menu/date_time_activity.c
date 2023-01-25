@@ -49,7 +49,7 @@ HAL_StatusTypeDef date_time_view_update(Command_t dateTimeAction, uint8_t *data)
 		case TERMINAL_CMD:
 			sscanf(data, "%2d:%2d %2d.%2d.%4d", &hour, &min, &day, &mon, &year);
 			usbprintf("new date and time: %d:%d %d.%d.%d", hour, min, day, mon, year);
-
+			/// @todo add new time`s values check before rtc_set 
 			dataTime.hour = hour; dataTime.min = min; dataTime.day = day;
 			dataTime.mon = mon; dataTime.year = year;
 			rtc_set(&dataTime);
