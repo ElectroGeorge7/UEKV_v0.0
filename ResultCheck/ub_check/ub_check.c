@@ -28,7 +28,8 @@ uint8_t colBitArray = 0;
 uint32_t row1SigStart = 0;				// HAL tick when signal has started on row1
 uint32_t row1SigResRepPeriod = 0;		// repetition period of one result based on row1 signal
 uint32_t row1SigResPeriod = 0;			// period of new results based on row1 signal
-//uint8_t ubMatrix[8] = {0};
+
+uint8_t ubMatrix[8] = {0};
 
 static void I2C1_Init(void);
 

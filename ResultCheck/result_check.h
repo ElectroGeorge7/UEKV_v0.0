@@ -13,7 +13,7 @@
 #define RESULT_MATRIX_MAX_ROW_NUM	10
 #define RESULT_MATRIX_MAX_COL_NUM	14
 
-uint16_t resultMatrix[RESULT_MATRIX_MAX_ROW_NUM];
+extern uint16_t resultMatrix[RESULT_MATRIX_MAX_ROW_NUM];
 
 HAL_StatusTypeDef result_check_init(void);
 HAL_StatusTypeDef result_check_clear(void);
