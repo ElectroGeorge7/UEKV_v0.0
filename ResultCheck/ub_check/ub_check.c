@@ -40,7 +40,7 @@ HAL_StatusTypeDef ub_check_init(){
 	HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
 
 	uartprintf("UB check I2C init");
-
+#ifdef UB_CHECK
 	uint16_t checkRepeatCnt = 0xff;
 	uint32_t row1SigResStart = 0;
 	while (checkRepeatCnt--){
@@ -75,7 +75,7 @@ HAL_StatusTypeDef ub_check_init(){
 			}
 		}
 	}
-
+#endif
 	return HAL_ERROR;
 }
 

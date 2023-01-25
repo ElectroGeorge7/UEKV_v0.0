@@ -20,6 +20,13 @@ HAL_StatusTypeDef result_check_init(void){
 	return HAL_OK;
 }
 
+HAL_StatusTypeDef result_check_deinit(void){
+	rch_timer_stop();
+	result_check_clear();
+	leds_matrix_clear();
+	return HAL_OK;
+}
+
 HAL_StatusTypeDef result_check_clear(void){
 	ub_res_clear();
 	memset(resultMatrix, 0, sizeof(resultMatrix));

@@ -40,10 +40,18 @@ HAL_StatusTypeDef rch_timer_init(void){
 	// phase alignment on the first signal of row1
 	uartprintf("phase alignment on the first signal of row1: wait");
 	while (ub_row1_sig_wait() != HAL_OK){};
-	HAL_TIM_Base_Start_IT(&htim9);
+	rch_timer_start();
 	uartprintf("phase alignment on the first signal of row1: ok");
 
     return HAL_OK;
+}
+
+HAL_StatusTypeDef rch_timer_start(void){
+	HAL_TIM_Base_Start_IT(&htim9);
+}
+
+HAL_StatusTypeDef rch_timer_stop(void){
+	HAL_TIM_Base_Stop_IT(&htim9);
 }
 
 extern uint32_t row1SigResPeriod;

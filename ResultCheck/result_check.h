@@ -16,6 +16,7 @@
 extern uint16_t resultMatrix[RESULT_MATRIX_MAX_ROW_NUM];
 
 HAL_StatusTypeDef result_check_init(void);
+HAL_StatusTypeDef result_check_deinit(void);
 HAL_StatusTypeDef result_check_clear(void);
 
 #endif /* RESULT_CHECK_H_ */
