@@ -19,7 +19,7 @@ static uint8_t testActStatusFlags = 0;
 
 #define TEST_ACT_MENU_ROW_NUM 22
 static uint8_t curMenuRow = 0;
-static char testActMenu[TEST_ACT_MENU_ROW_NUM][16] = {0};
+static char testActMenu[TEST_ACT_MENU_ROW_NUM][32] = {0}; // cyrillic letters take 2 bytes
 
 typedef enum TestType{
 	RELIABILITY_TEST,
@@ -44,7 +44,7 @@ typedef enum ResCheckMethod{
 
 typedef struct {
 	TestType_t testType;
-	char partNumber[16];
+	char partNumber[32];
 	char mldrNum[8];
 	//uint32_t curResNum;		// number of current displayed result
 	uint8_t cellNum;
@@ -89,14 +89,14 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 			if ( curMenuRow != 0 ){
 				curMenuRow--;
 				if ( curMenuRow%2 ){
-					LCD_SetCursor( 15, 0 );
-				}else{
 					LCD_Clear();
 					LCD_SetCursor( 0, 0 );
 					LCD_PrintString(testActMenu[curMenuRow-1]);
 					LCD_SetCursor( 0, 1 );
 					LCD_PrintString(testActMenu[curMenuRow]);
 					LCD_SetCursor( 15, 1 );
+				}else{
+					LCD_SetCursor( 15, 0 );
 				}
 			}
             break;
@@ -159,51 +159,42 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 						LCD_PrintString("не найдено");
 						HAL_Delay(1000);
 
-						//testActMenu[0] = curConfig.partNumber;
-						//testActMenu[1] = "Рез.№:0";
-						memcpy(testActMenu[0], curConfig.partNumber, sizeof(curConfig.partNumber));
-						memcpy(testActMenu[1], "Рез.:0", sizeof("Рез.:0"));
+						snprintf(testActMenu[0], 32, "%s", curConfig.partNumber);
+						snprintf(testActMenu[1], 32, "Рез.:0");
 
-						snprintf(testActMenu[2], 16, "%s  %dшт.", curConfig.mldrNum, curConfig.cellNum);
-						snprintf(testActMenu[3], 16, "row:%d    col:%d", curConfig.rowNum, curConfig.colNum);
+						snprintf(testActMenu[2], 32, "%s  %dшт.", curConfig.mldrNum, curConfig.cellNum);
+						snprintf(testActMenu[3], 32, "row:%d    col:%d", curConfig.rowNum, curConfig.colNum);
 
-						//testActMenu[4] = "Испытание:";
-						memcpy(testActMenu[4], "Испытание:", 16);
-						snprintf(testActMenu[5], 16, "%s", curConfig.testType ? "ЭТТ" : "Безотказность");
+						snprintf(testActMenu[4], 32, "Испитание:");
+						snprintf(testActMenu[5], 32, "%s", curConfig.testType ? "ЭТТ" : "Безотказность");
 
+						snprintf(testActMenu[6], 32, "Считыв. рез-та:");
+						snprintf(testActMenu[7], 32, "%d", curConfig.resCheckMethod);
 
-						//testActMenu[6] = "Отобр-ие рез-та:";
-						memcpy(testActMenu[6], "Отобр-ие рез-та:", 16);
-						snprintf(testActMenu[7], 16, "%d", curConfig.resCheckMethod);
-
-						//testActMenu[8] = "тек. время:";
-						memcpy(testActMenu[8], "тек. время:", 16);
+						snprintf(testActMenu[8], 32, "тек. время:");
 						rtc_get(&dataTime);
-						snprintf(testActMenu[9], 16, "%d:%d %d.%d.%d", dataTime.hour, dataTime.min, dataTime.day, dataTime.mon, dataTime.year);
+						snprintf(testActMenu[9], 32, "%d:%d %d.%d.%d", dataTime.hour, dataTime.min, dataTime.day, dataTime.mon, dataTime.year);
 
-						//testActMenu[10] = "начало испыт-ия:";
-						memcpy(testActMenu[10], "начало испыт-ия:", 16);
+						snprintf(testActMenu[10], 32, "начало испыт-ия:");
 						memcpy(&(curConfig.testStartDataTime), &dataTime, sizeof(DataTime_t));
-						snprintf(testActMenu[11], 16, "%d:%d %d.%d.%d", dataTime.hour, dataTime.min, dataTime.day, dataTime.mon, dataTime.year);
+						snprintf(testActMenu[11], 32, "%d:%d %d.%d.%d", dataTime.hour, dataTime.min, dataTime.day, dataTime.mon, dataTime.year);
 
-						//testActMenu[12] = "конец испыт-ия:";
-						memcpy(testActMenu[12], "конец испыт-ия:", 16);
-						snprintf(testActMenu[13], 16, "%d:%d %d.%d.%d", 5, 0, 7, 5, 2023);
+						snprintf(testActMenu[12], 32, "конец испыт-ия:");
+						snprintf(testActMenu[13], 32, "%d:%d %d.%d.%d", 5, 0, 7, 5, 2023);
 
-						//testActMenu[14] = "осталось:";
-						memcpy(testActMenu[14], "осталось:", 16);
-						snprintf(testActMenu[15], 16, "%d:%d %d.%d.%d", 5, 3, 2, 3, 0);
+						snprintf(testActMenu[14], 32, "осталось:");
+						snprintf(testActMenu[15], 32, "%d:%d %d.%d.%d", 5, 3, 2, 3, 0);
 
-						snprintf(testActMenu[16], 16, "кол-во Vпит:%d", curConfig.powerSupplyNum);
+						snprintf(testActMenu[16], 32, "кол-во Vпит:%d", curConfig.powerSupplyNum);
+						memset(testActMenu[17], 0, 32);
+
 						float temp1 = Max6675_Read_Temp();
 						float temp2 = Max6675_Read_Temp();
-						memset(testActMenu[17], 0, 16);
+						snprintf(testActMenu[18], 32, "темп.№1:%3.0fC", temp1);
+						snprintf(testActMenu[19], 32, "темп.№2:%3.0fC", temp2);
 
-						snprintf(testActMenu[18], 16, "темп.№1:%3.0fC", temp1);
-						snprintf(testActMenu[19], 16, "темп.№2:%3.0fC", temp2);
-
-						snprintf(testActMenu[20], 16, "кол-во плат:%d", curConfig.pcbNum);
-						memset(testActMenu[21], 0, 16);
+						snprintf(testActMenu[20], 32, "кол-во плат:%d", curConfig.pcbNum);
+						memset(testActMenu[21], 0, 32);
 
 						LCD_Clear();
 						curMenuRow = 0;

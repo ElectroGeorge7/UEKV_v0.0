@@ -40,7 +40,7 @@ osThreadId_t controlTaskHandle;
 const osThreadAttr_t controlTask_attributes = {
   .name = "controlTask",
   .priority = (osPriority_t) osPriorityNormal5,
-  .stack_size = 1224 * 4
+  .stack_size = 1024 * 4
 };
 
 osThreadId_t storageTaskHandle;
