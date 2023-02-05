@@ -75,7 +75,7 @@ void ControlTask(void *argument){
 			activity_cmd_execute(START_CMD, NULL);
 	}
 
-	usbprintf("ControlTask");
+	//usbprintf("ControlTask");
 
     osDelay(1000);
   }
