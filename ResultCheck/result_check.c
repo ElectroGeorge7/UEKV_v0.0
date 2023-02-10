@@ -9,15 +9,27 @@
 
 #include <string.h>
 
+#include "terminal.h"
 #include "rch_timer.h"
 #include "ub_check.h"
 
 uint16_t resultMatrix[RESULT_MATRIX_MAX_ROW_NUM];
 
 HAL_StatusTypeDef result_check_init(void){
+
+	/* UB check*/
 	ub_check_init();
 	rch_timer_init();
-	return HAL_OK;
+	// phase alignment on the first signal of row1
+	uartprintf("phase alignment on the first signal of row1: wait");
+
+	if ( ub_check_sig_level_wait(0, 1, 0xffff) == HAL_OK){
+		rch_timer_start();
+		uartprintf("phase alignment on the first signal of row1: ok");
+		return HAL_OK;
+	}
+
+	return HAL_ERROR;
 }
 
 HAL_StatusTypeDef result_check_deinit(void){

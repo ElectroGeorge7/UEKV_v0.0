@@ -37,12 +37,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 HAL_StatusTypeDef rch_timer_init(void){
 	TIM9_Init();
-	// phase alignment on the first signal of row1
-	uartprintf("phase alignment on the first signal of row1: wait");
-	while (ub_row1_sig_wait() != HAL_OK){};
-	rch_timer_start();
-	uartprintf("phase alignment on the first signal of row1: ok");
-
     return HAL_OK;
 }
 

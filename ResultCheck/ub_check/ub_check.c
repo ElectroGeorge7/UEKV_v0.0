@@ -31,61 +31,91 @@ uint32_t row1SigResPeriod = 0;			// period of new results based on row1 signal
 
 uint8_t ubMatrix[8] = {0};
 
-static void I2C1_Init(void);
+//static uint16_t ubError |= UB_SIG_LEV_TIMEOUT;;
 
+static HAL_StatusTypeDef I2C1_Init(void);
 
 HAL_StatusTypeDef ub_check_init(){
-	I2C1_Init();
-	HAL_I2C_Master_Transmit(&hi2c1, PCF8575_WRITE_ADDR, (uint8_t *)&portInitPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
-	HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
+	HAL_StatusTypeDef res = 0;
+	uint32_t row1SigStart = 0;
 
-	uartprintf("UB check I2C init");
-//#ifdef UB_CHECK
-	uint16_t checkRepeatCnt = 0xff;
-	uint32_t row1SigResStart = 0;
-	while (checkRepeatCnt--){
-		//ub_check_temp();
-		ub_check_freq_adjust();
+	res |= I2C1_Init();
+	res |= HAL_I2C_Master_Transmit(&hi2c1, PCF8575_WRITE_ADDR, (uint8_t *)&portInitPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
+	res |= HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
 
-		row1SigResStart = HAL_GetTick();
-		checkRepeatCnt = 0xffff;
-		while (checkRepeatCnt--){
-			HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
-			if (~portExpPacket & 1) {
-				//uartprintf("HAL_GetTick() - row1SigResStart: %d", HAL_GetTick() - row1SigResStart);
-				if ( ( (HAL_GetTick() - row1SigResStart) > (2*row1SigResRepPeriod) ) ){
+	if (!res){
+		uartprintf("ub check i2c init");
+
+		uint8_t cnt = 5;
+		do{
+			if ( ub_check_freq_adjust() == HAL_OK ){
+				row1SigStart = HAL_GetTick();
+
+				if ( ub_check_new_res_wait(0, 0, 2*row1SigResRepPeriod, 0xffff) == HAL_OK ){
+					row1SigResPeriod = HAL_GetTick() - row1SigStart;
 					uartprintf("HAL_GetTick(): %d", HAL_GetTick());
-					uartprintf("Result repeat end ");
-
-					checkRepeatCnt = 0xffff;
-					while (checkRepeatCnt--){
-						HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
-						if ( portExpPacket & 1 ){
-							row1SigResPeriod = HAL_GetTick() - row1SigStart;
-
-							uartprintf("HAL_GetTick(): %d", HAL_GetTick());
-							uartprintf("row1SigResPeriod: %d", row1SigResPeriod);
-							return HAL_OK;
-						}
-					}
+					uartprintf("row1SigResPeriod: %d", row1SigResPeriod);
 				}
-			} else {
-				row1SigResStart = HAL_GetTick();
-				//HAL_Delay(1);
+				return HAL_OK;
 			}
-		}
-	}
-//#endif
+
+		} while (cnt--);
+
+		uartprintf("ub check freq adjust failed");
+	} else
+		uartprintf("ub check i2c init failed");
+
 	return HAL_ERROR;
 }
 
-HAL_StatusTypeDef ub_check_freq_adjust(){
-	uint16_t checkRepeatCnt = 0xff;
-	uint8_t rowBitArray = 0;
+HAL_StatusTypeDef ub_check_sig_level_wait(uint8_t sigNum , uint8_t sigLev, uint16_t timeout){
+	uint16_t data = 0;
+	while (timeout--){
+		if (HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&data, sizeof(data), UB_CHECK_TIMEOUT) != HAL_OK){
+			uartprintf("port expander i2c error");
+			return HAL_ERROR;
+		}
+		data = (sigLev == 0) ? ~data : data;
+		if ( data & (1<<sigNum) ) {
+			return HAL_OK;
+		}
+	}
+
+	uartprintf("too long waiting for sig level");
+	return HAL_TIMEOUT;
+}
+
+HAL_StatusTypeDef ub_check_new_res_wait(uint8_t sigNum, uint8_t sigLev, uint16_t sigMinDur, uint16_t timeout){
+	uint32_t row1SigStart = HAL_GetTick();
+	uint16_t data = 0;
+	while (timeout--){
+		if (HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&data, sizeof(data), UB_CHECK_TIMEOUT) != HAL_OK){
+			uartprintf("port expander i2c error");
+			return HAL_ERROR;
+		}
+		data = (sigLev == 0) ? ~data : data;
+		if ( data & (1<<sigNum) ) {
+			if ( ( (HAL_GetTick() - row1SigStart) > sigMinDur ) ){
+
+				if ( ub_check_sig_level_wait(0, (sigLev == 0) ? 1 : 0, 0xffff) == HAL_OK )
+					return HAL_OK;
+			}
+		} else {
+			row1SigStart = HAL_GetTick();
+		}
+	}
+
+	uartprintf("too long waiting for a new result");
+	return HAL_TIMEOUT;
+}
+
+HAL_StatusTypeDef ub_check_freq_adjust(void){
+	uint32_t row1SigStart = 0;
+	row1SigResRepPeriod = 0;
+	row1SigResPeriod = 0;
 
 	uint32_t i2cPeriodStart = 0;
 	uint32_t i2cPeriod = 0;
-
 	uartprintf("HAL_GetTickFreq(): %d", HAL_GetTickFreq());
 	i2cPeriodStart = HAL_GetTick();
 	HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
@@ -94,43 +124,15 @@ HAL_StatusTypeDef ub_check_freq_adjust(){
 	uartprintf("i2cPeriodStart: %d", i2cPeriodStart);
 	uartprintf("i2cPeriod: %d", i2cPeriod);
 
-	row1SigStart = 0;
-	row1SigResRepPeriod = 0;
-	row1SigResPeriod = 0;
 
-	uint32_t row1SigResStart = HAL_GetTick();
-	checkRepeatCnt = 0xffff;
-	while (checkRepeatCnt--){
-		HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
-		if (~portExpPacket & 1) {
-			if ( ( (HAL_GetTick() - row1SigResStart) > (2*120) ) ){
-				break;
-			}
-		} else {
-			row1SigResStart = HAL_GetTick();
-		}
-	}
-
-	while (checkRepeatCnt--){
-		HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
-		if ( portExpPacket & 1 ){
-			row1SigStart = HAL_GetTick();
-
-			while (checkRepeatCnt--){
-				HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
-				if ( (~portExpPacket) & 1 ){
-
-					while (checkRepeatCnt--){
-						HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
-						if ( portExpPacket & 1 ){
-							row1SigResRepPeriod = HAL_GetTick() - row1SigStart;
-
-							uartprintf("row1SigStart: %d", row1SigStart);
-							uartprintf("row1SigResRepPeriod: %d", row1SigResRepPeriod);
-							return HAL_OK;
-						}
-					}
-				}
+	if ( ub_check_new_res_wait(0, 0, 2*120, 0xffff) == HAL_OK ){
+		row1SigStart = HAL_GetTick();
+		if ( ub_check_sig_level_wait(0, 0, 0xffff) == HAL_OK ){
+			if ( ub_check_sig_level_wait(0, 1, 0xffff) == HAL_OK ){
+				row1SigResRepPeriod = HAL_GetTick() - row1SigStart;
+				uartprintf("row1SigStart: %d", row1SigStart);
+				uartprintf("row1SigResRepPeriod: %d", row1SigResRepPeriod);
+				return HAL_OK;
 			}
 		}
 	}
@@ -138,46 +140,18 @@ HAL_StatusTypeDef ub_check_freq_adjust(){
 	return HAL_ERROR;
 }
 
-HAL_StatusTypeDef ub_row1_sig_wait(){
-	uint16_t checkRepeatCnt = 0xffff;
-
-	uint32_t row1SigResStart = HAL_GetTick();
-	while (checkRepeatCnt--){
-		HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
-		if (~portExpPacket & 1) {
-			if ( ( (HAL_GetTick() - row1SigResStart) > (2*120) ) ){
-				break;
-			}
-		} else {
-			row1SigResStart = HAL_GetTick();
-		}
-	}
-
-	while (checkRepeatCnt--){
-		HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
-		if ( portExpPacket & 1 )
-			return HAL_OK;
-	}
-
-	return HAL_ERROR;
-}
 
 HAL_StatusTypeDef ub_check(){
-	uint16_t checkRepeatCnt = 0xff;
-	uint8_t checkedRowFlags = 0;
+	uint16_t data = 0;
 #define UB_CHECK
 #ifdef UB_CHECK
-
-	while (checkRepeatCnt--){
-		HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
-		if ( portExpPacket & 1 ){
-
-			checkRepeatCnt = 500;
+	if ( ub_check_sig_level_wait(0 , 1, 0xffff) == HAL_OK ){
+			uint16_t checkRepeatCnt = 500;
 			while (checkRepeatCnt--){
-				HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
+				HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&data, sizeof(data), UB_CHECK_TIMEOUT);
 
-				rowBitArray = (uint8_t)portExpPacket;
-				colBitArray = (uint8_t) (portExpPacket >> 8);
+				rowBitArray = (uint8_t)data;
+				colBitArray = (uint8_t) (data >> 8);
 
 				for (uint8_t rowNum = 0; rowNum < UB_MATRIX_ROW_NUM; rowNum++){
 					if ( rowBitArray & (1<<rowNum) ){
@@ -186,10 +160,7 @@ HAL_StatusTypeDef ub_check(){
 					}
 				}
 			}
-
 			return HAL_OK;
-
-		}
 	}
 #else
 	ubMatrix[0] = 0xff;
@@ -219,9 +190,21 @@ HAL_StatusTypeDef ub_res_clear(void){
   * @param None
   * @retval None
   */
-static void I2C1_Init(void)
-{
+static HAL_StatusTypeDef I2C1_Init(void){
   GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+  /**I2C1 GPIO Configuration
+  PB6     ------> I2C1_SCL
+  PB7     ------> I2C1_SDA
+  */
+  GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
 
   __HAL_RCC_I2C1_CLK_ENABLE();
 
@@ -239,15 +222,5 @@ static void I2C1_Init(void)
     Error_Handler();
   }
 
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-  /**I2C1 GPIO Configuration
-  PB6     ------> I2C1_SCL
-  PB7     ------> I2C1_SDA
-  */
-  GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  return HAL_OK;
 }

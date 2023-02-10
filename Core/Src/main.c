@@ -72,6 +72,7 @@ const osMessageQueueAttr_t logQueue = {
 };
 
 osSemaphoreId_t ubCheckSem;
+osEventFlagsId_t testEvents;
 
 int main(void)
 {
@@ -107,6 +108,11 @@ int main(void)
   ubCheckSem = osSemaphoreNew(1U, 0U, NULL);
   if (ubCheckSem == NULL) {
 	  uartprintf("Semaphore object not created");
+  }
+
+  testEvents = osEventFlagsNew(NULL);
+  if (testEvents == NULL) {
+	  uartprintf("Event Flags object not created, handle failure");
   }
 
   controlTaskHandle = osThreadNew(ControlTask, NULL, &controlTask_attributes);

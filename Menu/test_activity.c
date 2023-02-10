@@ -7,6 +7,8 @@
 
 #include "test_activity.h"
 
+#include "cmsis_os2.h"
+#include "main.h"
 #include "terminal.h"
 #include <stdio.h>
 
@@ -31,6 +33,8 @@ TestConfig_t curConfig = {0};
 #define TEST_CONFIG_POW_SUP_NUM_IS_SET			0x80
 #define TEST_CONFIG_PCB_NUM_IS_SET				0x100
 
+extern osEventFlagsId_t testEvents;
+extern osMessageQueueId_t eventQueueHandler;
 
 HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 	char pBuf[16] = {0};
@@ -85,8 +89,14 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 					LCD_PrintString("...");
 					HAL_Delay(1000);
 
+					//osEventFlagsSet(testEvents, TEST_CONFIG_SEARCH);
+					// wait for config
+					//osMessageQueueGet(eventQueueHandler, &msg, NULL, osWaitForever);
+
+					//osEventFlagsWait(testEvents, TEST_CONFIG_IS_FIND | TEST_CONFIG_IS_NOT, osFlagsWaitAny, osWaitForever);
 
 					if (0/* check config file in file system */){
+
 						// get configuration from the file
 						testActStatusFlags |= TEST_ACT_CONFIG_IS_SET;
 					} else {
@@ -101,8 +111,7 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 					}
 
 				} else {
-					// wait until usb config
-					// after config info was received display it and start test();
+					//osEventFlagsSet(testEvents, TEST_START);
 					result_check_init();
 				}
 			}
@@ -112,6 +121,7 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 			result_check_deinit();
 			testActStatusFlags = 0;
 			testConfigsSetFlag = 0;
+			//osEventFlagsSet(testEvents, TEST_FINISH);
 			activity_change(MENU_ACTIVITY);
 			break;
 		case TERMINAL_CMD:

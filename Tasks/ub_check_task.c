@@ -41,6 +41,15 @@ void UbCheckTask(void *argument){
 		}
 		ub_res_clear();
 
+/*
+ 	 	 	// phase synchro
+			rch_timer_stop();
+			if ( ub_check_sig_level_wait(0, 1, 0xffff) == HAL_OK){
+				rch_timer_start();
+				uartprintf("phase alignment on the first signal of row1: ok");
+				return HAL_OK;
+			}
+*/
 		leds_matrix_clear();
 		HAL_Delay(50);
 		memcpy(ledsBitMatrix, resultMatrix, sizeof(resultMatrix));
@@ -48,6 +57,8 @@ void UbCheckTask(void *argument){
 		//ledsBitMatrix[7] = 0x0c;
 		leds_matrix_show_result();
 
+
+/*
 		curLog.index = logNum++;
 
 		DataTime_t dataTime;
@@ -66,11 +77,12 @@ void UbCheckTask(void *argument){
 		curLog.supplyCurrents[0].fracVal = 15;
 		curLog.supplyVoltages[0].intVal = 3;
 		curLog.supplyVoltages[0].fracVal = 6;
-
-		osRes = osMessageQueuePut(logQueueHandler, &curLog, 0, 0);
+*/
+		//osRes = osMessageQueuePut(logQueueHandler, &curLog, 0, 0);
 
 		result_check_clear();
 		HAL_GPIO_TogglePin(GPIOC, LED_PROCESS_Pin);
+
 
 		osThreadYield();
 	}

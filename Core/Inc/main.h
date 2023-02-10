@@ -72,6 +72,10 @@ typedef struct {
 	char eventStr[256];
 } Event_t;
 
+#define TEST_CONFIG_SEARCH 	0x01
+#define TEST_START			0x02
+#define TEST_FINISH			0x04
+
 #ifdef __cplusplus
 }
 #endif
