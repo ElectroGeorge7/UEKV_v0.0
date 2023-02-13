@@ -39,11 +39,17 @@ void Error_Handler(void);
 #define LED_PROCESS_Pin GPIO_PIN_13
 #define LED_PROCESS_GPIO_Port GPIOC
 
-#define BUTTON_UP_PRESS_EVENT 		1
-#define BUTTON_DOWN_PRESS_EVENT 	2
-#define BUTTON_RIGHT_PRESS_EVENT 	3
-#define BUTTON_LEFT_PRESS_EVENT 	4
-
+#define BUTTON_UP_PRESS_EVENT 			0x01
+#define BUTTON_DOWN_PRESS_EVENT 		0x02
+#define BUTTON_RIGHT_PRESS_EVENT 		0x03
+#define BUTTON_LEFT_PRESS_EVENT 		0x04
+#define TERMINAL_СMD_RECEIVED_EVENT		0x05
+#define TEST_CONFIG_SEARCH 				0x06
+#define TEST_CONFIG_IS_FIND				0x07
+#define TEST_CONFIG_IS_NOT				0x08
+#define TEST_CONFIG_SEND				0x09
+#define TEST_START						0x0a
+#define TEST_FINISH						0x0b
 
 #include "rtc_hardware.h"
 
@@ -72,9 +78,6 @@ typedef struct {
 	char eventStr[256];
 } Event_t;
 
-#define TEST_CONFIG_SEARCH 	0x01
-#define TEST_START			0x02
-#define TEST_FINISH			0x04
 
 #ifdef __cplusplus
 }

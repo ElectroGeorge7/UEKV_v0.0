@@ -13,6 +13,8 @@
 #include "cmsis_os2.h"
 #include "fatfs.h"
 
+#include "test_activity.h"
+
 #include <string.h>
 
 static FATFS sdFatFs;
@@ -26,8 +28,8 @@ extern osMessageQueueId_t eventQueueHandler;
 static uint8_t testFlags = 0;
 
 void fRead(char *configFileName, uint8_t *buf, uint32_t num, uint32_t *br);
-FRESULT open_append ( FIL* fp, const char* path);
-
+FRESULT storage_file_open_create ( FIL* fp, char* path);
+HAL_StatusTypeDef storage_config_search(const char *configFileName, TestConfig_t *curConfig);
 
 void StorageTask(void *argument) {
 	osStatus_t osRes;
@@ -36,7 +38,10 @@ void StorageTask(void *argument) {
 	char buf[sizeof(Log_t)] = {0};
 	char *pBuf;
 	uint32_t bw;
-	FIL writeFile;
+	FIL logFile;
+
+	Event_t msg;
+	TestConfig_t curConfig = {0};
 
     char pBufStart[] = "Successful file creation\n";
 
@@ -50,24 +55,26 @@ void StorageTask(void *argument) {
 	  if (!testFlags){
 		  // wait for cmd to find config file
 		 if ( osEventFlagsWait(testEvents, TEST_CONFIG_SEARCH, osFlagsWaitAny, osWaitForever) == TEST_CONFIG_SEARCH ){
+
 			 // find config file
-			 // extract needed info
 			 // encode config to queue type
-			 //and send to control task
-/*
-			if (1){
-				Event_t msg;
-				osStatus_t res;
-				msg.event = TEST_CMD;
-				//memcpy(msg.eventStr, Buf, sizeof(msg.eventStr));
+
+			 msg.event = TEST_CONFIG_SEND;
+			if ( storage_config_search("config.txt", &curConfig) == HAL_OK ){
+				memcpy((uint8_t *)&curConfig, msg.eventStr, sizeof(TestConfig_t));
+				//and send to control task
+				osMessageQueuePut(eventQueueHandler, &msg, 0, 0);
 				osEventFlagsSet(testEvents, TEST_CONFIG_IS_FIND);
-				res = osMessageQueuePut (eventQueueHandler, &msg, 0, 0);
 			} else {
 				osEventFlagsSet(testEvents, TEST_CONFIG_IS_NOT);
 				// get terminal config
-				osMessageQueueGet(eventQueueHandler, &msg, NULL, osWaitForever);
+				if( osMessageQueueGet(eventQueueHandler, &msg, NULL, osWaitForever) == osOK ){
+					if ( msg.event == TEST_CONFIG_SEND ){
+						memcpy(msg.eventStr, (uint8_t *)&curConfig, sizeof(TestConfig_t));
+					}
+				}
 			}
-*/
+
 			testFlags |= TEST_CONFIG_SEARCH;
 		 }
 
@@ -76,13 +83,28 @@ void StorageTask(void *argument) {
 		  if ( !(testFlags & TEST_START) ){
 
 			 if ( osEventFlagsWait(testEvents, TEST_START, osFlagsWaitAny, osWaitForever) == TEST_START ){
-				 // open log file
+
+				// create file that named after part number
+				uint8_t temp = 5;
 				  do{
-					  gfr = open_append(&writeFile, "temp.txt");
-				  }while (gfr);
-				  // and write config info
-				  gfr = f_write(&writeFile, pBufStart, strlen(pBuf), &bw);
-				  gfr = f_sync(&writeFile);
+					  gfr = storage_file_open_create(&logFile, curConfig.partNumber);
+				  }while (gfr && temp--);
+
+				 if (!temp)
+					 usbprintf("log file opening or creation error");
+				// write the configuration to test file
+				 f_printf(&logFile, "Part Number: %s \n", curConfig.partNumber );
+				 f_printf(&logFile, "MLDR number: %s \n", curConfig.mldrNum );
+				 f_printf(&logFile, "Type of test: %s", curConfig.testType ? "ETT" : "Reliability" );
+				 f_printf(&logFile, "Cell: %d", curConfig.cellNum );
+				 f_printf(&logFile, "Row: %d", curConfig.rowNum );
+				 f_printf(&logFile, "Col: %d", curConfig.colNum );
+				 f_printf(&logFile, "Result check method: %d", curConfig.resCheckMethod );
+				 f_printf(&logFile, "Test duration in hours: %d h", curConfig.testDurationInHours );
+				 f_printf(&logFile, "Number of power supplies: %d", curConfig.powerSupplyNum );
+				 f_printf(&logFile, "Number of PCBs: %d", curConfig.pcbNum );
+				 gfr = f_sync(&logFile);
+
 				  testFlags |= TEST_START;
 			 }
 
@@ -91,10 +113,11 @@ void StorageTask(void *argument) {
 			  //wait
 			 if ( osEventFlagsWait(testEvents, TEST_FINISH, osFlagsWaitAny, 0) == TEST_FINISH ){
 				 // close log file
-				 gfr = f_sync(&writeFile);
-				 gfr = f_close(&writeFile);
+				 gfr = f_sync(&logFile);
+				 gfr = f_close(&logFile);
 				 testFlags = 0;
 			 }
+
 			 // wait for logs
 			 if ( osMessageQueueGet(logQueueHandler, &curLog, NULL, osWaitForever) == osOK ){
 				  prNum = snprintf(buf, sizeof(Log_t), "%d. ", curLog.index);
@@ -113,8 +136,8 @@ void StorageTask(void *argument) {
 
 				  uartprintf(buf);
 
-				  gfr = f_write(&writeFile, buf, strlen(buf), &bw);
-				  gfr = f_sync(&writeFile);
+				  gfr = f_write(&logFile, buf, strlen(buf), &bw);
+				  gfr = f_sync(&logFile);
 			 }
 
 		  }
@@ -128,24 +151,8 @@ void StorageTask(void *argument) {
 
 
 
-uint8_t gfileBuf[80] = {0};
-uint32_t gbr;
-void fRead(char *configFileName, uint8_t *buf, uint32_t num, uint32_t *br){
-  FIL readFile;
-
-  do{
-      //fr = open_append(&sdFile, "camconf.txt");
-      gfr = f_open(&readFile, configFileName, FA_READ);
-  }while (gfr);
-
-  gfr = f_read(&readFile, buf, num, br);
-
-  // Close the file
-  f_close(&readFile);
-}
-
 // Только для записи в конец файла
-FRESULT open_append ( FIL* fp, const char* path) {
+FRESULT storage_file_open_create( FIL* fp, char* path) {
     FRESULT fr;
 
     // Opens an existing file. If not exist, creates a new file.
@@ -157,4 +164,92 @@ FRESULT open_append ( FIL* fp, const char* path) {
             f_close(fp);
     }
     return fr;
+}
+
+HAL_StatusTypeDef storage_config_search(const char *configFileName, TestConfig_t *curConfig){
+
+	char strBuf[50] = {0};
+	FIL readFile;
+
+	int testType = 0;
+	int cellNum = 0;
+	int rowNum = 0;
+	int colNum = 0;
+	int resCheckMethod = 0;
+	int testDurationInHours = 0;
+	int powerSupplyNum = 0;
+	int pcbNum = 0;
+
+	 uint8_t temp = 5;
+	 do{
+	      gfr = f_open(&readFile, configFileName, FA_READ);
+	  }while (gfr && temp--);
+
+	 if (!temp)
+		 usbprintf("config.txt file not found");
+
+	 // extract needed info
+	 if ( !f_eof(&readFile) ){
+		 f_gets(strBuf, sizeof(strBuf), &readFile);
+		 sscanf(strBuf, "part number: %16s", curConfig->partNumber);
+		 usbprintf("Part Number: %s", curConfig->partNumber);
+	 } else if ( !f_eof(&readFile) ){
+		 f_gets(strBuf, sizeof(strBuf), &readFile);
+		 sscanf(strBuf, "mldr number: %9s", curConfig->mldrNum);
+		 usbprintf("MLDR number: %s", curConfig->mldrNum);
+	 } else if ( !f_eof(&readFile) ){
+		 f_gets(strBuf, sizeof(strBuf), &readFile);
+		 sscanf(strBuf, "type of test: %1d", &testType);
+		 curConfig->testType = testType;
+		 usbprintf("Type of test: %s", curConfig->testType ? "ETT" : "Reliability");
+	 } else if ( !f_eof(&readFile) ){
+		 f_gets(strBuf, sizeof(strBuf), &readFile);
+		 sscanf(strBuf, "cell: %3d ", &cellNum);
+		 curConfig->cellNum = cellNum;
+		 usbprintf("Cell: %d", curConfig->cellNum);
+	 } else if ( !f_eof(&readFile) ){
+		 f_gets(strBuf, sizeof(strBuf), &readFile);
+		 sscanf(strBuf, "row: %2d ", &rowNum);
+		 curConfig->rowNum = rowNum;
+		 usbprintf("Row: %d", curConfig->rowNum);
+	 } else if ( !f_eof(&readFile) ){
+		 f_gets(strBuf, sizeof(strBuf), &readFile);
+		 sscanf(strBuf, "col: %2d ", &colNum);
+		 curConfig->colNum = colNum;
+		 usbprintf("Col: %d", curConfig->colNum);
+	 } else if ( !f_eof(&readFile) ){
+		 f_gets(strBuf, sizeof(strBuf), &readFile);
+		 sscanf(strBuf, "result check method: %1d", &resCheckMethod);
+		 curConfig->resCheckMethod = resCheckMethod;
+		 usbprintf("Result check method: %d", curConfig->resCheckMethod);
+		 usbprintf("0 - every result,");
+		 usbprintf("1 - average result during 1s period,");
+		 usbprintf("2 - average result during 2s period,");
+		 usbprintf("3 - average result during 3s period,");
+		 usbprintf("4 - average result during 4s period,");
+		 usbprintf("5 - average result during 5s period,");
+		 usbprintf("6 - just faults");
+	 } else if ( !f_eof(&readFile) ){
+		 f_gets(strBuf, sizeof(strBuf), &readFile);
+		 sscanf(strBuf, "test duration in hours: %5d", &testDurationInHours);
+		 curConfig->testDurationInHours = testDurationInHours;
+		 usbprintf("Test duration in hours: %d h", curConfig->testDurationInHours);
+	 } else if ( !f_eof(&readFile) ){
+		 f_gets(strBuf, sizeof(strBuf), &readFile);
+		 sscanf(strBuf, "number of power supplies: %2d", &powerSupplyNum);
+		 curConfig->powerSupplyNum = powerSupplyNum;
+		 usbprintf("Number of power supplies: %d", curConfig->powerSupplyNum);
+	 } else if ( !f_eof(&readFile) ){
+		 f_gets(strBuf, sizeof(strBuf), &readFile);
+		 sscanf(strBuf, "number of pcbs: %d", &pcbNum);
+		 curConfig->pcbNum = pcbNum;
+		 usbprintf("Number of PCBs: %d", curConfig->pcbNum);
+	 } else {
+		 f_close(&readFile);
+		 usbprintf("Wrong config file");
+		 return HAL_ERROR;
+	 }
+
+	  f_close(&readFile);
+	  return HAL_OK;
 }

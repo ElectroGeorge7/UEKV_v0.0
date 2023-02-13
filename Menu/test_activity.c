@@ -15,8 +15,9 @@
 #include "LCD1602.h"
 
 
-#define TEST_ACT_TEST_IS_ACTIVE 0x01
-#define TEST_ACT_CONFIG_IS_SET 0x02
+#define TEST_ACT_TEST_IS_ACTIVE 	0x01
+#define TEST_ACT_CONFIG_IS_SET 		0x02
+#define TEST_ACT_CONFIG_TO_WRITE 	0x03
 static uint8_t testActStatusFlags = 0;
 
 #define TEST_ACT_MENU_ROW_NUM 22
@@ -39,6 +40,8 @@ extern osMessageQueueId_t eventQueueHandler;
 HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 	char pBuf[16] = {0};
 	DataTime_t dataTime = {0};
+	Event_t msg;
+	osStatus_t res;
 
 	static uint16_t testConfigsSetFlag = 0;
 
@@ -89,15 +92,17 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 					LCD_PrintString("...");
 					HAL_Delay(1000);
 
-					//osEventFlagsSet(testEvents, TEST_CONFIG_SEARCH);
-					// wait for config
-					//osMessageQueueGet(eventQueueHandler, &msg, NULL, osWaitForever);
+					osEventFlagsSet(testEvents, TEST_CONFIG_SEARCH);
+					if ( osEventFlagsWait(testEvents, TEST_CONFIG_IS_FIND | TEST_CONFIG_IS_NOT, osFlagsWaitAny, osWaitForever) & TEST_CONFIG_IS_FIND ){
 
-					//osEventFlagsWait(testEvents, TEST_CONFIG_IS_FIND | TEST_CONFIG_IS_NOT, osFlagsWaitAny, osWaitForever);
+						// wait for config from file
+						if( osMessageQueueGet(eventQueueHandler, &msg, NULL, osWaitForever) == osOK ){
+							if ( msg.event == TEST_CONFIG_SEND ){
+								memcpy(msg.eventStr, (uint8_t *)&curConfig, sizeof(TestConfig_t));
+							}
+						}
 
-					if (0/* check config file in file system */){
-
-						// get configuration from the file
+						// decode config from queue
 						testActStatusFlags |= TEST_ACT_CONFIG_IS_SET;
 					} else {
 						LCD_SetCursor( 0, 1 );
@@ -108,11 +113,14 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 						LCD_SetCursor( 0, 0 );
 						LCD_PrintString("Настр-ка по USB");
 						usbprintf("Test config set. Enter Part Number (up to 16 symbols).");
+						// after terminal config it`s needed to write config in log file
+						testActStatusFlags |= TEST_ACT_CONFIG_TO_WRITE;
 					}
 
 				} else {
-					//osEventFlagsSet(testEvents, TEST_START);
+					osEventFlagsSet(testEvents, TEST_START);
 					result_check_init();
+					testActStatusFlags |= TEST_ACT_TEST_IS_ACTIVE;
 				}
 			}
 
@@ -121,26 +129,37 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 			result_check_deinit();
 			testActStatusFlags = 0;
 			testConfigsSetFlag = 0;
-			//osEventFlagsSet(testEvents, TEST_FINISH);
+			osEventFlagsSet(testEvents, TEST_FINISH);
 			activity_change(MENU_ACTIVITY);
 			break;
 		case TERMINAL_CMD:
-			if ( test_terminal_config(data, &curConfig, &testConfigsSetFlag) == HAL_OK ){
+			if ( !(testActStatusFlags & TEST_ACT_TEST_IS_ACTIVE) ){
+				if ( !(testActStatusFlags & TEST_ACT_CONFIG_IS_SET) ){
+					if ( test_terminal_config(data, &curConfig, &testConfigsSetFlag) == HAL_OK ){
 
-				test_menu_update(&curConfig);
+						if (testActStatusFlags & TEST_ACT_CONFIG_TO_WRITE){
+							msg.event = TEST_CONFIG_SEND;
+							memcpy((uint8_t *)&curConfig, msg.eventStr, sizeof(TestConfig_t));
+							osMessageQueuePut(eventQueueHandler, &msg, 0, 0);
+						}
 
-				LCD_Clear();
-				curMenuRow = 0;
 
-				LCD_SetCursor( 0, 0 );
-				LCD_PrintString(testActMenu[0]);
-				LCD_SetCursor( 0, 1 );
-				LCD_PrintString(testActMenu[1]);
+						test_menu_update(&curConfig);
 
-				LCD_CursorOnOff(1);
-				LCD_SetCursor( 15, 0 );
+						LCD_Clear();
+						curMenuRow = 0;
 
-				testActStatusFlags |= TEST_ACT_CONFIG_IS_SET;
+						LCD_SetCursor( 0, 0 );
+						LCD_PrintString(testActMenu[0]);
+						LCD_SetCursor( 0, 1 );
+						LCD_PrintString(testActMenu[1]);
+
+						LCD_CursorOnOff(1);
+						LCD_SetCursor( 15, 0 );
+
+						testActStatusFlags |= TEST_ACT_CONFIG_IS_SET;
+					}
+				}
 			}
 			break;
 	  default:
@@ -173,7 +192,7 @@ HAL_StatusTypeDef test_terminal_config(uint8_t *data, TestConfig_t *curConfig, u
 		usbprintf("Enter type of test: 0 - Reliability, 1 - ETT.");
 		*flag |= TEST_CONFIG_MLDR_NUM_IS_SET;
 	} else if ( !(*flag & TEST_CONFIG_TEST_TYPE_IS_SET) ){
-		sscanf(data, "%d", &testType);
+		sscanf(data, "%1d", &testType);
 		curConfig->testType = testType;
 		usbprintf("Type of test: %s", curConfig->testType ? "ETT" : "Reliability");
 		usbprintf("Enter numbers of used cells, rows and columns in format: cell:xxx row:xx col:xx");
@@ -194,7 +213,7 @@ HAL_StatusTypeDef test_terminal_config(uint8_t *data, TestConfig_t *curConfig, u
 		usbprintf("6 - just faults");
 		*flag |= TEST_CONFIG_MATRIX_IS_SET;
 	} else if ( !(*flag & TEST_CONFIG_RES_CHECK_METHOD_IS_SET) ){
-		sscanf(data, "%d", &resCheckMethod);
+		sscanf(data, "%1d", &resCheckMethod);
 		curConfig->resCheckMethod = resCheckMethod;
 		usbprintf("Result check method: %d", curConfig->resCheckMethod);
 		usbprintf("Enter test duration in hours (up to 99999 hours).");

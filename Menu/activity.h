@@ -23,7 +23,7 @@ typedef enum Command {
 	BACK_CMD,
 	START_CMD,
 	UPDATE_CMD,
-	TERMINAL_CMD,
+	TERMINAL_CMD
 } Command_t;
 
 typedef void (*ActivityViewUpdateCb_t)(Command_t cmd, uint8_t *data);
