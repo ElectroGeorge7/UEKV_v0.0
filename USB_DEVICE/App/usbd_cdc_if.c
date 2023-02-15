@@ -25,6 +25,7 @@
 /* USER CODE BEGIN INCLUDE */
 #include "cmsis_os2.h"
 #include "activity.h"
+#include "main.h"
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -269,7 +270,7 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
   // so clear the buffer from them
   memset(Buf + *Len, '\0', 20);
 
-  msg.event = TERMINAL_CMD;
+  msg.event = TERMINAL_CMD_RECEIVED_EVENT;
   memcpy(msg.eventStr, Buf, sizeof(msg.eventStr));
 
   res = osMessageQueuePut (eventQueueHandler, &msg, 0, 0);

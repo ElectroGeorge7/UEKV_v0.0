@@ -98,11 +98,23 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 						// wait for config from file
 						if( osMessageQueueGet(eventQueueHandler, &msg, NULL, osWaitForever) == osOK ){
 							if ( msg.event == TEST_CONFIG_SEND ){
-								memcpy(msg.eventStr, (uint8_t *)&curConfig, sizeof(TestConfig_t));
+								memcpy((uint8_t *)&curConfig, msg.eventStr, sizeof(TestConfig_t));
 							}
 						}
 
-						// decode config from queue
+						test_menu_update(&curConfig);
+
+						LCD_Clear();
+						curMenuRow = 0;
+
+						LCD_SetCursor( 0, 0 );
+						LCD_PrintString(testActMenu[0]);
+						LCD_SetCursor( 0, 1 );
+						LCD_PrintString(testActMenu[1]);
+
+						LCD_CursorOnOff(1);
+						LCD_SetCursor( 15, 0 );
+
 						testActStatusFlags |= TEST_ACT_CONFIG_IS_SET;
 					} else {
 						LCD_SetCursor( 0, 1 );

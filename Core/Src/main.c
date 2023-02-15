@@ -40,14 +40,14 @@ osThreadId_t controlTaskHandle;
 const osThreadAttr_t controlTask_attributes = {
   .name = "controlTask",
   .priority = (osPriority_t) osPriorityNormal5,
-  .stack_size = 1024 * 4
+  .stack_size = 1200 * 4
 };
 
 osThreadId_t storageTaskHandle;
 const osThreadAttr_t storageTask_attributes = {
   .name = "storageTask",
   .priority = (osPriority_t) osPriorityNormal3,
-  .stack_size = 768 * 4
+  .stack_size = 1200 * 4
 };
 
 osThreadId_t ubCheckTaskHandle;

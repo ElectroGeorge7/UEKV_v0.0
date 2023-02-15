@@ -40,7 +40,7 @@ void StorageTask(void *argument) {
 	uint32_t bw;
 	FIL logFile;
 
-	Event_t msg;
+	Event_t msg = {0};
 	TestConfig_t curConfig = {0};
 
     char pBufStart[] = "Successful file creation\n";
@@ -61,7 +61,10 @@ void StorageTask(void *argument) {
 
 			 msg.event = TEST_CONFIG_SEND;
 			if ( storage_config_search("config.txt", &curConfig) == HAL_OK ){
-				memcpy((uint8_t *)&curConfig, msg.eventStr, sizeof(TestConfig_t));
+				memcpy(msg.eventStr, (uint8_t *)&curConfig, sizeof(TestConfig_t));
+				//for (uint16_t i=0; i < sizeof(TestConfig_t); i++){
+				//	*((&curConfig)+i)
+				//}
 				//and send to control task
 				osMessageQueuePut(eventQueueHandler, &msg, 0, 0);
 				osEventFlagsSet(testEvents, TEST_CONFIG_IS_FIND);
@@ -70,7 +73,7 @@ void StorageTask(void *argument) {
 				// get terminal config
 				if( osMessageQueueGet(eventQueueHandler, &msg, NULL, osWaitForever) == osOK ){
 					if ( msg.event == TEST_CONFIG_SEND ){
-						memcpy(msg.eventStr, (uint8_t *)&curConfig, sizeof(TestConfig_t));
+						memcpy((uint8_t *)&curConfig, msg.eventStr, sizeof(TestConfig_t));
 					}
 				}
 			}
@@ -80,9 +83,11 @@ void StorageTask(void *argument) {
 
 	  } else {
 
-		  if ( !(testFlags & TEST_START) ){
+		  if ( !( (testFlags & TEST_START) == TEST_START ) ){
 
-			 if ( osEventFlagsWait(testEvents, TEST_START, osFlagsWaitAny, osWaitForever) == TEST_START ){
+			 uint32_t eventFlag = osEventFlagsWait(testEvents, TEST_START | TEST_FINISH, osFlagsWaitAny, osWaitForever);
+
+			 if ( eventFlag == TEST_START ){
 
 				// create file that named after part number
 				uint8_t temp = 5;
@@ -106,11 +111,15 @@ void StorageTask(void *argument) {
 				 gfr = f_sync(&logFile);
 
 				  testFlags |= TEST_START;
+
+			 } else if (eventFlag == TEST_FINISH){
+				testFlags = 0;
 			 }
 
 		  } else {
 
 			  //wait
+
 			 if ( osEventFlagsWait(testEvents, TEST_FINISH, osFlagsWaitAny, 0) == TEST_FINISH ){
 				 // close log file
 				 gfr = f_sync(&logFile);
@@ -138,9 +147,9 @@ void StorageTask(void *argument) {
 
 				  gfr = f_write(&logFile, buf, strlen(buf), &bw);
 				  gfr = f_sync(&logFile);
-			 }
+			 	 }
 
-		  }
+			  }
 
 	  }
 
@@ -193,31 +202,37 @@ HAL_StatusTypeDef storage_config_search(const char *configFileName, TestConfig_t
 		 f_gets(strBuf, sizeof(strBuf), &readFile);
 		 sscanf(strBuf, "part number: %16s", curConfig->partNumber);
 		 usbprintf("Part Number: %s", curConfig->partNumber);
-	 } else if ( !f_eof(&readFile) ){
+	 }
+	 if ( !f_eof(&readFile) ){
 		 f_gets(strBuf, sizeof(strBuf), &readFile);
 		 sscanf(strBuf, "mldr number: %9s", curConfig->mldrNum);
 		 usbprintf("MLDR number: %s", curConfig->mldrNum);
-	 } else if ( !f_eof(&readFile) ){
+	 }
+	 if ( !f_eof(&readFile) ){
 		 f_gets(strBuf, sizeof(strBuf), &readFile);
 		 sscanf(strBuf, "type of test: %1d", &testType);
 		 curConfig->testType = testType;
 		 usbprintf("Type of test: %s", curConfig->testType ? "ETT" : "Reliability");
-	 } else if ( !f_eof(&readFile) ){
+	 }
+	 if ( !f_eof(&readFile) ){
 		 f_gets(strBuf, sizeof(strBuf), &readFile);
 		 sscanf(strBuf, "cell: %3d ", &cellNum);
 		 curConfig->cellNum = cellNum;
 		 usbprintf("Cell: %d", curConfig->cellNum);
-	 } else if ( !f_eof(&readFile) ){
+	 }
+	 if ( !f_eof(&readFile) ){
 		 f_gets(strBuf, sizeof(strBuf), &readFile);
 		 sscanf(strBuf, "row: %2d ", &rowNum);
 		 curConfig->rowNum = rowNum;
 		 usbprintf("Row: %d", curConfig->rowNum);
-	 } else if ( !f_eof(&readFile) ){
+	 }
+	 if ( !f_eof(&readFile) ){
 		 f_gets(strBuf, sizeof(strBuf), &readFile);
 		 sscanf(strBuf, "col: %2d ", &colNum);
 		 curConfig->colNum = colNum;
 		 usbprintf("Col: %d", curConfig->colNum);
-	 } else if ( !f_eof(&readFile) ){
+	 }
+	 if ( !f_eof(&readFile) ){
 		 f_gets(strBuf, sizeof(strBuf), &readFile);
 		 sscanf(strBuf, "result check method: %1d", &resCheckMethod);
 		 curConfig->resCheckMethod = resCheckMethod;
@@ -229,17 +244,20 @@ HAL_StatusTypeDef storage_config_search(const char *configFileName, TestConfig_t
 		 usbprintf("4 - average result during 4s period,");
 		 usbprintf("5 - average result during 5s period,");
 		 usbprintf("6 - just faults");
-	 } else if ( !f_eof(&readFile) ){
+	 }
+	 if ( !f_eof(&readFile) ){
 		 f_gets(strBuf, sizeof(strBuf), &readFile);
-		 sscanf(strBuf, "test duration in hours: %5d", &testDurationInHours);
+		 sscanf(strBuf, "test duration in hours: %5d h", &testDurationInHours);
 		 curConfig->testDurationInHours = testDurationInHours;
 		 usbprintf("Test duration in hours: %d h", curConfig->testDurationInHours);
-	 } else if ( !f_eof(&readFile) ){
+	 }
+	 if ( !f_eof(&readFile) ){
 		 f_gets(strBuf, sizeof(strBuf), &readFile);
 		 sscanf(strBuf, "number of power supplies: %2d", &powerSupplyNum);
 		 curConfig->powerSupplyNum = powerSupplyNum;
 		 usbprintf("Number of power supplies: %d", curConfig->powerSupplyNum);
-	 } else if ( !f_eof(&readFile) ){
+	 }
+	 if ( !f_eof(&readFile) ){
 		 f_gets(strBuf, sizeof(strBuf), &readFile);
 		 sscanf(strBuf, "number of pcbs: %d", &pcbNum);
 		 curConfig->pcbNum = pcbNum;
