@@ -41,15 +41,15 @@ void Error_Handler(void);
 
 #define BUTTON_UP_PRESS_EVENT 			0x01
 #define BUTTON_DOWN_PRESS_EVENT 		0x02
-#define BUTTON_RIGHT_PRESS_EVENT 		0x03
-#define BUTTON_LEFT_PRESS_EVENT 		0x04
-#define TERMINAL_CMD_RECEIVED_EVENT		0x05
-#define TEST_CONFIG_SEARCH				0x06
-#define TEST_CONFIG_IS_FIND				0x07
-#define TEST_CONFIG_IS_NOT				0x08
-#define TEST_CONFIG_SEND				0x09
-#define TEST_START						0x0a
-#define TEST_FINISH						0x0b
+#define BUTTON_RIGHT_PRESS_EVENT 		0x04
+#define BUTTON_LEFT_PRESS_EVENT 		0x08
+#define TERMINAL_CMD_RECEIVED_EVENT		0x10
+#define TEST_CONFIG_SEARCH				0x20
+#define TEST_CONFIG_IS_FIND				0x40
+#define TEST_CONFIG_IS_NOT				0x80
+#define TEST_CONFIG_SEND				0x100
+#define TEST_START						0x200
+#define TEST_FINISH						0x400
 
 #include "rtc_hardware.h"
 
@@ -74,7 +74,7 @@ typedef struct {
 
 typedef struct {
 	uint8_t index;
-	uint8_t event;
+	uint32_t event;
 	char eventStr[256];
 } Event_t;
 

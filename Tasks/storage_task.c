@@ -25,7 +25,7 @@ extern osEventFlagsId_t testEvents;
 extern osMessageQueueId_t logQueueHandler;
 extern osMessageQueueId_t eventQueueHandler;
 
-static uint8_t testFlags = 0;
+static uint16_t testFlags = 0;
 
 void fRead(char *configFileName, uint8_t *buf, uint32_t num, uint32_t *br);
 FRESULT storage_file_open_create ( FIL* fp, char* path);
@@ -70,10 +70,12 @@ void StorageTask(void *argument) {
 				osEventFlagsSet(testEvents, TEST_CONFIG_IS_FIND);
 			} else {
 				osEventFlagsSet(testEvents, TEST_CONFIG_IS_NOT);
-				// get terminal config
-				if( osMessageQueueGet(eventQueueHandler, &msg, NULL, osWaitForever) == osOK ){
-					if ( msg.event == TEST_CONFIG_SEND ){
-						memcpy((uint8_t *)&curConfig, msg.eventStr, sizeof(TestConfig_t));
+				if ( osEventFlagsWait(testEvents, TEST_CONFIG_SEND, osFlagsWaitAny, osWaitForever) == TEST_CONFIG_SEND ){
+					// get terminal config
+					if( osMessageQueueGet(eventQueueHandler, &msg, NULL, osWaitForever) == osOK ){
+						if ( msg.event == TEST_CONFIG_SEND ){
+							memcpy((uint8_t *)&curConfig, msg.eventStr, sizeof(TestConfig_t));
+						}
 					}
 				}
 			}
@@ -83,7 +85,7 @@ void StorageTask(void *argument) {
 
 	  } else {
 
-		  if ( !( (testFlags & TEST_START) == TEST_START ) ){
+		  if ( ! (testFlags & TEST_START) ){
 
 			 uint32_t eventFlag = osEventFlagsWait(testEvents, TEST_START | TEST_FINISH, osFlagsWaitAny, osWaitForever);
 
@@ -93,21 +95,21 @@ void StorageTask(void *argument) {
 				uint8_t temp = 5;
 				  do{
 					  gfr = storage_file_open_create(&logFile, curConfig.partNumber);
-				  }while (gfr && temp--);
+				  }while (gfr && --temp);
 
 				 if (!temp)
 					 usbprintf("log file opening or creation error");
 				// write the configuration to test file
 				 f_printf(&logFile, "Part Number: %s \n", curConfig.partNumber );
 				 f_printf(&logFile, "MLDR number: %s \n", curConfig.mldrNum );
-				 f_printf(&logFile, "Type of test: %s", curConfig.testType ? "ETT" : "Reliability" );
-				 f_printf(&logFile, "Cell: %d", curConfig.cellNum );
-				 f_printf(&logFile, "Row: %d", curConfig.rowNum );
-				 f_printf(&logFile, "Col: %d", curConfig.colNum );
-				 f_printf(&logFile, "Result check method: %d", curConfig.resCheckMethod );
-				 f_printf(&logFile, "Test duration in hours: %d h", curConfig.testDurationInHours );
-				 f_printf(&logFile, "Number of power supplies: %d", curConfig.powerSupplyNum );
-				 f_printf(&logFile, "Number of PCBs: %d", curConfig.pcbNum );
+				 f_printf(&logFile, "Type of test: %s \n", curConfig.testType ? "ETT" : "Reliability" );
+				 f_printf(&logFile, "Cell: %d \n", curConfig.cellNum );
+				 f_printf(&logFile, "Row: %d \n", curConfig.rowNum );
+				 f_printf(&logFile, "Col: %d \n", curConfig.colNum );
+				 f_printf(&logFile, "Result check method: %d \n", curConfig.resCheckMethod );
+				 f_printf(&logFile, "Test duration in hours: %d h \n", curConfig.testDurationInHours );
+				 f_printf(&logFile, "Number of power supplies: %d \n", curConfig.powerSupplyNum );
+				 f_printf(&logFile, "Number of PCBs: %d \n", curConfig.pcbNum );
 				 gfr = f_sync(&logFile);
 
 				  testFlags |= TEST_START;
@@ -192,11 +194,12 @@ HAL_StatusTypeDef storage_config_search(const char *configFileName, TestConfig_t
 	 uint8_t temp = 5;
 	 do{
 	      gfr = f_open(&readFile, configFileName, FA_READ);
-	  }while (gfr && temp--);
+	  }while (gfr && --temp);
 
-	 if (!temp)
+	 if (!temp){
 		 usbprintf("config.txt file not found");
-
+		 return HAL_ERROR;
+	 }
 	 // extract needed info
 	 if ( !f_eof(&readFile) ){
 		 f_gets(strBuf, sizeof(strBuf), &readFile);

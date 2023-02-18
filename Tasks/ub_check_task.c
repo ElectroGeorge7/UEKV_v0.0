@@ -58,7 +58,7 @@ void UbCheckTask(void *argument){
 		leds_matrix_show_result();
 
 
-/*
+
 		curLog.index = logNum++;
 
 		DataTime_t dataTime;
@@ -77,8 +77,8 @@ void UbCheckTask(void *argument){
 		curLog.supplyCurrents[0].fracVal = 15;
 		curLog.supplyVoltages[0].intVal = 3;
 		curLog.supplyVoltages[0].fracVal = 6;
-*/
-		//osRes = osMessageQueuePut(logQueueHandler, &curLog, 0, 0);
+
+		osRes = osMessageQueuePut(logQueueHandler, &curLog, 0, 0);
 
 		result_check_clear();
 		HAL_GPIO_TogglePin(GPIOC, LED_PROCESS_Pin);

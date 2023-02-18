@@ -17,7 +17,7 @@
 
 #define TEST_ACT_TEST_IS_ACTIVE 	0x01
 #define TEST_ACT_CONFIG_IS_SET 		0x02
-#define TEST_ACT_CONFIG_TO_WRITE 	0x03
+#define TEST_ACT_CONFIG_TO_WRITE 	0x04
 static uint8_t testActStatusFlags = 0;
 
 #define TEST_ACT_MENU_ROW_NUM 22
@@ -40,7 +40,7 @@ extern osMessageQueueId_t eventQueueHandler;
 HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 	char pBuf[16] = {0};
 	DataTime_t dataTime = {0};
-	Event_t msg;
+	Event_t msg = {0};
 	osStatus_t res;
 
 	static uint16_t testConfigsSetFlag = 0;
@@ -142,6 +142,7 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 			testActStatusFlags = 0;
 			testConfigsSetFlag = 0;
 			osEventFlagsSet(testEvents, TEST_FINISH);
+			//osThreadYield();
 			activity_change(MENU_ACTIVITY);
 			break;
 		case TERMINAL_CMD:
@@ -151,8 +152,9 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 
 						if (testActStatusFlags & TEST_ACT_CONFIG_TO_WRITE){
 							msg.event = TEST_CONFIG_SEND;
-							memcpy((uint8_t *)&curConfig, msg.eventStr, sizeof(TestConfig_t));
+							memcpy(msg.eventStr, (uint8_t *)&curConfig, sizeof(TestConfig_t));
 							osMessageQueuePut(eventQueueHandler, &msg, 0, 0);
+							osEventFlagsSet(testEvents, TEST_CONFIG_SEND);
 						}
 
 
