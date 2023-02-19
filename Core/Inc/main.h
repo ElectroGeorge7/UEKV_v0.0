@@ -43,13 +43,16 @@ void Error_Handler(void);
 #define BUTTON_DOWN_PRESS_EVENT 		0x02
 #define BUTTON_RIGHT_PRESS_EVENT 		0x04
 #define BUTTON_LEFT_PRESS_EVENT 		0x08
-#define TERMINAL_CMD_RECEIVED_EVENT		0x10
-#define TEST_CONFIG_SEARCH				0x20
-#define TEST_CONFIG_IS_FIND				0x40
-#define TEST_CONFIG_IS_NOT				0x80
-#define TEST_CONFIG_SEND				0x100
-#define TEST_START						0x200
-#define TEST_FINISH						0x400
+#define ACTIVITY_UPDATE_EVENT			0x10
+#define TERMINAL_CMD_RECEIVED_EVENT		0x20
+#define TEST_CONFIG_SEARCH				0x40
+#define TEST_CONFIG_IS_FIND				0x80
+#define TEST_CONFIG_IS_NOT				0x100
+#define TEST_CONFIG_SEND				0x200
+#define TEST_START						0x400
+#define TEST_FINISH						0x800
+#define TEST_LOG_SAVE					0x1000
+#define TEST_LOG_DISPLAY				0x2000
 
 #include "rtc_hardware.h"
 

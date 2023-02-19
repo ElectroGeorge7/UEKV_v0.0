@@ -24,6 +24,7 @@ static uint32_t logNum = 0;
 
 extern osSemaphoreId_t ubCheckSem;
 extern osMessageQueueId_t logQueueHandler;
+extern osEventFlagsId_t testEvents;
 
 void UbCheckTask(void *argument){
 	osStatus_t osRes;
@@ -53,8 +54,6 @@ void UbCheckTask(void *argument){
 		leds_matrix_clear();
 		HAL_Delay(50);
 		memcpy(ledsBitMatrix, resultMatrix, sizeof(resultMatrix));
-		//ledsBitMatrix[1] = 0xc0;
-		//ledsBitMatrix[7] = 0x0c;
 		leds_matrix_show_result();
 
 
@@ -79,6 +78,7 @@ void UbCheckTask(void *argument){
 		curLog.supplyVoltages[0].fracVal = 6;
 
 		osRes = osMessageQueuePut(logQueueHandler, &curLog, 0, 0);
+		osEventFlagsSet(testEvents, TEST_LOG_SAVE);
 
 		result_check_clear();
 		HAL_GPIO_TogglePin(GPIOC, LED_PROCESS_Pin);

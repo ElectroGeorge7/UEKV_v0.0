@@ -22,6 +22,7 @@ static uint8_t testActStatusFlags = 0;
 
 #define TEST_ACT_MENU_ROW_NUM 22
 static uint8_t curMenuRow = 0;
+static uint8_t curCursorPos = 0;
 static char testActMenu[TEST_ACT_MENU_ROW_NUM][32] = {0}; // cyrillic letters take 2 bytes
 TestConfig_t curConfig = {0};
 
@@ -42,6 +43,7 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 	DataTime_t dataTime = {0};
 	Event_t msg = {0};
 	osStatus_t res;
+	Log_t *pLog = {0};
 
 	static uint16_t testConfigsSetFlag = 0;
 
@@ -58,9 +60,9 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 					LCD_PrintString(testActMenu[curMenuRow-1]);
 					LCD_SetCursor( 0, 1 );
 					LCD_PrintString(testActMenu[curMenuRow]);
-					LCD_SetCursor( 15, 1 );
+					LCD_SetCursor( 15, curCursorPos = 1 );
 				}else{
-					LCD_SetCursor( 15, 0 );
+					LCD_SetCursor( 15, curCursorPos = 0 );
 				}
 			}
             break;
@@ -68,14 +70,14 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
         	if ( (curMenuRow+1) < TEST_ACT_MENU_ROW_NUM){
         		curMenuRow++;
 				if ( curMenuRow%2 ){
-					LCD_SetCursor( 15, 1 );
+					LCD_SetCursor( 15, curCursorPos = 1 );
 				}else{
 					LCD_Clear();
 					LCD_SetCursor( 0, 0 );
 					LCD_PrintString(testActMenu[curMenuRow]);
 					LCD_SetCursor( 0, 1 );
 					LCD_PrintString(testActMenu[curMenuRow+1]);
-					LCD_SetCursor( 15, 0 );
+					LCD_SetCursor( 15, curCursorPos = 0 );
 				}
         	}
             break;
@@ -131,6 +133,8 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 
 				} else {
 					osEventFlagsSet(testEvents, TEST_START);
+					//osThreadYield();
+					osDelay(1);
 					result_check_init();
 					testActStatusFlags |= TEST_ACT_TEST_IS_ACTIVE;
 				}
@@ -144,6 +148,26 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 			osEventFlagsSet(testEvents, TEST_FINISH);
 			//osThreadYield();
 			activity_change(MENU_ACTIVITY);
+			break;
+		case UPDATE_CMD:
+			if ( testActStatusFlags & TEST_ACT_TEST_IS_ACTIVE ){
+				if ( osEventFlagsWait(testEvents, TEST_LOG_DISPLAY, osFlagsWaitAny, 0) & TEST_LOG_DISPLAY ){
+
+						pLog = (Log_t *)(data);
+
+						snprintf(testActMenu[1], 32, "Рез.: %d", pLog->index);
+						// current time
+						snprintf(testActMenu[9], 32, "%d:%d %d.%d.%d", pLog->dataTime.hour, pLog->dataTime.min, pLog->dataTime.day, pLog->dataTime.mon, pLog->dataTime.year);
+
+						LCD_Clear();
+						LCD_SetCursor( 0, 0 );
+						LCD_PrintString(testActMenu[curMenuRow]);
+						LCD_SetCursor( 0, 1 );
+						LCD_PrintString(testActMenu[curMenuRow+1]);
+						LCD_SetCursor( 15, curCursorPos = 0 );
+
+					}
+			}
 			break;
 		case TERMINAL_CMD:
 			if ( !(testActStatusFlags & TEST_ACT_TEST_IS_ACTIVE) ){

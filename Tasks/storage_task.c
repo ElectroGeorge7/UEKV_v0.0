@@ -18,7 +18,7 @@
 #include <string.h>
 
 static FATFS sdFatFs;
-static FIL sdFile;
+static FIL logFile;
 FRESULT gfr;
 
 extern osEventFlagsId_t testEvents;
@@ -38,7 +38,6 @@ void StorageTask(void *argument) {
 	char buf[sizeof(Log_t)] = {0};
 	char *pBuf;
 	uint32_t bw;
-	FIL logFile;
 
 	Event_t msg = {0};
 	TestConfig_t curConfig = {0};
@@ -129,34 +128,43 @@ void StorageTask(void *argument) {
 				 testFlags = 0;
 			 }
 
-			 // wait for logs
-			 if ( osMessageQueueGet(logQueueHandler, &curLog, NULL, osWaitForever) == osOK ){
-				  prNum = snprintf(buf, sizeof(Log_t), "%d. ", curLog.index);
-				  pBuf = buf+prNum;
-				  prNum = snprintf(pBuf, sizeof(Log_t), "%d:%d:%d %d.%d.%d ", curLog.dataTime.hour, curLog.dataTime.min, curLog.dataTime.sec, curLog.dataTime.day, curLog.dataTime.mon, curLog.dataTime.year );
-				  pBuf = pBuf+prNum;
-				  prNum = snprintf(pBuf, sizeof(Log_t), "%x,%x,%x,%x,%x,%x,%x,%x,%x,%x ", curLog.result[0], curLog.result[1], curLog.result[2], curLog.result[3], curLog.result[4], curLog.result[5], curLog.result[6], curLog.result[7], curLog.result[8], curLog.result[9]);
-				  pBuf = pBuf+prNum;
-				  prNum = snprintf(pBuf, sizeof(Log_t), "%f ", curLog.temp[0]);
-				  pBuf = pBuf+prNum;
-				  prNum = snprintf(pBuf, sizeof(Log_t), "%f ", curLog.temp[1]);
-				  pBuf = pBuf+prNum;
-				  prNum = snprintf(pBuf, sizeof(Log_t), "%d.%d ", curLog.supplyCurrents[0].intVal, curLog.supplyCurrents[0].fracVal);
-				  pBuf = pBuf+prNum;
-				  prNum = snprintf(pBuf, sizeof(Log_t), "%d.%d \n", curLog.supplyVoltages[0].intVal, curLog.supplyVoltages[0].fracVal);
+			 uint32_t eventFlag = osEventFlagsWait(testEvents, TEST_LOG_SAVE, osFlagsWaitAny, osWaitForever);
+			 if ( eventFlag & TEST_LOG_SAVE ){
+				 // wait for logs
+				 if ( osMessageQueueGet(logQueueHandler, &curLog, NULL, osWaitForever) == osOK ){
+					  prNum = snprintf(buf, sizeof(Log_t), "%d. ", curLog.index);
+					  pBuf = buf+prNum;
+					  prNum = snprintf(pBuf, sizeof(Log_t), "%d:%d:%d %d.%d.%d ", curLog.dataTime.hour, curLog.dataTime.min, curLog.dataTime.sec, curLog.dataTime.day, curLog.dataTime.mon, curLog.dataTime.year );
+					  pBuf = pBuf+prNum;
+					  prNum = snprintf(pBuf, sizeof(Log_t), "%x,%x,%x,%x,%x,%x,%x,%x,%x,%x ", curLog.result[0], curLog.result[1], curLog.result[2], curLog.result[3], curLog.result[4], curLog.result[5], curLog.result[6], curLog.result[7], curLog.result[8], curLog.result[9]);
+					  pBuf = pBuf+prNum;
+					  prNum = snprintf(pBuf, sizeof(Log_t), "%f ", curLog.temp[0]);
+					  pBuf = pBuf+prNum;
+					  prNum = snprintf(pBuf, sizeof(Log_t), "%f ", curLog.temp[1]);
+					  pBuf = pBuf+prNum;
+					  prNum = snprintf(pBuf, sizeof(Log_t), "%d.%d ", curLog.supplyCurrents[0].intVal, curLog.supplyCurrents[0].fracVal);
+					  pBuf = pBuf+prNum;
+					  prNum = snprintf(pBuf, sizeof(Log_t), "%d.%d \n", curLog.supplyVoltages[0].intVal, curLog.supplyVoltages[0].fracVal);
 
-				  uartprintf(buf);
+					  uartprintf(buf);
 
-				  gfr = f_write(&logFile, buf, strlen(buf), &bw);
-				  gfr = f_sync(&logFile);
-			 	 }
+					  gfr = f_write(&logFile, buf, strlen(buf), &bw);
+					  gfr = f_sync(&logFile);
+
+					  memset(&msg, 0, sizeof(Event_t));
+					  msg.event = ACTIVITY_UPDATE_EVENT;
+					  memcpy(msg.eventStr, (uint8_t *)&curLog, sizeof(Log_t));
+					  osRes = osMessageQueuePut (eventQueueHandler, &msg, 0, 0);
+					  osEventFlagsSet(testEvents, TEST_LOG_DISPLAY);
+				 }
 
 			  }
+		  }
 
 	  }
 
 	  osThreadYield();
-	  osDelay(1000);
+	  osDelay(10);
   }
 }
 

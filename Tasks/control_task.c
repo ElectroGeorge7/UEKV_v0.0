@@ -68,6 +68,8 @@ void ControlTask(void *argument){
 			activity_cmd_execute(SELECT_CMD, NULL);
 		else if ( msg.event == BUTTON_LEFT_PRESS_EVENT )
 			activity_cmd_execute(BACK_CMD, NULL);
+		else if ( msg.event == ACTIVITY_UPDATE_EVENT )
+			activity_cmd_execute(UPDATE_CMD, &(msg.eventStr));
 		else if ( msg.event == TERMINAL_CMD_RECEIVED_EVENT )
 			// @todo preprocessing to identify common commands for all activities
 			activity_cmd_execute(TERMINAL_CMD, &(msg.eventStr));
