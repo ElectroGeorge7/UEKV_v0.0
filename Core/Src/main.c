@@ -100,6 +100,8 @@ int main(void)
   menu_init();
   rtc_init();
 
+  ts_spi_init();
+
   osKernelInitialize();
 
   eventQueueHandler = osMessageQueueNew (EVENT_QUEUE_OBJECTS, EVENT_QUEUE_OBJ_SIZE, &eventQueue);

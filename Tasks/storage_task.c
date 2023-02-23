@@ -138,9 +138,9 @@ void StorageTask(void *argument) {
 					  pBuf = pBuf+prNum;
 					  prNum = snprintf(pBuf, sizeof(Log_t), "%x,%x,%x,%x,%x,%x,%x,%x,%x,%x ", curLog.result[0], curLog.result[1], curLog.result[2], curLog.result[3], curLog.result[4], curLog.result[5], curLog.result[6], curLog.result[7], curLog.result[8], curLog.result[9]);
 					  pBuf = pBuf+prNum;
-					  prNum = snprintf(pBuf, sizeof(Log_t), "%f ", curLog.temp[0]);
+					  prNum = snprintf(pBuf, sizeof(Log_t), "%3.0f ", curLog.temp[0]);
 					  pBuf = pBuf+prNum;
-					  prNum = snprintf(pBuf, sizeof(Log_t), "%f ", curLog.temp[1]);
+					  prNum = snprintf(pBuf, sizeof(Log_t), "%3.0f ", curLog.temp[1]);
 					  pBuf = pBuf+prNum;
 					  prNum = snprintf(pBuf, sizeof(Log_t), "%d.%d ", curLog.supplyCurrents[0].intVal, curLog.supplyCurrents[0].fracVal);
 					  pBuf = pBuf+prNum;

@@ -15,6 +15,7 @@
 #include "result_check.h"
 #include "ub_check.h"
 #include "leds_matrix.h"
+#include "MAX6675.h"
 
 #include "rtc_hardware.h"
 
@@ -71,7 +72,7 @@ void UbCheckTask(void *argument){
 
 		memcpy(curLog.result, resultMatrix, sizeof(resultMatrix));
 		curLog.temp[0] = 125.125;
-		curLog.temp[1] = 150.375;
+		curLog.temp[1] = Max6675_Read_Temp();
 		curLog.supplyCurrents[0].intVal = 1;
 		curLog.supplyCurrents[0].fracVal = 15;
 		curLog.supplyVoltages[0].intVal = 3;

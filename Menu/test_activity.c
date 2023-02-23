@@ -159,6 +159,11 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 						// current time
 						snprintf(testActMenu[9], 32, "%d:%d %d.%d.%d", pLog->dataTime.hour, pLog->dataTime.min, pLog->dataTime.day, pLog->dataTime.mon, pLog->dataTime.year);
 
+						float temp1 = pLog->temp[0];
+						float temp2 = pLog->temp[1];
+						snprintf(testActMenu[18], 32, "темп.1: %3.0f C", temp1);
+						snprintf(testActMenu[19], 32, "темп.2: %3.0f C", temp2);
+
 						LCD_Clear();
 						LCD_SetCursor( 0, 0 );
 						LCD_PrintString(testActMenu[curMenuRow]);
