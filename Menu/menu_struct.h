@@ -41,13 +41,13 @@ MAKE_MENU_ITEM(Tests, NULL_MENU_ITEM, Time, NULL_MENU_ITEM, NULL_MENU_ITEM, TEST
 		//MAKE_MENU_ITEM(TestConfig, Item14, NULL_MENU_ITEM, Tests, NULL_MENU_ITEM, NULL_FUNC, "Конфигурация");
 //MAKE_MENU_ITEM(TestConfig, Tests, Time, NULL_MENU_ITEM, NULL_MENU_ITEM, NULL_ACTIVITY, "Конфигурация"); // способ общения с платой тестировния и количество COL и ROW
 // Главное меню - Дата и время
-MAKE_MENU_ITEM(Time, Tests, Network, NULL_MENU_ITEM, NULL_MENU_ITEM, DATE_TIME_ACTIVITY, "Дата и время");
+MAKE_MENU_ITEM(Time, Tests, Lps, NULL_MENU_ITEM, NULL_MENU_ITEM, DATE_TIME_ACTIVITY, "Дата и время");
 
-// Главное меню - Сеть
-MAKE_MENU_ITEM(Network, Time, Item4, NULL_MENU_ITEM, NULL_MENU_ITEM, NULL_ACTIVITY, "Сеть");
+// Главное меню - Лабораторный БП
+MAKE_MENU_ITEM(Lps, Time, Item4, NULL_MENU_ITEM, NULL_MENU_ITEM, LPS_ACTIVITY, "ЛБП");
 
 
-MAKE_MENU_ITEM(Item4, Network, Item5, NULL_MENU_ITEM, NULL_MENU_ITEM, NULL_ACTIVITY, "Пункт4");
+MAKE_MENU_ITEM(Item4, Lps, Item5, NULL_MENU_ITEM, NULL_MENU_ITEM, NULL_ACTIVITY, "Пункт4");
 MAKE_MENU_ITEM(Item5, Item4, Item6, NULL_MENU_ITEM, NULL_MENU_ITEM, NULL_ACTIVITY, "Пункт5");
 MAKE_MENU_ITEM(Item6, Item5, Item7, NULL_MENU_ITEM, NULL_MENU_ITEM, NULL_ACTIVITY, "Пункт6");
 MAKE_MENU_ITEM(Item7, Item6, Item8, NULL_MENU_ITEM, NULL_MENU_ITEM, NULL_ACTIVITY, "Пункт7");

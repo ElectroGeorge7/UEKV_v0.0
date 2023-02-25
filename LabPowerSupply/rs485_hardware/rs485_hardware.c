@@ -13,6 +13,7 @@
 #define RS485_DE_GPIO_Port GPIOA
 
 UART_HandleTypeDef huart4;
+uint8_t rs485Buf[32] = {0};
 
 static void UART4_Init(void);
 
@@ -38,7 +39,18 @@ HAL_StatusTypeDef rs485_init(void){
 
 	HAL_StatusTypeDef rs485Res = HAL_ERROR;
 	char rs485String[] = "Hello RS485 \n";
-	rs485Res = HAL_UART_Transmit(&huart4, &rs485String, sizeof(rs485String), 0xfffff);
+	//rs485Res = HAL_UART_Transmit(&huart4, &rs485String, sizeof(rs485String), 0xfffff);
+
+
+	char MDL_cmd[] = ":MDL?;\r\n";
+	char ADR01_cmd[] = ":ADR1;\r\n";
+	rs485Res = HAL_UART_Transmit(&huart4, ADR01_cmd, sizeof(ADR01_cmd-1), 0xfff);
+	HAL_Delay(100);
+	rs485Res = HAL_UART_Transmit(&huart4, MDL_cmd, sizeof(MDL_cmd-1), 0xfff);
+	HAL_Delay(100);
+	rs485Res = HAL_UART_Receive(&huart4, rs485Buf, sizeof(rs485Buf), 0xfff);
+	HAL_Delay(100);
+
 }
 
 /**
