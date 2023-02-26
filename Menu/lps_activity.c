@@ -28,6 +28,17 @@ static uint8_t curCursorPos = 0;
 #define LPS_ACT_TMENU_START     0x01
 static uint8_t lpsActStatusFlags = 0;
 
+uint8_t ADR01_cmd[] = ":ADR01;\r";
+uint8_t MDL_cmd[] = ":MDL?;\r";
+uint8_t REV_cmd[] = ":REV?;\r";
+uint8_t RMT0_cmd[] = ":RMT0;\r";
+uint8_t RMT1_cmd[] = ":RMT1;\r";
+uint8_t RMT2_cmd[] = ":RMT2;\r";
+uint8_t OUT1_cmd[] = ":OUT1;\r";
+uint8_t OUT0_cmd[] = ":OUT0;\r";
+uint8_t STT_cmd[] = ":STT?;\r";
+char rs485Buf[54] = {0};
+
 HAL_StatusTypeDef lps_view_update(Command_t lpsAction, uint8_t *data){
 
 
@@ -46,6 +57,16 @@ HAL_StatusTypeDef lps_view_update(Command_t lpsAction, uint8_t *data){
 
 
                 rs485_init();
+                HAL_Delay(100);
+
+                rs485_transmit(ADR01_cmd, sizeof(ADR01_cmd));
+                rs485_transmit(OUT1_cmd, sizeof(OUT1_cmd));
+                HAL_Delay(5000);
+                rs485_transmit(OUT0_cmd, sizeof(OUT1_cmd));
+
+                rs485_transmit_w_respond(STT_cmd, sizeof(STT_cmd), rs485Buf, sizeof(rs485Buf));
+
+
 
                 lpsActStatusFlags = LPS_ACT_TMENU_START;
             } else if ( curCursorPos == 0 ){
@@ -73,6 +94,7 @@ HAL_StatusTypeDef lps_view_update(Command_t lpsAction, uint8_t *data){
             break;
 		case BACK_CMD:
 			activity_change(MENU_ACTIVITY);
+			lpsActStatusFlags = 0;
 			break;
 		case TERMINAL_CMD:
 			break;

@@ -12,10 +12,32 @@
 #define RS485_DE_Pin GPIO_PIN_3
 #define RS485_DE_GPIO_Port GPIOA
 
+#define TIMEOUT 0xfff
+
 UART_HandleTypeDef huart4;
-uint8_t rs485Buf[32] = {0};
 
 static void UART4_Init(void);
+
+HAL_StatusTypeDef rs485_receive(uint8_t *rxData, uint16_t size){
+	return HAL_UART_Receive(&huart4, rxData, size, TIMEOUT);
+}
+
+HAL_StatusTypeDef rs485_transmit(uint8_t *cmd, uint16_t size){
+	HAL_StatusTypeDef res = HAL_UART_Transmit(&huart4, cmd, size, TIMEOUT);
+	HAL_Delay(10);
+	return res;
+}
+
+HAL_StatusTypeDef rs485_transmit_w_respond(uint8_t *cmd, uint16_t txSize, uint8_t *respond, uint16_t rxSize){
+	HAL_StatusTypeDef res = rs485_transmit(cmd, txSize);
+
+	if (res == HAL_OK){
+		HAL_Delay(10);
+		return rs485_receive(respond, rxSize);
+	}
+
+	return HAL_ERROR;
+}
 
 HAL_StatusTypeDef rs485_init(void){
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -23,7 +45,8 @@ HAL_StatusTypeDef rs485_init(void){
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 
 	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOA, RS485_nRE_Pin|RS485_DE_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, RS485_DE_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, RS485_nRE_Pin, GPIO_PIN_SET);
 
 	/*Configure GPIO pins : RS485_nRE_Pin RS485_DE_Pin */
 	GPIO_InitStruct.Pin = RS485_nRE_Pin|RS485_DE_Pin;
@@ -34,23 +57,78 @@ HAL_StatusTypeDef rs485_init(void){
 
 	UART4_Init();
 
-	HAL_GPIO_WritePin(GPIOA, RS485_nRE_Pin|RS485_DE_Pin, GPIO_PIN_SET); // only transmit
-	HAL_Delay(100);
+	HAL_GPIO_WritePin(GPIOA, RS485_DE_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA, RS485_nRE_Pin, GPIO_PIN_RESET);
+
+
+	/*
 
 	HAL_StatusTypeDef rs485Res = HAL_ERROR;
-	char rs485String[] = "Hello RS485 \n";
+
 	//rs485Res = HAL_UART_Transmit(&huart4, &rs485String, sizeof(rs485String), 0xfffff);
 
+	char ADR01_cmd[] = ":ADR01;\r";
+	char MDL_cmd[] = ":MDL?;\r";
+	char REV_cmd[] = ":REV?;\r";
+	char RMT0_cmd[] = ":RMT0;\r";
+	char RMT1_cmd[] = ":RMT1;\r";
+	char RMT2_cmd[] = ":RMT2;\r";
+	char OUT1_cmd[] = ":OUT1;\r";
+	char OUT0_cmd[] = ":OUT0;\r";
+	rs485Res = HAL_UART_Transmit(&huart4, ADR01_cmd, sizeof(ADR01_cmd)-1, 0xfff);
+	HAL_Delay(100);
+	rs485Res = HAL_UART_Transmit(&huart4, OUT1_cmd, sizeof(OUT1_cmd)-1, 0xfff);
+	HAL_Delay(1000);
+	rs485Res = HAL_UART_Transmit(&huart4, OUT0_cmd, sizeof(OUT0_cmd)-1, 0xfff);
+	HAL_Delay(100);
 
-	char MDL_cmd[] = ":MDL?;\r\n";
-	char ADR01_cmd[] = ":ADR1;\r\n";
-	rs485Res = HAL_UART_Transmit(&huart4, ADR01_cmd, sizeof(ADR01_cmd-1), 0xfff);
-	HAL_Delay(100);
-	rs485Res = HAL_UART_Transmit(&huart4, MDL_cmd, sizeof(MDL_cmd-1), 0xfff);
-	HAL_Delay(100);
+	rs485Res = HAL_UART_Transmit(&huart4, ADR01_cmd, sizeof(ADR01_cmd)-1, 0xfff);
+	HAL_Delay(15);
+	rs485Res = HAL_UART_Transmit(&huart4, MDL_cmd, sizeof(MDL_cmd)-1, 0xfff);
+	HAL_Delay(15);
 	rs485Res = HAL_UART_Receive(&huart4, rs485Buf, sizeof(rs485Buf), 0xfff);
 	HAL_Delay(100);
 
+	rs485Res = HAL_UART_Transmit(&huart4, ADR01_cmd, sizeof(ADR01_cmd)-1, 0xfff);
+	HAL_Delay(15);
+	rs485Res = HAL_UART_Transmit(&huart4, REV_cmd, sizeof(REV_cmd)-1, 0xfff);
+	HAL_Delay(15);
+	rs485Res = HAL_UART_Receive(&huart4, rs485Buf, sizeof(rs485Buf), 0xfff);
+	HAL_Delay(100);
+
+	rs485Res = HAL_UART_Transmit(&huart4, ADR01_cmd, sizeof(ADR01_cmd)-1, 0xfff);
+	HAL_Delay(15);
+	rs485Res = HAL_UART_Transmit(&huart4, RMT0_cmd, sizeof(RMT0_cmd)-1, 0xfff);
+	HAL_Delay(15);
+	rs485Res = HAL_UART_Transmit(&huart4, REV_cmd, sizeof(REV_cmd)-1, 0xfff);
+	HAL_Delay(15);
+	rs485Res = HAL_UART_Receive(&huart4, rs485Buf, sizeof(rs485Buf), 0xfff);
+	HAL_Delay(100);
+
+	rs485Res = HAL_UART_Transmit(&huart4, ADR01_cmd, sizeof(ADR01_cmd)-1, 0xfff);
+	HAL_Delay(15);
+	rs485Res = HAL_UART_Transmit(&huart4, RMT1_cmd, sizeof(RMT0_cmd)-1, 0xfff);
+	HAL_Delay(15);
+	rs485Res = HAL_UART_Transmit(&huart4, REV_cmd, sizeof(REV_cmd)-1, 0xfff);
+	HAL_Delay(15);
+	rs485Res = HAL_UART_Receive(&huart4, rs485Buf, sizeof(rs485Buf), 0xfff);
+	HAL_Delay(100);
+
+	rs485Res = HAL_UART_Transmit(&huart4, ADR01_cmd, sizeof(ADR01_cmd)-1, 0xfff);
+	HAL_Delay(15);
+	rs485Res = HAL_UART_Transmit(&huart4, RMT2_cmd, sizeof(RMT0_cmd)-1, 0xfff);
+	HAL_Delay(15);
+	rs485Res = HAL_UART_Transmit(&huart4, REV_cmd, sizeof(REV_cmd)-1, 0xfff);
+	HAL_Delay(15);
+	rs485Res = HAL_UART_Receive(&huart4, rs485Buf, sizeof(rs485Buf), 0xfff);
+	HAL_Delay(100);
+
+	rs485Res = HAL_UART_Transmit(&huart4, MDL_cmd, sizeof(MDL_cmd)-1, 0xfff);
+
+	rs485Res = HAL_UART_Receive(&huart4, rs485Buf, sizeof(rs485Buf), 0xffff);
+	HAL_Delay(100);
+*/
+	return HAL_OK;
 }
 
 /**
