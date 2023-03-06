@@ -102,6 +102,8 @@ int main(void)
 
   ts_spi_init();
 
+  rs485_init();
+
   osKernelInitialize();
 
   eventQueueHandler = osMessageQueueNew (EVENT_QUEUE_OBJECTS, EVENT_QUEUE_OBJ_SIZE, &eventQueue);

@@ -66,6 +66,7 @@
 									<listOptionValue builtIn="false" value="../TempSensors/ts_hardware/"/>
 									<listOptionValue builtIn="false" value="../TempSensors/ts_max6675/"/>
 									<listOptionValue builtIn="false" value="../LabPowerSupply/rs485_hardware/"/>
+									<listOptionValue builtIn="false" value="../LabPowerSupply/"/>
 									<listOptionValue builtIn="false" value="../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/"/>
 									<listOptionValue builtIn="false" value="../Middlewares/ST/STM32_USB_Device_Library/Core/Src/"/>
 									<listOptionValue builtIn="false" value="../USB_DEVICE/App/"/>
@@ -149,6 +150,7 @@
 									<listOptionValue builtIn="false" value="../TempSensors/ts_hardware/"/>
 									<listOptionValue builtIn="false" value="../TempSensors/ts_max6675/"/>
 									<listOptionValue builtIn="false" value="../LabPowerSupply/rs485_hardware/"/>
+									<listOptionValue builtIn="false" value="../LabPowerSupply/"/>
 									<listOptionValue builtIn="false" value="../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/"/>
 									<listOptionValue builtIn="false" value="../Middlewares/ST/STM32_USB_Device_Library/Core/Src/"/>
 									<listOptionValue builtIn="false" value="../USB_DEVICE/App/"/>

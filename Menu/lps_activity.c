@@ -13,7 +13,7 @@
 #include "LCD1602.h"
 #include "rtc_hardware.h"
 
-#include "rs485_hardware.h"
+#include "lps_control.h"
 
 /*
 всего у этой активности должно быть 2 функции:
@@ -28,15 +28,6 @@ static uint8_t curCursorPos = 0;
 #define LPS_ACT_TMENU_START     0x01
 static uint8_t lpsActStatusFlags = 0;
 
-uint8_t ADR01_cmd[] = ":ADR01;\r";
-uint8_t MDL_cmd[] = ":MDL?;\r";
-uint8_t REV_cmd[] = ":REV?;\r";
-uint8_t RMT0_cmd[] = ":RMT0;\r";
-uint8_t RMT1_cmd[] = ":RMT1;\r";
-uint8_t RMT2_cmd[] = ":RMT2;\r";
-uint8_t OUT1_cmd[] = ":OUT1;\r";
-uint8_t OUT0_cmd[] = ":OUT0;\r";
-uint8_t STT_cmd[] = ":STT?;\r";
 char rs485Buf[54] = {0};
 
 HAL_StatusTypeDef lps_view_update(Command_t lpsAction, uint8_t *data){
@@ -56,17 +47,50 @@ HAL_StatusTypeDef lps_view_update(Command_t lpsAction, uint8_t *data){
                 LCD_SetCursor( 15, curCursorPos = 0 );
 
 
-                rs485_init();
-                HAL_Delay(100);
+                //rs485_init();
+                //HAL_Delay(100);
 
+/*
+                rs485_transmit(ADR01_cmd, sizeof(ADR01_cmd));
                 rs485_transmit(ADR01_cmd, sizeof(ADR01_cmd));
                 rs485_transmit(OUT1_cmd, sizeof(OUT1_cmd));
+                rs485_transmit(OUT1_cmd, sizeof(OUT1_cmd));
                 HAL_Delay(5000);
-                rs485_transmit(OUT0_cmd, sizeof(OUT1_cmd));
-
+                rs485_transmit(OUT0_cmd, sizeof(OUT0_cmd));
+                rs485_transmit(OUT0_cmd, sizeof(OUT0_cmd));
+                rs485_transmit_w_respond(STT_cmd, sizeof(STT_cmd), rs485Buf, sizeof(rs485Buf));
                 rs485_transmit_w_respond(STT_cmd, sizeof(STT_cmd), rs485Buf, sizeof(rs485Buf));
 
+                rs485_transmit(ADR02_cmd, sizeof(ADR02_cmd));
+                rs485_transmit(ADR02_cmd, sizeof(ADR02_cmd));
+                rs485_transmit(OUT1_cmd, sizeof(OUT1_cmd));
+                rs485_transmit(OUT1_cmd, sizeof(OUT1_cmd));
+                HAL_Delay(5000);
+                rs485_transmit(OUT0_cmd, sizeof(OUT0_cmd));
+                rs485_transmit(OUT0_cmd, sizeof(OUT0_cmd));
+                rs485_transmit_w_respond(STT_cmd, sizeof(STT_cmd), rs485Buf, sizeof(rs485Buf));
+                rs485_transmit_w_respond(STT_cmd, sizeof(STT_cmd), rs485Buf, sizeof(rs485Buf));
 
+                rs485_transmit(ADR05_cmd, sizeof(ADR05_cmd));
+                rs485_transmit(ADR05_cmd, sizeof(ADR05_cmd));
+                rs485_transmit(ADR05_cmd, sizeof(ADR05_cmd));
+                rs485_transmit(OUT1_cmd, sizeof(OUT1_cmd));
+                rs485_transmit(OUT1_cmd, sizeof(OUT1_cmd));
+                rs485_transmit(OUT1_cmd, sizeof(OUT1_cmd));
+                HAL_Delay(5000);
+                rs485_transmit(OUT0_cmd, sizeof(OUT0_cmd));
+                rs485_transmit(OUT0_cmd, sizeof(OUT0_cmd));
+                rs485_transmit(OUT0_cmd, sizeof(OUT0_cmd));
+                rs485_transmit_w_respond(STT_cmd, sizeof(STT_cmd), rs485Buf, sizeof(rs485Buf));
+                rs485_transmit_w_respond(STT_cmd, sizeof(STT_cmd), rs485Buf, sizeof(rs485Buf));
+                rs485_transmit_w_respond(STT_cmd, sizeof(STT_cmd), rs485Buf, sizeof(rs485Buf));
+*/
+                lps_find_all();
+                uint8_t lpsNum = lps_get_quantity();
+                lps_ctrl_output(1, LPS_OUTPUT_ON);
+                HAL_Delay(5000);
+                lps_ctrl_output(1, LPS_OUTPUT_OFF);
+                lps_read_status(1, rs485Buf, sizeof(rs485Buf));
 
                 lpsActStatusFlags = LPS_ACT_TMENU_START;
             } else if ( curCursorPos == 0 ){

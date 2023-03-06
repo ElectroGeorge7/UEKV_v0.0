@@ -71,8 +71,9 @@ typedef struct {
 	DataTime_t dataTime;
 	uint16_t result[10];
 	float temp[2];
-	Current_t supplyCurrents[32];
-	Voltage_t supplyVoltages[32];
+	//Current_t supplyCurrents[32];
+	//Voltage_t supplyVoltages[32];
+	char lpsState[54];
 } Log_t;
 
 typedef struct {

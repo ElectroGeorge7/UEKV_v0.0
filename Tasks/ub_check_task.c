@@ -18,6 +18,7 @@
 #include "MAX6675.h"
 
 #include "rtc_hardware.h"
+#include "rs485_hardware.h"
 
 extern uint16_t ledsBitMatrix[];
 
@@ -73,10 +74,11 @@ void UbCheckTask(void *argument){
 		memcpy(curLog.result, resultMatrix, sizeof(resultMatrix));
 		curLog.temp[0] = 125.125;
 		curLog.temp[1] = Max6675_Read_Temp();
-		curLog.supplyCurrents[0].intVal = 1;
-		curLog.supplyCurrents[0].fracVal = 15;
-		curLog.supplyVoltages[0].intVal = 3;
-		curLog.supplyVoltages[0].fracVal = 6;
+		//curLog.supplyCurrents[0].intVal = 1;
+		//curLog.supplyCurrents[0].fracVal = 15;
+		//curLog.supplyVoltages[0].intVal = 3;
+		//curLog.supplyVoltages[0].fracVal = 6;
+		lps_read_status(1, curLog.lpsState, sizeof(curLog.lpsState));
 
 		osRes = osMessageQueuePut(logQueueHandler, &curLog, 0, 0);
 		osEventFlagsSet(testEvents, TEST_LOG_SAVE);

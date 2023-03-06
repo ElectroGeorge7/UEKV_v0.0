@@ -141,10 +141,12 @@ void StorageTask(void *argument) {
 					  prNum = snprintf(pBuf, sizeof(Log_t), "%3.0f ", curLog.temp[0]);
 					  pBuf = pBuf+prNum;
 					  prNum = snprintf(pBuf, sizeof(Log_t), "%3.0f ", curLog.temp[1]);
+					  //pBuf = pBuf+prNum;
+					  //prNum = snprintf(pBuf, sizeof(Log_t), "%d.%d ", curLog.supplyCurrents[0].intVal, curLog.supplyCurrents[0].fracVal);
+					  //pBuf = pBuf+prNum;
+					  //prNum = snprintf(pBuf, sizeof(Log_t), "%d.%d \n", curLog.supplyVoltages[0].intVal, curLog.supplyVoltages[0].fracVal);
 					  pBuf = pBuf+prNum;
-					  prNum = snprintf(pBuf, sizeof(Log_t), "%d.%d ", curLog.supplyCurrents[0].intVal, curLog.supplyCurrents[0].fracVal);
-					  pBuf = pBuf+prNum;
-					  prNum = snprintf(pBuf, sizeof(Log_t), "%d.%d \n", curLog.supplyVoltages[0].intVal, curLog.supplyVoltages[0].fracVal);
+					  prNum = snprintf(pBuf, sizeof(Log_t), "%s \n", curLog.lpsState);
 
 					  uartprintf(buf);
 
