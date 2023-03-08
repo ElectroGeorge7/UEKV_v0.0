@@ -118,7 +118,7 @@ static void DMA2_Init(void)
     hdma_tim1_ch3.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
     hdma_tim1_ch3.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
     hdma_tim1_ch3.Init.Mode = DMA_CIRCULAR;
-    hdma_tim1_ch3.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_tim1_ch3.Init.Priority = DMA_PRIORITY_MEDIUM;
     hdma_tim1_ch3.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 
     if (HAL_DMA_Init(&hdma_tim1_ch3) != HAL_OK)

@@ -23,6 +23,7 @@
 
 /* External variables --------------------------------------------------------*/
 extern DMA_HandleTypeDef hdma_tim1_ch3;
+extern DMA_HandleTypeDef hdma_uart4_rx;
 extern TIM_HandleTypeDef htim9;
 extern TIM_HandleTypeDef htim13;
 extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
@@ -123,6 +124,14 @@ void SysTick_Handler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32f4xx.s).                    */
 /******************************************************************************/
+
+/**
+  * @brief This function handles DMA1 stream2 global interrupt.
+  */
+void DMA1_Stream2_IRQHandler(void)
+{
+  HAL_DMA_IRQHandler(&hdma_uart4_rx);
+}
 
 /**
   * @brief This function handles DMA2 stream6 global interrupt.

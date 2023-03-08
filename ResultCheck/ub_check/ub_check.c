@@ -143,6 +143,10 @@ HAL_StatusTypeDef ub_check_freq_adjust(void){
 
 HAL_StatusTypeDef ub_check(){
 	uint16_t data = 0;
+	uint8_t lastColCirBuf[1] = {0}; uint8_t cirColBufIndex = 0;
+	uint8_t lastRowCirBuf[1] = {0}; uint8_t cirRowBufIndex = 0;
+	uint8_t newColBitArray = 0;
+	uint8_t newRowBitArray = 0;
 #define UB_CHECK
 #ifdef UB_CHECK
 	if ( ub_check_sig_level_wait(0 , 1, 0xffff) == HAL_OK ){
@@ -150,15 +154,26 @@ HAL_StatusTypeDef ub_check(){
 			while (checkRepeatCnt--){
 				HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&data, sizeof(data), UB_CHECK_TIMEOUT);
 
-				rowBitArray = (uint8_t)data;
-				colBitArray = (uint8_t) (data >> 8);
+				newRowBitArray = (uint8_t)data;
+				newColBitArray = (uint8_t) (data >> 8);
 
 				for (uint8_t rowNum = 0; rowNum < UB_MATRIX_ROW_NUM; rowNum++){
-					if ( rowBitArray & (1<<rowNum) ){
-						ubMatrix[rowNum] |= colBitArray;
+					if ( newRowBitArray & lastRowCirBuf[0] & (1<<rowNum) ){
+						ubMatrix[rowNum] |= newColBitArray;
 						//break;
 					}
 				}
+
+//				if(++cirColBufIndex == 1){
+//					cirColBufIndex = 0;
+//				}
+//				lastColCirBuf[cirColBufIndex] = newColBitArray;
+
+				if(++cirRowBufIndex == 1){
+					cirRowBufIndex = 0;
+				}
+				lastRowCirBuf[cirRowBufIndex] = newRowBitArray;
+
 			}
 			return HAL_OK;
 	}

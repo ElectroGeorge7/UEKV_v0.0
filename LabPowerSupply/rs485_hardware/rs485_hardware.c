@@ -6,6 +6,7 @@
  */
 
 #include "rs485_hardware.h"
+#include <string.h>
 
 #define RS485_nRE_Pin GPIO_PIN_2
 #define RS485_nRE_GPIO_Port GPIOA
@@ -15,14 +16,22 @@
 #define TIMEOUT 0xfff
 
 UART_HandleTypeDef huart4;
+DMA_HandleTypeDef hdma_uart4_rx;
 
 static void UART4_Init(void);
+static void DMA1_Init(void);
 
+static uint8_t rxDmaCpltFlag = 0;
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	rxDmaCpltFlag = 1;
+}
 
 HAL_StatusTypeDef rs485_receive(uint8_t *rxData, uint16_t size, uint8_t repeat){
 	HAL_StatusTypeDef res = HAL_ERROR;
-	while(repeat--)
+	while(repeat--){
 		res = HAL_UART_Receive(&huart4, rxData, size, TIMEOUT);
+	}
 	return res;
 }
 
@@ -30,20 +39,33 @@ HAL_StatusTypeDef rs485_transmit(uint8_t *cmd, uint16_t size, uint8_t repeat){
 	HAL_StatusTypeDef res = HAL_ERROR;
 	while(repeat--){
 		res = HAL_UART_Transmit(&huart4, cmd, size, TIMEOUT);
-		HAL_Delay(20);
+		HAL_Delay(10);
 	}
 	return res;
 }
 
 HAL_StatusTypeDef rs485_transmit_w_respond(uint8_t *cmd, uint16_t txSize, uint8_t *respond, uint16_t rxSize, uint8_t repeat){
 	HAL_StatusTypeDef res = HAL_ERROR;
+	uint8_t repVal = repeat;
+	uint32_t timeout = 100;
+	char rxDmaBuf[60] = {0};
 
-	while(repeat--){
-		res = rs485_transmit(cmd, txSize, 1);
+	while(repeat){
+		res = HAL_UART_Transmit(&huart4, cmd, txSize, TIMEOUT);
+		res = HAL_UART_Receive_DMA(&huart4, rxDmaBuf, rxSize);
+		while( !rxDmaCpltFlag && timeout-- ){
+			HAL_Delay(1);
+		};
 
-		if (res == HAL_OK){
-			//HAL_Delay(10);
-			res = rs485_receive(respond, rxSize, 1);
+		HAL_UART_DMAStop(&huart4);
+
+		if (rxDmaCpltFlag){
+			rxDmaCpltFlag = repeat = 0;
+			memcpy(respond, rxDmaBuf, rxSize);
+			return HAL_OK;
+		}else{
+			repeat--;
+			timeout = 100;
 		}
 	}
 
@@ -67,6 +89,7 @@ HAL_StatusTypeDef rs485_init(void){
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 	UART4_Init();
+	DMA1_Init();
 
 	HAL_GPIO_WritePin(GPIOA, RS485_DE_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(GPIOA, RS485_nRE_Pin, GPIO_PIN_RESET);
@@ -110,4 +133,36 @@ static void UART4_Init(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void DMA1_Init(void)
+{
+    /* DMA controller clock enable */
+    __HAL_RCC_DMA1_CLK_ENABLE();
+
+    hdma_uart4_rx.Instance = DMA1_Stream2;
+    hdma_uart4_rx.Init.Channel = DMA_CHANNEL_4;
+    hdma_uart4_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_uart4_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_uart4_rx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_uart4_rx.Init.PeriphDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_uart4_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_uart4_rx.Init.Mode = DMA_NORMAL;
+    hdma_uart4_rx.Init.Priority = DMA_PRIORITY_MEDIUM;
+    hdma_uart4_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+
+    if (HAL_DMA_Init(&hdma_uart4_rx) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(&huart4,hdmarx,hdma_uart4_rx);
+
+    /* DMA interrupt init */
+    /* DMA1_Stream2_IRQn interrupt configuration */
+    HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
 }
