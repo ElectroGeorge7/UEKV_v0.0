@@ -8,8 +8,11 @@
 #include "lps_control.h"
 #include "rs485_hardware.h"
 
+#include "main.h"
+
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #define LPS_NAMES_NUM	1
 static const char *lpsNames[LPS_NAMES_NUM] = {
@@ -28,8 +31,15 @@ const uint8_t STT_cmd[] = ":STT?;\r";
 
 #define LPS_STT_OS_REG_OUT_BIT	33
 
-static uint8_t lpsNum = 0;
-static uint8_t lpsAddrList[32] = {0};
+typedef struct {
+	uint8_t updateReadyFlag;
+	uint8_t conNum;
+	uint8_t conAddrsList[32];
+	LpsStatus_t *statusArray;
+} LpsStatusList_t;
+
+static LpsStatusList_t lpsStatusList = {0};
+
 
 // обязательно нужно перепроверять принятые данные, и попытаться повторно их прочитать, если с первого раза не получилось
                 // заметил такую проблему, чем дальше ЛБП в цепочке от ЭКВ, тем большее количество раз нужно отправлять одну и ту же команду
@@ -40,13 +50,13 @@ static uint8_t lpsAddrList[32] = {0};
 // и сравнить с шаблонами
 // записать все активные адреса в массив
 // затем создать функции по чтению всех лбп
-HAL_StatusTypeDef lps_find_connected(void){
+HAL_StatusTypeDef lps_find_connected(LpsStatusList_t *lpsList){
 	HAL_StatusTypeDef res = HAL_ERROR;
 	char ADR_cmd[9] = {0};
 	char lpsMdlStr[30] = {0};
 
-	lpsNum = 0;
-	memset(lpsAddrList, 0, sizeof(lpsAddrList));
+	lpsList->conNum = 0;
+	memset(lpsList->conAddrsList, 0, sizeof(lpsList->conAddrsList));
 
 	for (uint8_t addr=1; addr<=32; addr++){
 		if ( addr < 10 )
@@ -61,8 +71,7 @@ HAL_StatusTypeDef lps_find_connected(void){
 
 		for (uint8_t i = 0; i < LPS_NAMES_NUM; i++){
 			if ( strncmp(lpsMdlStr, lpsNames[i], strlen(lpsNames[i])) == 0 ){
-				lpsNum++;
-				lpsAddrList[addr-1] = 0xff;
+				lpsList->conAddrsList[lpsList->conNum++] = addr;
 				// toggle lps output to check the control access
                 lps_ctrl_output(addr, LPS_OUTPUT_ON);
                 HAL_Delay(3000);
@@ -74,8 +83,30 @@ HAL_StatusTypeDef lps_find_connected(void){
 	return res;
 }
 
-uint8_t lps_get_connected_quantity(void){
-	return lpsNum;
+uint8_t lps_get_connected_num(void){
+	return lpsStatusList.conNum;
+}
+
+
+HAL_StatusTypeDef lps_list_init(void){
+	LpsStatusList_t *lpsList = &lpsStatusList;
+	lps_find_connected(lpsList);
+	// after finding the number of all connected lps let`s allocate mem for statusArray
+	lpsList->statusArray = (LpsStatus_t *) calloc(lpsList->conNum, sizeof(LpsStatus_t));
+	if (lpsList->statusArray == NULL)
+		return HAL_ERROR;
+	return HAL_OK;
+}
+
+LpsStatusList_t *lps_list_update(HAL_StatusTypeDef *res){
+	LpsStatusList_t *lpsList = NULL;
+	res = HAL_BUSY;
+
+	if ( updateReadyFlag ){
+
+	}
+
+	return lpsList;
 }
 
 HAL_StatusTypeDef lps_read_status(uint8_t addr, uint8_t *rxData, uint16_t size){

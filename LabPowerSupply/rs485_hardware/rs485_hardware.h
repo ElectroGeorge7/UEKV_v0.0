@@ -10,6 +10,8 @@
 
 #include "stm32f4xx_hal.h"
 
+typedef void (*Rs485RespondHandler_t)(void);
+
 HAL_StatusTypeDef rs485_init(void);
 HAL_StatusTypeDef rs485_receive(uint8_t *rxData, uint16_t size, uint8_t repeat);
 HAL_StatusTypeDef rs485_transmit(uint8_t *cmd, uint16_t size, uint8_t repeat);

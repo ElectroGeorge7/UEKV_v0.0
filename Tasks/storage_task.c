@@ -145,13 +145,27 @@ void StorageTask(void *argument) {
 					  //prNum = snprintf(pBuf, sizeof(Log_t), "%d.%d ", curLog.supplyCurrents[0].intVal, curLog.supplyCurrents[0].fracVal);
 					  //pBuf = pBuf+prNum;
 					  //prNum = snprintf(pBuf, sizeof(Log_t), "%d.%d \n", curLog.supplyVoltages[0].intVal, curLog.supplyVoltages[0].fracVal);
-					  pBuf = pBuf+prNum;
-					  prNum = snprintf(pBuf, sizeof(Log_t), "%s \n", curLog.lpsState);
+					  //pBuf = pBuf+prNum;
+					  //prNum = snprintf(pBuf, sizeof(Log_t), "%s \n", curLog.lpsState);
 
 					  uartprintf(buf);
 
 					  gfr = f_write(&logFile, buf, strlen(buf), &bw);
 					  gfr = f_sync(&logFile);
+
+					  if ( curLog.lpsStatusArray != NULL ){
+						  memset(buf, 0, sizeof(buf));
+						  for ( uint8_t i = 0; i < lps_get_connected_num(); i++ ){
+							  prNum = snprintf(buf, sizeof(Log_t), "Lps№%2d: %6sV, %6sA ", curLog.lpsStatusArray[i]->addr, curLog.lpsStatusArray[i]->volStr,  curLog.lpsStatusArray[i]->curStr);
+							  pBuf = buf+prNum;
+						  }
+						  prNum = snprintf(pBuf, sizeof(Log_t), "\n");
+
+						  uartprintf(buf);
+						  gfr = f_write(&logFile, buf, strlen(buf), &bw);
+						  gfr = f_sync(&logFile);
+					  //osEventFlagsSet(testEvents, LPS_LIST_UDATE_READY);
+					  }
 
 					  memset(&msg, 0, sizeof(Event_t));
 					  msg.event = ACTIVITY_UPDATE_EVENT;

@@ -18,13 +18,17 @@
 UART_HandleTypeDef huart4;
 DMA_HandleTypeDef hdma_uart4_rx;
 
+static Rs485RespondHandler_t respondHandler = NULL;
+
 static void UART4_Init(void);
 static void DMA1_Init(void);
 
 static uint8_t rxDmaCpltFlag = 0;
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	rxDmaCpltFlag = 1;
+	if (huart->Instance == UART4){
+		respondHandler();
+	}
 }
 
 HAL_StatusTypeDef rs485_receive(uint8_t *rxData, uint16_t size, uint8_t repeat){
@@ -39,7 +43,8 @@ HAL_StatusTypeDef rs485_transmit(uint8_t *cmd, uint16_t size, uint8_t repeat){
 	HAL_StatusTypeDef res = HAL_ERROR;
 	while(repeat--){
 		res = HAL_UART_Transmit(&huart4, cmd, size, TIMEOUT);
-		HAL_Delay(10);
+		if (!repeat)
+			HAL_Delay(10);
 	}
 	return res;
 }
@@ -95,6 +100,10 @@ HAL_StatusTypeDef rs485_init(void){
 	HAL_GPIO_WritePin(GPIOA, RS485_nRE_Pin, GPIO_PIN_RESET);
 
 	return HAL_OK;
+}
+
+void rs485_reg_respond_handler(Rs485RespondHandler_t hFunc){
+	respondHandler = hFunc;
 }
 
 /**

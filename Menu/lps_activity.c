@@ -55,9 +55,6 @@ HAL_StatusTypeDef lps_view_update(Command_t lpsAction, uint8_t *data){
 
                 lpsActStatusFlags = LPS_ACT_MENU_START;
             } else if ( (curCursorPos == 0) && (lpsActStatusFlags != LPS_ACT_FIND_CONNECTED) ){
-                // определить количество ЛБП в сети
-                //lpsNum = lps_detect();
-                // кратковременно переключить выход каждого ЛБП
 
                 LCD_Clear();
                 LCD_SetCursor( 0, 0 );

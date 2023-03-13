@@ -53,18 +53,30 @@ void Error_Handler(void);
 #define TEST_FINISH						0x800
 #define TEST_LOG_SAVE					0x1000
 #define TEST_LOG_DISPLAY				0x2000
+#define LPS_LIST_UDATE_START			0x4000
+#define LPS_LIST_UDATE_FINISHED			0x8000
+#define LPS_FIND_CONNECTED_START		0x10000
+#define LPS_FIND_CONNECTED_FINISHED		0x20000
 
 #include "rtc_hardware.h"
 
-typedef struct {
-	char intVal;
-	uint16_t fracVal;
-} Current_t;
+//typedef struct {
+//	uint8_t intVal;
+//	uint16_t fracVal;
+//} Current_t;
+//
+//typedef struct {
+//	uint8_t intVal;
+//	uint16_t fracVal;
+//} Voltage_t;
+
 
 typedef struct {
-	char intVal;
-	uint16_t fracVal;
-} Voltage_t;
+	uint8_t addr;
+	char volStr[6];
+	char curStr[6];
+	char status;
+} LpsStatus_t;
 
 typedef struct {
 	uint32_t index;
@@ -73,7 +85,8 @@ typedef struct {
 	float temp[2];
 	//Current_t supplyCurrents[32];
 	//Voltage_t supplyVoltages[32];
-	char lpsState[54];
+	//char lpsState[54];
+	LpsStatus_t *lpsStatusArray;
 } Log_t;
 
 typedef struct {

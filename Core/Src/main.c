@@ -57,6 +57,13 @@ const osThreadAttr_t ubCheckTask_attributes = {
   .stack_size = 768 * 4
 };
 
+osThreadId_t lpsTaskHandle;
+const osThreadAttr_t lpsTask_attributes = {
+  .name = "lpsTask",
+  .priority = (osPriority_t) osPriorityNormal2,
+  .stack_size = 500 * 4
+};
+
 #define EVENT_QUEUE_OBJECTS 3
 #define EVENT_QUEUE_OBJ_SIZE sizeof(Event_t)
 osMessageQueueId_t eventQueueHandler;
@@ -84,7 +91,7 @@ int main(void)
   HAL_Delay(500);
 
   terminal_init();
-  uartprintf("UEKV v.2");
+  uartprintf("UEKV v.1");
   uartprintf("UART terminal init");
 
   MX_USB_DEVICE_Init();
@@ -101,8 +108,6 @@ int main(void)
   rtc_init();
 
   ts_spi_init();
-
-  rs485_init();
 
   osKernelInitialize();
 
@@ -122,6 +127,7 @@ int main(void)
   controlTaskHandle = osThreadNew(ControlTask, NULL, &controlTask_attributes);
   storageTaskHandle = osThreadNew(StorageTask, NULL, &storageTask_attributes);
   ubCheckTaskHandle = osThreadNew(UbCheckTask, NULL, &ubCheckTask_attributes);
+  lpsTaskHandle = osThreadNew(LpsTask, NULL, &lpsTask_attributes);
 
   osKernelStart();
 

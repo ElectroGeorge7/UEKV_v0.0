@@ -12,6 +12,8 @@
 
 #include "cmsis_os2.h"
 
+#include <stdlib.h>
+
 #include "result_check.h"
 #include "ub_check.h"
 #include "leds_matrix.h"
@@ -31,6 +33,12 @@ extern osEventFlagsId_t testEvents;
 void UbCheckTask(void *argument){
 	osStatus_t osRes;
 	Log_t curLog = {0};
+	LpsStatus_t *ubLpsList = NULL;
+
+	uint8_t lpsNum = lps_get_connected_num();
+	if ( (lpsNum >= 1) && (lpsNum<=32) ){
+		ubLpsList = (LpsStatus_t *) calloc(lpsNum, sizeof(LpsStatus_t);
+	}
 
 	for(;;){
 
@@ -74,11 +82,27 @@ void UbCheckTask(void *argument){
 		memcpy(curLog.result, resultMatrix, sizeof(resultMatrix));
 		curLog.temp[0] = 125.125;
 		curLog.temp[1] = Max6675_Read_Temp();
+
+
+
 		//curLog.supplyCurrents[0].intVal = 1;
 		//curLog.supplyCurrents[0].fracVal = 15;
 		//curLog.supplyVoltages[0].intVal = 3;
 		//curLog.supplyVoltages[0].fracVal = 6;
-		lps_read_status(1, curLog.lpsState, sizeof(curLog.lpsState));
+
+		// get the lps`s data from
+		//lps_read_status(1, curLog.lpsState, sizeof(curLog.lpsState));
+		if (ubLpsList != NULL){
+			HAL_StatusTypeDef res = HAL_ERROR;
+			if ( osEventFlagsWait(testEvents, LPS_LIST_UDATE_FINISHED, osFlagsWaitAny, 0) & LPS_LIST_UDATE_FINISHED ){
+				// get the lps list when it is ready and copy it to the local buf
+				memcpy(ubLpsList, lps_list_get(&res), sizeof(ubLpsList));
+				curLog.lpsStatusArray = ubLpsList;
+				osEventFlagsSet(testEvents, LPS_LIST_UDATE_START);
+			} else {
+				curLog.lpsStatusArray = ubLpsList;
+			}
+		}
 
 		osRes = osMessageQueuePut(logQueueHandler, &curLog, 0, 0);
 		osEventFlagsSet(testEvents, TEST_LOG_SAVE);
