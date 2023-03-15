@@ -59,6 +59,7 @@ void Error_Handler(void);
 #define LPS_FIND_CONNECTED_FINISHED		0x20000
 
 #include "rtc_hardware.h"
+#include "lps_task.h"
 
 //typedef struct {
 //	uint8_t intVal;
@@ -71,12 +72,12 @@ void Error_Handler(void);
 //} Voltage_t;
 
 
-typedef struct {
-	uint8_t addr;
-	char volStr[6];
-	char curStr[6];
-	char status;
-} LpsStatus_t;
+// typedef struct {
+// 	uint8_t addr;
+// 	char volStr[7];
+// 	char curStr[7];
+// 	char status;
+// } LpsStatus_t;
 
 typedef struct {
 	uint32_t index;

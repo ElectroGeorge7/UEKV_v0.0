@@ -20,7 +20,7 @@
 #include "MAX6675.h"
 
 #include "rtc_hardware.h"
-#include "rs485_hardware.h"
+#include "lps_task.h"
 
 extern uint16_t ledsBitMatrix[];
 
@@ -37,7 +37,7 @@ void UbCheckTask(void *argument){
 
 	uint8_t lpsNum = lps_get_connected_num();
 	if ( (lpsNum >= 1) && (lpsNum<=32) ){
-		ubLpsList = (LpsStatus_t *) calloc(lpsNum, sizeof(LpsStatus_t);
+		ubLpsList = (LpsStatus_t *) calloc(lpsNum, sizeof(LpsStatus_t));
 	}
 
 	for(;;){
@@ -96,7 +96,7 @@ void UbCheckTask(void *argument){
 			HAL_StatusTypeDef res = HAL_ERROR;
 			if ( osEventFlagsWait(testEvents, LPS_LIST_UDATE_FINISHED, osFlagsWaitAny, 0) & LPS_LIST_UDATE_FINISHED ){
 				// get the lps list when it is ready and copy it to the local buf
-				memcpy(ubLpsList, lps_list_get(&res), sizeof(ubLpsList));
+				memcpy(ubLpsList, lps_list_get(), sizeof(ubLpsList));
 				curLog.lpsStatusArray = ubLpsList;
 				osEventFlagsSet(testEvents, LPS_LIST_UDATE_START);
 			} else {

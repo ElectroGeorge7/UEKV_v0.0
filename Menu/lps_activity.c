@@ -14,7 +14,7 @@
 #include "LCD1602.h"
 #include "rtc_hardware.h"
 
-#include "lps_control.h"
+#include "lps_task.h"
 
 /*
 всего у этой активности должно быть 2 функции:
@@ -63,11 +63,11 @@ HAL_StatusTypeDef lps_view_update(Command_t lpsAction, uint8_t *data){
                 LCD_PrintString(lpsActMenu[1]);
                 LCD_SetCursor( 15, curCursorPos = 0 );
 
-                lps_find_connected();
-                uint8_t lpsNum = lps_get_connected_quantity();
+                //lps_find_connected();
+                //uint8_t lpsNum = lps_get_connected_quantity();
 
                 LCD_SetCursor( 0, 0 );
-                snprintf(lcdStr, 32, "%s%d", lpsActMenu[0], lpsNum);
+                //snprintf(lcdStr, 32, "%s%d", lpsActMenu[0], lpsNum);
                 LCD_PrintString(lcdStr);
                 LCD_SetCursor( 15, curCursorPos = 0 );
 

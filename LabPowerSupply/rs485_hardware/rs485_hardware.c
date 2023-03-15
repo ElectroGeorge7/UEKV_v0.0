@@ -31,15 +31,25 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	}
 }
 
-HAL_StatusTypeDef rs485_receive(uint8_t *rxData, uint16_t size, uint8_t repeat){
+HAL_StatusTypeDef rs485_rx_start(uint8_t *rxData, uint16_t size, uint8_t repeat){
 	HAL_StatusTypeDef res = HAL_ERROR;
 	while(repeat--){
-		res = HAL_UART_Receive(&huart4, rxData, size, TIMEOUT);
+		res = HAL_UART_Receive_DMA(&huart4, rxData, size);
 	}
 	return res;
 }
 
-HAL_StatusTypeDef rs485_transmit(uint8_t *cmd, uint16_t size, uint8_t repeat){
+HAL_StatusTypeDef rs485_rx_stop(void){
+  HAL_StatusTypeDef res = HAL_ERROR;
+  uint8_t repeat = 1;
+	while(repeat--){
+		res = HAL_UART_DMAStop(&huart4);
+	}
+	return res;
+}
+
+
+HAL_StatusTypeDef rs485_tx(uint8_t *cmd, uint16_t size, uint8_t repeat){
 	HAL_StatusTypeDef res = HAL_ERROR;
 	while(repeat--){
 		res = HAL_UART_Transmit(&huart4, cmd, size, TIMEOUT);
@@ -49,33 +59,6 @@ HAL_StatusTypeDef rs485_transmit(uint8_t *cmd, uint16_t size, uint8_t repeat){
 	return res;
 }
 
-HAL_StatusTypeDef rs485_transmit_w_respond(uint8_t *cmd, uint16_t txSize, uint8_t *respond, uint16_t rxSize, uint8_t repeat){
-	HAL_StatusTypeDef res = HAL_ERROR;
-	uint8_t repVal = repeat;
-	uint32_t timeout = 100;
-	char rxDmaBuf[60] = {0};
-
-	while(repeat){
-		res = HAL_UART_Transmit(&huart4, cmd, txSize, TIMEOUT);
-		res = HAL_UART_Receive_DMA(&huart4, rxDmaBuf, rxSize);
-		while( !rxDmaCpltFlag && timeout-- ){
-			HAL_Delay(1);
-		};
-
-		HAL_UART_DMAStop(&huart4);
-
-		if (rxDmaCpltFlag){
-			rxDmaCpltFlag = repeat = 0;
-			memcpy(respond, rxDmaBuf, rxSize);
-			return HAL_OK;
-		}else{
-			repeat--;
-			timeout = 100;
-		}
-	}
-
-	return res;
-}
 
 HAL_StatusTypeDef rs485_init(void){
 	GPIO_InitTypeDef GPIO_InitStruct = {0};

@@ -79,6 +79,7 @@ const osMessageQueueAttr_t logQueue = {
 };
 
 osSemaphoreId_t ubCheckSem;
+osSemaphoreId_t lpsRespondSem;
 osEventFlagsId_t testEvents;
 
 int main(void)
@@ -116,7 +117,12 @@ int main(void)
 
   ubCheckSem = osSemaphoreNew(1U, 0U, NULL);
   if (ubCheckSem == NULL) {
-	  uartprintf("Semaphore object not created");
+	  uartprintf("Semaphore object not created: ubCheckSem");
+  }
+
+  lpsRespondSem = osSemaphoreNew(1U, 0U, NULL);
+  if (lpsRespondSem == NULL) {
+	  uartprintf("Semaphore object not created: lpsRespondSem");
   }
 
   testEvents = osEventFlagsNew(NULL);
