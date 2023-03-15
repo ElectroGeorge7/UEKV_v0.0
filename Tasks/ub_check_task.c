@@ -35,10 +35,7 @@ void UbCheckTask(void *argument){
 	Log_t curLog = {0};
 	LpsStatus_t *ubLpsList = NULL;
 
-	uint8_t lpsNum = lps_get_connected_num();
-	if ( (lpsNum >= 1) && (lpsNum<=32) ){
-		ubLpsList = (LpsStatus_t *) calloc(lpsNum, sizeof(LpsStatus_t));
-	}
+	uint8_t lpsNum = 0;
 
 	for(;;){
 
@@ -92,6 +89,14 @@ void UbCheckTask(void *argument){
 
 		// get the lps`s data from
 		//lps_read_status(1, curLog.lpsState, sizeof(curLog.lpsState));
+
+		if (lpsNum == 0){
+			lpsNum = lps_get_connected_num();
+			if ( (lpsNum >= 1) && (lpsNum<=32) ){
+				ubLpsList = (LpsStatus_t *) calloc(lpsNum, sizeof(LpsStatus_t));
+			}
+		}
+
 		if (ubLpsList != NULL){
 			HAL_StatusTypeDef res = HAL_ERROR;
 			if ( osEventFlagsWait(testEvents, LPS_LIST_UDATE_FINISHED, osFlagsWaitAny, 0) & LPS_LIST_UDATE_FINISHED ){

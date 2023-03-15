@@ -49,12 +49,12 @@ HAL_StatusTypeDef rs485_rx_stop(void){
 }
 
 
-HAL_StatusTypeDef rs485_tx(uint8_t *cmd, uint16_t size, uint8_t repeat){
+HAL_StatusTypeDef rs485_tx(uint8_t *cmd, uint16_t size, uint8_t repeat, uint8_t delay_ms){
 	HAL_StatusTypeDef res = HAL_ERROR;
 	while(repeat--){
 		res = HAL_UART_Transmit(&huart4, cmd, size, TIMEOUT);
-		if (!repeat)
-			HAL_Delay(10);
+		if (delay_ms)
+			HAL_Delay(delay_ms);
 	}
 	return res;
 }

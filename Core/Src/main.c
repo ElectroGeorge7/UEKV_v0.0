@@ -26,6 +26,7 @@
 #include "control_task.h"
 #include "storage_task.h"
 #include "ub_check_task.h"
+#include "lps_task.h"
 
 TIM_HandleTypeDef htim12;
 
@@ -54,14 +55,14 @@ osThreadId_t ubCheckTaskHandle;
 const osThreadAttr_t ubCheckTask_attributes = {
   .name = "ubCheckTask",
   .priority = (osPriority_t) osPriorityNormal3,
-  .stack_size = 768 * 4
+  .stack_size = 500 * 4
 };
 
 osThreadId_t lpsTaskHandle;
 const osThreadAttr_t lpsTask_attributes = {
   .name = "lpsTask",
-  .priority = (osPriority_t) osPriorityNormal2,
-  .stack_size = 500 * 4
+  .priority = (osPriority_t) osPriorityNormal3,
+  .stack_size = 300 * 4
 };
 
 #define EVENT_QUEUE_OBJECTS 3
@@ -132,8 +133,8 @@ int main(void)
 
   controlTaskHandle = osThreadNew(ControlTask, NULL, &controlTask_attributes);
   storageTaskHandle = osThreadNew(StorageTask, NULL, &storageTask_attributes);
-  ubCheckTaskHandle = osThreadNew(UbCheckTask, NULL, &ubCheckTask_attributes);
   lpsTaskHandle = osThreadNew(LpsTask, NULL, &lpsTask_attributes);
+  ubCheckTaskHandle = osThreadNew(UbCheckTask, NULL, &ubCheckTask_attributes);
 
   osKernelStart();
 

@@ -26,8 +26,8 @@ extern osEventFlagsId_t testEvents;
 #define LPS_RESP_MAX_WAIT_TIME	300
 
 #define LPS_STT_RESPOND_SIZE 	54
-#define LPS_STT_VOL_START_BIT	10
-#define LPS_STT_CUR_START_BIT	20
+#define LPS_STT_VOL_START_BIT	2
+#define LPS_STT_CUR_START_BIT	16
 #define LPS_STT_OS_REG_OUT_BIT	33
 
 #define LPS_NAMES_NUM	1
@@ -86,7 +86,7 @@ void LpsTask(void *argument){
 	
 
 
-	if ( osEventFlagsWait(testEvents, LPS_FIND_CONNECTED_START, osFlagsNoClear, osWaitForever) & LPS_FIND_CONNECTED_START ){
+	if ( osEventFlagsWait(testEvents, LPS_FIND_CONNECTED_START, osFlagsWaitAny, osWaitForever) & LPS_FIND_CONNECTED_START ){
 
 		lps_list_init();
 
@@ -96,6 +96,11 @@ void LpsTask(void *argument){
 
 
 	for(;;){
+
+		if ( osEventFlagsWait(testEvents, LPS_FIND_CONNECTED_START, osFlagsWaitAny, 0) & LPS_FIND_CONNECTED_START ){
+			lps_list_init();
+			osEventFlagsSet(testEvents, LPS_FIND_CONNECTED_FINISHED);
+		}
 
 		if ( osEventFlagsWait(testEvents, LPS_LIST_UDATE_START, osFlagsNoClear, osWaitForever) & LPS_LIST_UDATE_START ){
 
@@ -136,7 +141,7 @@ HAL_StatusTypeDef lps_tx_w_respond(uint8_t *cmd, uint16_t txSize, uint8_t *respo
 
 	while(repeat){
 
-		res = rs485_tx(cmd, txSize, 1);
+		res = rs485_tx(cmd, txSize, 1, 0);
 		res = rs485_rx_start(rxDmaBuf, rxSize, 1);
 
 		osRes = osSemaphoreAcquire(lpsRespondSem, LPS_RESP_MAX_WAIT_TIME);
@@ -150,6 +155,7 @@ HAL_StatusTypeDef lps_tx_w_respond(uint8_t *cmd, uint16_t txSize, uint8_t *respo
 		}
 	}
 
+	res = HAL_ERROR;
 	return res;
 }
 
@@ -163,7 +169,7 @@ HAL_StatusTypeDef lps_read_status(uint8_t addr, uint8_t *rxData, uint16_t size){
 		else
 			snprintf(ADR_cmd, sizeof(ADR_cmd), ":ADR%2d;\r", addr);
 
-		rs485_tx(ADR_cmd, sizeof(ADR_cmd), addr+1);
+		rs485_tx(ADR_cmd, sizeof(ADR_cmd), addr+1, 10);
 
 		lps_tx_w_respond(STT_cmd, sizeof(STT_cmd), rxData, size, 2);
 
@@ -186,17 +192,17 @@ HAL_StatusTypeDef lps_ctrl_output(uint8_t addr, LpsOutputState_t state){
 			snprintf(ADR_cmd, sizeof(ADR_cmd), ":ADR%2d;\r", addr);
 
 		while(repeat){
-			rs485_tx(ADR_cmd, sizeof(ADR_cmd), addr+1);
+			rs485_tx(ADR_cmd, sizeof(ADR_cmd), addr+1, 10);
 
 			if ( state == LPS_OUTPUT_ON ){
-				rs485_tx(OUT1_cmd, sizeof(OUT1_cmd), addr+1);
+				rs485_tx(OUT1_cmd, sizeof(OUT1_cmd), addr+1, 10);
 				lps_read_status(addr, lpsStatus, sizeof(lpsStatus));
 				if ( lpsStatus[LPS_STT_OS_REG_OUT_BIT] == '1' )
 					return HAL_OK;
 				else
 					repeat--;
 			}else{
-				rs485_tx(OUT0_cmd, sizeof(OUT0_cmd), addr+1);
+				rs485_tx(OUT0_cmd, sizeof(OUT0_cmd), addr+1, 10);
 				lps_read_status(addr, lpsStatus, sizeof(lpsStatus));
 				if ( lpsStatus[LPS_STT_OS_REG_OUT_BIT] == '0' )
 					return HAL_OK;
@@ -223,7 +229,7 @@ HAL_StatusTypeDef lps_find_connected(LpsStatusList_t *lpsList){
 		else
 			snprintf(ADR_cmd, sizeof(ADR_cmd), ":ADR%2d;\r", addr);
 
-		rs485_tx(ADR_cmd, sizeof(ADR_cmd), addr+1);
+		rs485_tx(ADR_cmd, sizeof(ADR_cmd), addr+1, 10);
 
 		memset(lpsMdlStr, 0, sizeof(lpsMdlStr));
 		res = lps_tx_w_respond(MDL_cmd, sizeof(MDL_cmd), lpsMdlStr, strlen(lpsNames[0]), 2);

@@ -53,7 +53,7 @@ void StorageTask(void *argument) {
 	  // if configuration is not set
 	  if (!testFlags){
 		  // wait for cmd to find config file
-		 if ( osEventFlagsWait(testEvents, TEST_CONFIG_SEARCH, osFlagsWaitAny, osWaitForever) == TEST_CONFIG_SEARCH ){
+		 if ( osEventFlagsWait(testEvents, TEST_CONFIG_SEARCH, osFlagsWaitAny, osWaitForever) & TEST_CONFIG_SEARCH ){
 
 			 // find config file
 			 // encode config to queue type
@@ -69,7 +69,7 @@ void StorageTask(void *argument) {
 				osEventFlagsSet(testEvents, TEST_CONFIG_IS_FIND);
 			} else {
 				osEventFlagsSet(testEvents, TEST_CONFIG_IS_NOT);
-				if ( osEventFlagsWait(testEvents, TEST_CONFIG_SEND, osFlagsWaitAny, osWaitForever) == TEST_CONFIG_SEND ){
+				if ( osEventFlagsWait(testEvents, TEST_CONFIG_SEND, osFlagsWaitAny, osWaitForever) & TEST_CONFIG_SEND ){
 					// get terminal config
 					if( osMessageQueueGet(eventQueueHandler, &msg, NULL, osWaitForever) == osOK ){
 						if ( msg.event == TEST_CONFIG_SEND ){
@@ -88,7 +88,7 @@ void StorageTask(void *argument) {
 
 			 uint32_t eventFlag = osEventFlagsWait(testEvents, TEST_START | TEST_FINISH, osFlagsWaitAny, osWaitForever);
 
-			 if ( eventFlag == TEST_START ){
+			 if ( eventFlag & TEST_START ){
 
 				// create file that named after part number
 				uint8_t temp = 5;
@@ -113,7 +113,7 @@ void StorageTask(void *argument) {
 
 				  testFlags |= TEST_START;
 
-			 } else if (eventFlag == TEST_FINISH){
+			 } else if (eventFlag & TEST_FINISH){
 				testFlags = 0;
 			 }
 
@@ -121,7 +121,7 @@ void StorageTask(void *argument) {
 
 			  //wait
 
-			 if ( osEventFlagsWait(testEvents, TEST_FINISH, osFlagsWaitAny, 0) == TEST_FINISH ){
+			 if ( osEventFlagsWait(testEvents, TEST_FINISH, osFlagsWaitAny, 0) & TEST_FINISH ){
 				 // close log file
 				 gfr = f_sync(&logFile);
 				 gfr = f_close(&logFile);
