@@ -48,7 +48,7 @@ osThreadId_t storageTaskHandle;
 const osThreadAttr_t storageTask_attributes = {
   .name = "storageTask",
   .priority = (osPriority_t) osPriorityNormal3,
-  .stack_size = 1200 * 4
+  .stack_size = 1300 * 4
 };
 
 osThreadId_t ubCheckTaskHandle;
@@ -61,7 +61,7 @@ const osThreadAttr_t ubCheckTask_attributes = {
 osThreadId_t lpsTaskHandle;
 const osThreadAttr_t lpsTask_attributes = {
   .name = "lpsTask",
-  .priority = (osPriority_t) osPriorityNormal3,
+  .priority = (osPriority_t) osPriorityNormal2,
   .stack_size = 300 * 4
 };
 

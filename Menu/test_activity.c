@@ -45,6 +45,8 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 	osStatus_t res;
 	Log_t *pLog = {0};
 
+	uint32_t osEventFlag = 0;
+
 	static uint16_t testConfigsSetFlag = 0;
 
 	switch (testAction){
@@ -94,8 +96,13 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 					LCD_PrintString("...");
 					HAL_Delay(1000);
 
+//////////////////// убрать после отладки
+					osEventFlagsSet(testEvents, LPS_FIND_CONNECTED_START);
+					osEventFlag = osEventFlagsWait(testEvents, LPS_FIND_CONNECTED_FINISHED, osFlagsWaitAny, osWaitForever);
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 					osEventFlagsSet(testEvents, TEST_CONFIG_SEARCH);
-					if ( osEventFlagsWait(testEvents, TEST_CONFIG_IS_FIND | TEST_CONFIG_IS_NOT, osFlagsWaitAny, osWaitForever) & TEST_CONFIG_IS_FIND ){
+					if ( (osEventFlag = osEventFlagsWait(testEvents, TEST_CONFIG_IS_FIND | TEST_CONFIG_IS_NOT, osFlagsWaitAny, osWaitForever)) & TEST_CONFIG_IS_FIND ){
 
 						// wait for config from file
 						if( osMessageQueueGet(eventQueueHandler, &msg, NULL, osWaitForever) == osOK ){
@@ -133,11 +140,12 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 
 				} else {
 					osEventFlagsSet(testEvents, TEST_START);
-					//osThreadYield();
+					osThreadYield();
+					osDelay(1);
+					osEventFlagsSet(testEvents, LPS_LIST_UDATE_START);
+					osThreadYield();
 					osDelay(1);
 					result_check_init();
-					osEventFlagsSet(testEvents, LPS_LIST_UDATE_START);
-					osDelay(1);
 					testActStatusFlags |= TEST_ACT_TEST_IS_ACTIVE;
 				}
 			}
@@ -153,7 +161,7 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 			break;
 		case UPDATE_CMD:
 			if ( testActStatusFlags & TEST_ACT_TEST_IS_ACTIVE ){
-				if ( osEventFlagsWait(testEvents, TEST_LOG_DISPLAY, osFlagsWaitAny, 0) & TEST_LOG_DISPLAY ){
+				if ( (osEventFlag = osEventFlagsWait(testEvents, TEST_LOG_DISPLAY, osFlagsWaitAny, 0)) & TEST_LOG_DISPLAY ){
 
 						pLog = (Log_t *)(data);
 

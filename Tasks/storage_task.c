@@ -35,9 +35,11 @@ void StorageTask(void *argument) {
 	osStatus_t osRes;
 	Log_t curLog = {0};
 	uint16_t prNum;
-	char buf[sizeof(Log_t)] = {0};
+	char buf[256] = {0};
 	char *pBuf;
 	uint32_t bw;
+
+	uint32_t osEventFlag;
 
 	Event_t msg = {0};
 	TestConfig_t curConfig = {0};
@@ -53,7 +55,7 @@ void StorageTask(void *argument) {
 	  // if configuration is not set
 	  if (!testFlags){
 		  // wait for cmd to find config file
-		 if ( osEventFlagsWait(testEvents, TEST_CONFIG_SEARCH, osFlagsWaitAny, osWaitForever) & TEST_CONFIG_SEARCH ){
+		 if ( (osEventFlag = osEventFlagsWait(testEvents, TEST_CONFIG_SEARCH, osFlagsWaitAny, osWaitForever)) & TEST_CONFIG_SEARCH ){
 
 			 // find config file
 			 // encode config to queue type
@@ -69,7 +71,7 @@ void StorageTask(void *argument) {
 				osEventFlagsSet(testEvents, TEST_CONFIG_IS_FIND);
 			} else {
 				osEventFlagsSet(testEvents, TEST_CONFIG_IS_NOT);
-				if ( osEventFlagsWait(testEvents, TEST_CONFIG_SEND, osFlagsWaitAny, osWaitForever) & TEST_CONFIG_SEND ){
+				if ( (osEventFlag = osEventFlagsWait(testEvents, TEST_CONFIG_SEND, osFlagsWaitAny, osWaitForever)) & TEST_CONFIG_SEND ){
 					// get terminal config
 					if( osMessageQueueGet(eventQueueHandler, &msg, NULL, osWaitForever) == osOK ){
 						if ( msg.event == TEST_CONFIG_SEND ){
@@ -86,9 +88,9 @@ void StorageTask(void *argument) {
 
 		  if ( ! (testFlags & TEST_START) ){
 
-			 uint32_t eventFlag = osEventFlagsWait(testEvents, TEST_START | TEST_FINISH, osFlagsWaitAny, osWaitForever);
+			 uint32_t osEventFlag = osEventFlagsWait(testEvents, TEST_START | TEST_FINISH, osFlagsWaitAny, osWaitForever);
 
-			 if ( eventFlag & TEST_START ){
+			 if ( osEventFlag & TEST_START ){
 
 				// create file that named after part number
 				uint8_t temp = 5;
@@ -113,23 +115,21 @@ void StorageTask(void *argument) {
 
 				  testFlags |= TEST_START;
 
-			 } else if (eventFlag & TEST_FINISH){
+			 } else if (osEventFlag & TEST_FINISH){
 				testFlags = 0;
 			 }
 
 		  } else {
 
 			  //wait
+			  osEventFlag = osEventFlagsWait(testEvents, TEST_FINISH | TEST_LOG_SAVE, osFlagsWaitAny, osWaitForever);
 
-			 if ( osEventFlagsWait(testEvents, TEST_FINISH, osFlagsWaitAny, 0) & TEST_FINISH ){
+			 if ( osEventFlag & TEST_FINISH ){
 				 // close log file
 				 gfr = f_sync(&logFile);
 				 gfr = f_close(&logFile);
 				 testFlags = 0;
-			 }
-
-			 uint32_t eventFlag = osEventFlagsWait(testEvents, TEST_LOG_SAVE, osFlagsWaitAny, osWaitForever);
-			 if ( eventFlag & TEST_LOG_SAVE ){
+			 } else if ( osEventFlag & TEST_LOG_SAVE ){
 				 // wait for logs
 				 if ( osMessageQueueGet(logQueueHandler, &curLog, NULL, osWaitForever) == osOK ){
 					  prNum = snprintf(buf, sizeof(Log_t), "%d. ", curLog.index);
@@ -156,7 +156,7 @@ void StorageTask(void *argument) {
 					  if ( curLog.lpsStatusArray != NULL ){
 						  memset(buf, 0, sizeof(buf));
 						  for ( uint8_t i = 0; i < lps_get_connected_num(); i++ ){
-							  prNum = snprintf(buf, sizeof(Log_t), "Lps№%2d: %6sV, %6sA ", curLog.lpsStatusArray[i].addr, curLog.lpsStatusArray[i].volStr,  curLog.lpsStatusArray[i].curStr);
+							  prNum = snprintf(buf, sizeof(Log_t), "Lps%2d: %sV, %sA ", curLog.lpsStatusArray[i].addr, curLog.lpsStatusArray[i].volStr,  curLog.lpsStatusArray[i].curStr);
 							  pBuf = buf+prNum;
 						  }
 						  prNum = snprintf(pBuf, sizeof(Log_t), "\n");

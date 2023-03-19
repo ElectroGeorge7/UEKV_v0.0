@@ -77,7 +77,7 @@ void LpsTask(void *argument){
 	HAL_StatusTypeDef res = HAL_ERROR;
 	uint8_t lpsStatusBuf[LPS_STT_RESPOND_SIZE] = {0};
 	LpsStatus_t *pStatusArray = NULL;
-	
+	uint32_t osEventFlag = 0;
 
 	// register the lps_respond_handler() as interrupt handler
 	rs485_init();
@@ -86,10 +86,12 @@ void LpsTask(void *argument){
 	
 
 
-	if ( osEventFlagsWait(testEvents, LPS_FIND_CONNECTED_START, osFlagsWaitAny, osWaitForever) & LPS_FIND_CONNECTED_START ){
+	if ( (osEventFlag = osEventFlagsWait(testEvents, LPS_FIND_CONNECTED_START, osFlagsWaitAny, osWaitForever)) & LPS_FIND_CONNECTED_START ){
 
 		lps_list_init();
-
+		///////////убрать после отладки
+		lps_ctrl_output(1, LPS_OUTPUT_ON);
+		/////////////////////////////////
 		osEventFlagsSet(testEvents, LPS_FIND_CONNECTED_FINISHED);
 	}
 
@@ -97,27 +99,32 @@ void LpsTask(void *argument){
 
 	for(;;){
 
-		if ( osEventFlagsWait(testEvents, LPS_FIND_CONNECTED_START, osFlagsWaitAny, 0) & LPS_FIND_CONNECTED_START ){
+		osEventFlag = osEventFlagsWait(testEvents, LPS_FIND_CONNECTED_START | LPS_LIST_UDATE_START, osFlagsNoClear, osWaitForever);
+
+		if ( osEventFlag & LPS_FIND_CONNECTED_START ){
+
 			lps_list_init();
+
+			osEventFlagsClear(testEvents, LPS_FIND_CONNECTED_START);
 			osEventFlagsSet(testEvents, LPS_FIND_CONNECTED_FINISHED);
-		}
 
-		if ( osEventFlagsWait(testEvents, LPS_LIST_UDATE_START, osFlagsNoClear, osWaitForever) & LPS_LIST_UDATE_START ){
+		} else if ( osEventFlag & LPS_LIST_UDATE_START ){
 
-			memset(lpsStatusList.statusArray, 0, sizeof(lpsStatusList.statusArray));
+			memset(lpsStatusList.statusArray, 0, sizeof(LpsStatus_t));
 
 			for (uint8_t i = 0; i < lpsStatusList.conNum; i++ ){
 				res = lps_read_status(lpsStatusList.conAddrsList[i], lpsStatusBuf, LPS_STT_RESPOND_SIZE);
 				if ( res == HAL_OK ){
 					pStatusArray = &(lpsStatusList.statusArray[i]);
 					pStatusArray->addr = lpsStatusList.conAddrsList[i];
-					memcpy(pStatusArray->volStr, lpsStatusBuf[LPS_STT_VOL_START_BIT], sizeof(pStatusArray->volStr)-1);
-					memcpy(pStatusArray->curStr, lpsStatusBuf[LPS_STT_CUR_START_BIT], sizeof(pStatusArray->curStr)-1);
+					memcpy(pStatusArray->volStr, lpsStatusBuf+LPS_STT_VOL_START_BIT, 7-2);
+					memcpy(pStatusArray->curStr, lpsStatusBuf+LPS_STT_CUR_START_BIT, 7-2);
 				}
 			}
 
 			osEventFlagsClear(testEvents, LPS_LIST_UDATE_START);
 			osEventFlagsSet(testEvents, LPS_LIST_UDATE_FINISHED);
+
 		}
 
 		osThreadYield();
@@ -223,7 +230,7 @@ HAL_StatusTypeDef lps_find_connected(LpsStatusList_t *lpsList){
 	lpsList->conNum = 0;
 	memset(lpsList->conAddrsList, 0, sizeof(lpsList->conAddrsList));
 
-	for (uint8_t addr=1; addr<=32; addr++){
+	for (uint8_t addr=1; addr<=2/*32*/; addr++){
 		if ( addr < 10 )
 			snprintf(ADR_cmd, sizeof(ADR_cmd), ":ADR0%1d;\r", addr);
 		else

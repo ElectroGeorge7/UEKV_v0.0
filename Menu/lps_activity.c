@@ -40,6 +40,7 @@ char rs485Buf[54] = {0};
 HAL_StatusTypeDef lps_view_update(Command_t lpsAction, uint8_t *data){
 
 	char lcdStr[32] = {0};
+	uint32_t osEventFlag = 0;
 
 	switch (lpsAction){
 		case START_CMD:
@@ -68,7 +69,7 @@ HAL_StatusTypeDef lps_view_update(Command_t lpsAction, uint8_t *data){
                 LCD_SetCursor( 15, curCursorPos = 0 );
 
                 osEventFlagsSet(testEvents, LPS_FIND_CONNECTED_START);
-                if ( osEventFlagsWait(testEvents, LPS_FIND_CONNECTED_FINISHED, osFlagsWaitAny, osWaitForever) & LPS_FIND_CONNECTED_FINISHED ){
+                if ( (osEventFlag = osEventFlagsWait(testEvents, LPS_FIND_CONNECTED_FINISHED, osFlagsWaitAny, osWaitForever)) & LPS_FIND_CONNECTED_FINISHED ){
 					//lps_find_connected();
 					uint8_t lpsNum = lps_get_connected_num();
 

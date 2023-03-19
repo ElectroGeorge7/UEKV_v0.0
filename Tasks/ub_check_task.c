@@ -36,6 +36,7 @@ void UbCheckTask(void *argument){
 	LpsStatus_t *ubLpsList = NULL;
 
 	uint8_t lpsNum = 0;
+	uint32_t osEventFlag = 0;
 
 	for(;;){
 
@@ -99,9 +100,9 @@ void UbCheckTask(void *argument){
 
 		if (ubLpsList != NULL){
 			HAL_StatusTypeDef res = HAL_ERROR;
-			if ( osEventFlagsWait(testEvents, LPS_LIST_UDATE_FINISHED, osFlagsWaitAny, 0) & LPS_LIST_UDATE_FINISHED ){
+			if ( (osEventFlag = osEventFlagsWait(testEvents, LPS_LIST_UDATE_FINISHED, osFlagsWaitAny, 0)) & LPS_LIST_UDATE_FINISHED ){
 				// get the lps list when it is ready and copy it to the local buf
-				memcpy(ubLpsList, lps_list_get(), sizeof(ubLpsList));
+				memcpy(ubLpsList, lps_list_get(), sizeof(LpsStatus_t));
 				curLog.lpsStatusArray = ubLpsList;
 				osEventFlagsSet(testEvents, LPS_LIST_UDATE_START);
 			} else {
