@@ -8,6 +8,7 @@
 
 #include "buttons_hardware.h"
 #include "rtc_hardware.h"
+#include "reliability.h"
 
 #include "leds_matrix.h"
 #include "result_check.h"
@@ -106,10 +107,21 @@ int main(void)
 
   LCD_Init();
 
-  menu_init();
   rtc_init();
 
   ts_spi_init();
+
+  if ( (bkp_read_data(UEKV_LAST_STATE_REG) != UEKV_IDLE_STATE) && (bkp_read_data(UEKV_LAST_STATE_REG) != UEKV_TEST_STATE) ){
+	  bkp_write_data(UEKV_LAST_STATE_REG, UEKV_IDLE_STATE);
+  }
+
+//  if ( (bkp_read_data(UEKV_LAST_STATE_REG) != 0x5ade) && (bkp_read_data(UEKV_LAST_STATE_REG) != 0xaa55) ){
+//	  bkp_write_data(UEKV_LAST_STATE_REG, 0x5ade);
+//  } else  if ( (bkp_read_data(UEKV_LAST_STATE_REG) != 0xaa55) && (bkp_read_data(UEKV_LAST_STATE_REG) != 0x6734) ){
+//	  bkp_write_data(UEKV_LAST_STATE_REG, 0xaa55);
+//  } else   if ( (bkp_read_data(UEKV_LAST_STATE_REG) != 0x6734) && (bkp_read_data(UEKV_LAST_STATE_REG) != 0x5ade) ){
+//	  bkp_write_data(UEKV_LAST_STATE_REG, 0x6734);
+//  }
 
   osKernelInitialize();
 

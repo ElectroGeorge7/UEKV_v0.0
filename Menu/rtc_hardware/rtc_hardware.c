@@ -10,7 +10,7 @@
 
 #include "menu.h"
 
-static RTC_HandleTypeDef hrtc;
+RTC_HandleTypeDef hrtc;
 
 /**
   * @brief RTC Initialization Function

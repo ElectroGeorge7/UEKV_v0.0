@@ -9,6 +9,7 @@
 
 #include "main.h"
 #include "terminal.h"
+#include "reliability.h"
 
 #include "cmsis_os2.h"
 
@@ -37,6 +38,10 @@ void UbCheckTask(void *argument){
 
 	uint8_t lpsNum = 0;
 	uint32_t osEventFlag = 0;
+
+	if ( bkp_read_data(UEKV_LAST_STATE_REG) == UEKV_TEST_STATE ){
+		logNum = bkp_read_data(UEKV_LAST_TEST_RES_NUM_REG);
+	}
 
 	for(;;){
 
@@ -67,6 +72,7 @@ void UbCheckTask(void *argument){
 
 
 		curLog.index = logNum++;
+		bkp_write_data(UEKV_LAST_TEST_RES_NUM_REG, logNum);
 
 		DataTime_t dataTime;
 		rtc_get(&dataTime);

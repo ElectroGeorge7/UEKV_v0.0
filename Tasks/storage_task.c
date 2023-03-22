@@ -15,6 +15,8 @@
 
 #include "test_activity.h"
 
+#include "reliability.h"
+
 #include <string.h>
 
 static FATFS sdFatFs;
@@ -100,6 +102,8 @@ void StorageTask(void *argument) {
 
 				 if (!temp)
 					 usbprintf("log file opening or creation error");
+
+				if ( bkp_read_data(UEKV_LAST_STATE_REG) == UEKV_IDLE_STATE ){
 				// write the configuration to test file
 				 f_printf(&logFile, "Part Number: %s \n", curConfig.partNumber );
 				 f_printf(&logFile, "MLDR number: %s \n", curConfig.mldrNum );
@@ -112,6 +116,9 @@ void StorageTask(void *argument) {
 				 f_printf(&logFile, "Number of power supplies: %d \n", curConfig.powerSupplyNum );
 				 f_printf(&logFile, "Number of PCBs: %d \n", curConfig.pcbNum );
 				 gfr = f_sync(&logFile);
+
+				 bkp_write_data(UEKV_LAST_STATE_REG, UEKV_TEST_STATE);
+				}
 
 				  testFlags |= TEST_START;
 
@@ -128,6 +135,7 @@ void StorageTask(void *argument) {
 				 // close log file
 				 gfr = f_sync(&logFile);
 				 gfr = f_close(&logFile);
+				 bkp_write_data(UEKV_LAST_STATE_REG, UEKV_IDLE_STATE);
 				 testFlags = 0;
 			 } else if ( osEventFlag & TEST_LOG_SAVE ){
 				 // wait for logs
@@ -153,19 +161,24 @@ void StorageTask(void *argument) {
 					  gfr = f_write(&logFile, buf, strlen(buf), &bw);
 					  gfr = f_sync(&logFile);
 
+					  memset(buf, 0, sizeof(buf));
+
 					  if ( curLog.lpsStatusArray != NULL ){
-						  memset(buf, 0, sizeof(buf));
 						  for ( uint8_t i = 0; i < lps_get_connected_num(); i++ ){
 							  prNum = snprintf(buf, sizeof(Log_t), "Lps%2d: %sV, %sA ", curLog.lpsStatusArray[i].addr, curLog.lpsStatusArray[i].volStr,  curLog.lpsStatusArray[i].curStr);
 							  pBuf = buf+prNum;
 						  }
-						  prNum = snprintf(pBuf, sizeof(Log_t), "\n");
-
-						  uartprintf(buf);
-						  gfr = f_write(&logFile, buf, strlen(buf), &bw);
-						  gfr = f_sync(&logFile);
-					  //osEventFlagsSet(testEvents, LPS_LIST_UDATE_READY);
+					  } else {
+						  pBuf = buf;
 					  }
+
+					  prNum = snprintf(pBuf, sizeof(Log_t), "\n");
+
+					  uartprintf(buf);
+					  gfr = f_write(&logFile, buf, strlen(buf), &bw);
+					  gfr = f_sync(&logFile);
+					  //osEventFlagsSet(testEvents, LPS_LIST_UDATE_READY);
+
 
 					  memset(&msg, 0, sizeof(Event_t));
 					  msg.event = ACTIVITY_UPDATE_EVENT;

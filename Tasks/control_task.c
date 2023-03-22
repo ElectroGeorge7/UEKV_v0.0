@@ -16,6 +16,7 @@
 #include "activity.h"
 
 #include "buttons_hardware.h"
+#include "reliability.h"
 
 #include "leds_matrix.h"
 #include "result_check.h"
@@ -25,6 +26,8 @@
 #include "LCD1602.h"
 
 extern osMessageQueueId_t eventQueueHandler;
+extern osEventFlagsId_t testEvents;
+
 extern uint16_t ledsBitMatrix[];
 
 void ControlTask(void *argument){
@@ -53,6 +56,17 @@ void ControlTask(void *argument){
 	leds_matrix_clear();
 
 	//result_check_init();
+
+	// if it was reset during the test process than resume the test
+	if ( bkp_read_data(UEKV_LAST_STATE_REG) == UEKV_TEST_STATE ){
+		osEventFlagsSet(testEvents, LPS_LIST_UDATE_START);
+		osThreadYield();
+		osDelay(1);
+
+		// go to test menu and resume the test
+		activity_cmd_execute(SELECT_CMD, NULL);
+		activity_cmd_execute(SELECT_CMD, NULL);
+	}
 
   for(;;)
   {
