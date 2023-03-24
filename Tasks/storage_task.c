@@ -162,14 +162,12 @@ void StorageTask(void *argument) {
 					  gfr = f_sync(&logFile);
 
 					  memset(buf, 0, sizeof(buf));
-
+					  pBuf = buf;
 					  if ( curLog.lpsStatusArray != NULL ){
 						  for ( uint8_t i = 0; i < lps_get_connected_num(); i++ ){
-							  prNum = snprintf(buf, sizeof(Log_t), "Lps%2d: %sV, %sA ", curLog.lpsStatusArray[i].addr, curLog.lpsStatusArray[i].volStr,  curLog.lpsStatusArray[i].curStr);
-							  pBuf = buf+prNum;
+							  prNum = snprintf(pBuf, sizeof(Log_t), "Lps%2d: %sV, %sA ", curLog.lpsStatusArray[i].addr, curLog.lpsStatusArray[i].volStr,  curLog.lpsStatusArray[i].curStr);
+							  pBuf = pBuf+prNum;
 						  }
-					  } else {
-						  pBuf = buf;
 					  }
 
 					  prNum = snprintf(pBuf, sizeof(Log_t), "\n");

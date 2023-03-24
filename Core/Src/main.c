@@ -63,7 +63,7 @@ osThreadId_t lpsTaskHandle;
 const osThreadAttr_t lpsTask_attributes = {
   .name = "lpsTask",
   .priority = (osPriority_t) osPriorityNormal2,
-  .stack_size = 300 * 4
+  .stack_size = 350 * 4
 };
 
 #define EVENT_QUEUE_OBJECTS 3

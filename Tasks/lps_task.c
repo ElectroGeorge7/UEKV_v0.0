@@ -23,16 +23,22 @@ extern osEventFlagsId_t testEvents;
 #define LPS_MIN_ADDR	1
 #define LPS_MAX_ADDR	32
 
-#define LPS_RESP_MAX_WAIT_TIME	300
+#define LPS_RESP_MAX_WAIT_TIME	1000
 
 #define LPS_STT_RESPOND_SIZE 	54
-#define LPS_STT_VOL_START_BIT	2
-#define LPS_STT_CUR_START_BIT	16
-#define LPS_STT_OS_REG_OUT_BIT	33
 
-#define LPS_NAMES_NUM	1
+#define LPS_ZUP60_7_STT_VOL_START_BIT	2
+#define LPS_ZUP60_7_STT_CUR_START_BIT	16
+#define LPS_ZUP60_7_STT_OS_REG_OUT_BIT	33
+
+#define LPS_ZUP10_40_STT_VOL_START_BIT	2
+#define LPS_ZUP10_40_STT_CUR_START_BIT	18
+#define LPS_ZUP10_40_STT_OS_REG_OUT_BIT	33
+
+#define LPS_NAMES_NUM	2
 static const char *lpsNames[LPS_NAMES_NUM] = {
-		"Nemic-Lambda ZUP(60V-7A)\r\n"
+		"Nemic-Lambda ZUP(60V-7A)\r\n",
+		"Nemic-Lambda ZUP(10V-40A)\r"
 		/// @todo add the second type of lps
 };
 
@@ -50,10 +56,15 @@ typedef enum LpsOutputState{
 	LPS_OUTPUT_ON,
 } LpsOutputState_t;
 
+typedef struct{
+	uint8_t addr;
+	uint8_t type;
+} LpsAddrType_t;
+
 typedef struct {
 	uint8_t updateReadyFlag;
 	uint8_t conNum;
-	uint8_t conAddrsList[32];
+	LpsAddrType_t conAddrsList[32];
 	LpsStatus_t *statusArray;
 } LpsStatusList_t;
 
@@ -110,20 +121,36 @@ void LpsTask(void *argument){
 
 		} else if ( osEventFlag & LPS_LIST_UDATE_START ){
 
-			memset(lpsStatusList.statusArray, 0, sizeof(LpsStatus_t));
+
+			lpsStatusList.updateReadyFlag = 0;
+			memset(lpsStatusList.statusArray, 0, lpsStatusList.conNum * sizeof(LpsStatus_t));
 
 			for (uint8_t i = 0; i < lpsStatusList.conNum; i++ ){
-				res = lps_read_status(lpsStatusList.conAddrsList[i], lpsStatusBuf, LPS_STT_RESPOND_SIZE);
+				res = lps_read_status(lpsStatusList.conAddrsList[i].addr, lpsStatusBuf, LPS_STT_RESPOND_SIZE);
 				if ( res == HAL_OK ){
 					pStatusArray = &(lpsStatusList.statusArray[i]);
-					pStatusArray->addr = lpsStatusList.conAddrsList[i];
-					memcpy(pStatusArray->volStr, lpsStatusBuf+LPS_STT_VOL_START_BIT, 7-2);
-					memcpy(pStatusArray->curStr, lpsStatusBuf+LPS_STT_CUR_START_BIT, 7-2);
+					pStatusArray->addr = lpsStatusList.conAddrsList[i].addr;
+					switch(lpsStatusList.conAddrsList[i].type){
+					case 0:
+						memcpy(pStatusArray->volStr, lpsStatusBuf+LPS_ZUP60_7_STT_VOL_START_BIT, 7-2);
+						memcpy(pStatusArray->curStr, lpsStatusBuf+LPS_ZUP60_7_STT_CUR_START_BIT, 7-2);
+						break;
+					case 1:
+						memcpy(pStatusArray->volStr, lpsStatusBuf+LPS_ZUP10_40_STT_VOL_START_BIT, 7-2);
+						memcpy(pStatusArray->curStr, lpsStatusBuf+LPS_ZUP10_40_STT_CUR_START_BIT, 7-2);
+						break;
+					default:
+						memcpy(pStatusArray->volStr, lpsStatusBuf+LPS_ZUP60_7_STT_VOL_START_BIT, 7-2);
+						memcpy(pStatusArray->curStr, lpsStatusBuf+LPS_ZUP60_7_STT_CUR_START_BIT, 7-2);
+					}
+
 				}
 			}
 
+			lpsStatusList.updateReadyFlag = 1;
+
 			osEventFlagsClear(testEvents, LPS_LIST_UDATE_START);
-			osEventFlagsSet(testEvents, LPS_LIST_UDATE_FINISHED);
+			//osEventFlagsSet(testEvents, LPS_LIST_UDATE_FINISHED);
 
 		}
 
@@ -134,6 +161,10 @@ void LpsTask(void *argument){
 
 uint8_t lps_get_connected_num(void){
 	return lpsStatusList.conNum;
+}
+
+uint8_t lps_get_update_reade_flag(void){
+	return lpsStatusList.updateReadyFlag;
 }
 
 LpsStatus_t *lps_list_get(void){
@@ -204,14 +235,14 @@ HAL_StatusTypeDef lps_ctrl_output(uint8_t addr, LpsOutputState_t state){
 			if ( state == LPS_OUTPUT_ON ){
 				rs485_tx(OUT1_cmd, sizeof(OUT1_cmd), addr+1, 10);
 				lps_read_status(addr, lpsStatus, sizeof(lpsStatus));
-				if ( lpsStatus[LPS_STT_OS_REG_OUT_BIT] == '1' )
+				if ( lpsStatus[LPS_ZUP60_7_STT_OS_REG_OUT_BIT] == '1' )
 					return HAL_OK;
 				else
 					repeat--;
 			}else{
 				rs485_tx(OUT0_cmd, sizeof(OUT0_cmd), addr+1, 10);
 				lps_read_status(addr, lpsStatus, sizeof(lpsStatus));
-				if ( lpsStatus[LPS_STT_OS_REG_OUT_BIT] == '0' )
+				if ( lpsStatus[LPS_ZUP60_7_STT_OS_REG_OUT_BIT] == '0' )
 					return HAL_OK;
 				else
 					repeat--;
@@ -228,9 +259,9 @@ HAL_StatusTypeDef lps_find_connected(LpsStatusList_t *lpsList){
 	char lpsMdlStr[30] = {0};
 
 	lpsList->conNum = 0;
-	memset(lpsList->conAddrsList, 0, sizeof(lpsList->conAddrsList));
+	memset(lpsList->conAddrsList, 0, 32 * sizeof(LpsAddrType_t));
 
-	for (uint8_t addr=1; addr<=2/*32*/; addr++){
+	for (uint8_t addr=1; addr<=6/*32*/; addr++){
 		if ( addr < 10 )
 			snprintf(ADR_cmd, sizeof(ADR_cmd), ":ADR0%1d;\r", addr);
 		else
@@ -243,7 +274,9 @@ HAL_StatusTypeDef lps_find_connected(LpsStatusList_t *lpsList){
 
 		for (uint8_t i = 0; i < LPS_NAMES_NUM; i++){
 			if ( strncmp(lpsMdlStr, lpsNames[i], strlen(lpsNames[i])) == 0 ){
-				lpsList->conAddrsList[lpsList->conNum++] = addr;
+				lpsList->conAddrsList[lpsList->conNum].addr = addr;
+				lpsList->conAddrsList[lpsList->conNum].type = i;
+				lpsList->conNum++;
 				// toggle lps output to check the control access
                 lps_ctrl_output(addr, LPS_OUTPUT_ON);
                 HAL_Delay(3000);

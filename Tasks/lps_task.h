@@ -21,5 +21,6 @@ void LpsTask(void *argument);
 
 uint8_t lps_get_connected_num(void);
 LpsStatus_t *lps_list_get(void);
+uint8_t lps_get_update_reade_flag(void);
 
 #endif /* LPS_TASK_H_ */
