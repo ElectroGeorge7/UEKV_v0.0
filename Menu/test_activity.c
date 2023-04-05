@@ -12,6 +12,7 @@
 #include "terminal.h"
 #include <stdio.h>
 
+#include "ts_spi.h"
 #include "LCD1602.h"
 
 
@@ -349,8 +350,8 @@ void test_menu_update(TestConfig_t *curConfig){
 	snprintf(testActMenu[16], 32, "кол-во Vпит:%d", curConfig->powerSupplyNum);
 	memset(testActMenu[17], 0, 32);
 
-	float temp1 = Max6675_Read_Temp();
-	float temp2 = Max6675_Read_Temp();
+	float temp1 = ts_check(1);
+	float temp2 = ts_check(2);
 	snprintf(testActMenu[18], 32, "темп.1:%3.0fC", temp1);
 	snprintf(testActMenu[19], 32, "темп.2:%3.0fC", temp2);
 

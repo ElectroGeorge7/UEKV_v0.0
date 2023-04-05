@@ -18,7 +18,7 @@
 #include "result_check.h"
 #include "ub_check.h"
 #include "leds_matrix.h"
-#include "MAX6675.h"
+#include "ts_spi.h"
 
 #include "rtc_hardware.h"
 #include "lps_task.h"
@@ -84,8 +84,8 @@ void UbCheckTask(void *argument){
 		curLog.dataTime.year = dataTime.year;
 
 		memcpy(curLog.result, resultMatrix, sizeof(resultMatrix));
-		curLog.temp[0] = 125.125;
-		curLog.temp[1] = Max6675_Read_Temp();
+		curLog.temp[0] = ts_check(1);
+		curLog.temp[1] = ts_check(2);;
 
 
 

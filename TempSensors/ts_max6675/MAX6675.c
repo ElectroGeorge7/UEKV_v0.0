@@ -15,9 +15,9 @@ uint8_t DATARX[2];                                    // Raw Data from MAX6675
 float Max6675_Read_Temp(void){
 float Temp=0;                                         // Temperature Variable
 DATARX[0] = 0; DATARX[1] = 0;
-HAL_GPIO_WritePin(SSPORT,SSPIN,GPIO_PIN_RESET);       // Low State for SPI Communication
+//HAL_GPIO_WritePin(SSPORT,SSPIN,GPIO_PIN_RESET);       // Low State for SPI Communication
 HAL_SPI_Receive(&hspi2,DATARX,1,50);                  // DATA Transfer
-HAL_GPIO_WritePin(SSPORT,SSPIN,GPIO_PIN_SET);         // High State for SPI Communication
+//HAL_GPIO_WritePin(SSPORT,SSPIN,GPIO_PIN_SET);         // High State for SPI Communication
 TCF=(((DATARX[0]|(DATARX[1]<<8))>>2)& 0x0001);        // State of Connecting
 Temp=((((DATARX[0]|DATARX[1]<<8)))>>3);               // Temperature Data Extraction
 Temp*=0.25;                                           // Data to Centigrade Conversation

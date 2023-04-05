@@ -10,6 +10,8 @@
 
 #include "ts_spi.h"
 
+#include "MAX6675.h"
+
 SPI_HandleTypeDef hspi2;
 
 static void SPI2_Init(void);
@@ -20,8 +22,7 @@ HAL_StatusTypeDef ts_spi_init(void){
 	  __HAL_RCC_GPIOC_CLK_ENABLE();
 
 	  /*Configure GPIO pin Output Level */
-	  HAL_GPIO_WritePin(GPIOC, TEMP_SENS_CS1_Pin, GPIO_PIN_RESET); // enable only max6675
-	  HAL_GPIO_WritePin(GPIOC, TEMP_SENS_CS2_Pin, GPIO_PIN_SET);
+	  HAL_GPIO_WritePin(GPIOC, TEMP_SENS_CS2_Pin | TEMP_SENS_CS1_Pin, GPIO_PIN_SET);	// disable both
 
 	  /*Configure GPIO pins : TEMP_SENS_CS1_Pin TEMP_SENS_CS2_Pin*/
 	  GPIO_InitStruct.Pin = TEMP_SENS_CS1_Pin|TEMP_SENS_CS2_Pin;
@@ -33,6 +34,23 @@ HAL_StatusTypeDef ts_spi_init(void){
 	  SPI2_Init();
 }
 
+float ts_check(uint8_t tsNum){
+	float tsTemp = 0.0;
+
+	if ( tsNum == 1 ){
+		  HAL_GPIO_WritePin(GPIOC, TEMP_SENS_CS2_Pin, GPIO_PIN_RESET);
+	} else if ( tsNum == 2 ){
+		  HAL_GPIO_WritePin(GPIOC, TEMP_SENS_CS1_Pin, GPIO_PIN_RESET);
+	}
+
+	tsTemp = Max6675_Read_Temp();
+	HAL_GPIO_WritePin(GPIOC, TEMP_SENS_CS2_Pin | TEMP_SENS_CS1_Pin, GPIO_PIN_SET);	// disable both
+
+	if ( !((tsTemp > 0.0) && (tsTemp < 1024.0)) )
+		tsTemp = 0.0;
+
+	return tsTemp;
+}
 
 /**
   * @brief SPI2 Initialization Function

@@ -16,5 +16,6 @@
 #define TEMP_SENS_CS2_GPIO_Port GPIOC
 
 HAL_StatusTypeDef ts_spi_init(void);
+float ts_check(uint8_t tsNum);
 
 #endif /* TS_HARDWARE_TS_SPI_H_ */
