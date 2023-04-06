@@ -115,13 +115,7 @@ int main(void)
 	  bkp_write_data(UEKV_LAST_STATE_REG, UEKV_IDLE_STATE);
   }
 
-//  if ( (bkp_read_data(UEKV_LAST_STATE_REG) != 0x5ade) && (bkp_read_data(UEKV_LAST_STATE_REG) != 0xaa55) ){
-//	  bkp_write_data(UEKV_LAST_STATE_REG, 0x5ade);
-//  } else  if ( (bkp_read_data(UEKV_LAST_STATE_REG) != 0xaa55) && (bkp_read_data(UEKV_LAST_STATE_REG) != 0x6734) ){
-//	  bkp_write_data(UEKV_LAST_STATE_REG, 0xaa55);
-//  } else   if ( (bkp_read_data(UEKV_LAST_STATE_REG) != 0x6734) && (bkp_read_data(UEKV_LAST_STATE_REG) != 0x5ade) ){
-//	  bkp_write_data(UEKV_LAST_STATE_REG, 0x6734);
-//  }
+  ub_check_init();
 
   osKernelInitialize();
 
