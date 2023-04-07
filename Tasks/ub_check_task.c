@@ -31,6 +31,8 @@ extern osSemaphoreId_t ubCheckSem;
 extern osMessageQueueId_t logQueueHandler;
 extern osEventFlagsId_t testEvents;
 
+uint16_t portExpBuf[1000] = {0};
+
 void UbCheckTask(void *argument){
 	osStatus_t osRes;
 	Log_t curLog = {0};
@@ -49,11 +51,14 @@ void UbCheckTask(void *argument){
 
 		uartprintf("TIM9 interrupt time: %d", HAL_GetTick());
 
-		ub_check();
+		ub_check_dma(portExpBuf, sizeof(portExpBuf));
+
+		//ub_check();
 		for (uint8_t rowNum = 0; rowNum < UB_MATRIX_ROW_NUM; rowNum++){
 			resultMatrix[rowNum] |= ubMatrix[rowNum];
 		}
 		ub_res_clear();
+
 
 /*
  	 	 	// phase synchro

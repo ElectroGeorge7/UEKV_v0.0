@@ -67,7 +67,8 @@ static void TIM9_Init(void)
   htim9.Init.Prescaler = 44999;
   htim9.Init.CounterMode = TIM_COUNTERMODE_UP;
   // interrupts timing adjustment to result updating freq
-  htim9.Init.Period = (uint16_t) ((( 180000000 / ( htim9.Init.Prescaler + 1 ) ) * (row1SigResPeriod /*- 2*row1SigResRepPeriod*/)) / 1000);
+  //htim9.Init.Period = (uint16_t) ((( 180000000 / ( htim9.Init.Prescaler + 1 ) ) * (row1SigResPeriod /*- 2*row1SigResRepPeriod*/)) / 1000);
+  htim9.Init.Period = 13332; // period 3s
   htim9.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim9.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim9) != HAL_OK)

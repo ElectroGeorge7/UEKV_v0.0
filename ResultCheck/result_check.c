@@ -22,12 +22,12 @@ HAL_StatusTypeDef result_check_init(void){
 	rch_timer_init();
 	// phase alignment on the first signal of row1
 	uartprintf("phase alignment on the first signal of row1: wait");
-
-	if ( ub_check_sig_level_wait(0, 1, 0xffff) == HAL_OK){
-		rch_timer_start();
-		uartprintf("phase alignment on the first signal of row1: ok");
-		return HAL_OK;
-	}
+	rch_timer_start();
+//	if ( ub_check_sig_level_wait(0, 1, 0xffff) == HAL_OK){
+//		rch_timer_start();
+//		uartprintf("phase alignment on the first signal of row1: ok");
+//		return HAL_OK;
+//	}
 
 	return HAL_ERROR;
 }
