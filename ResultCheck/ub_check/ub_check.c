@@ -19,6 +19,8 @@
 #define UB_CHECK_REPEAT_CNT	16
 
 I2C_HandleTypeDef hi2c1;
+static DMA_HandleTypeDef hdma_tx;
+static DMA_HandleTypeDef hdma_rx;
 
 uint16_t portExpPacket = 0;
 uint16_t portInitPacket = 0xffff;
@@ -199,7 +201,7 @@ HAL_StatusTypeDef ub_res_clear(void){
 
 	return HAL_OK;
 }
-uint8_t portExpBuf[10] = {0};
+
 /**
   * @brief I2C1 Initialization Function
   * @param None
@@ -241,9 +243,6 @@ static HAL_StatusTypeDef I2C1_Init(void){
 	res |= HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
 
 
-  static DMA_HandleTypeDef hdma_tx;
-  static DMA_HandleTypeDef hdma_rx;
-
   __HAL_RCC_DMA1_CLK_ENABLE();
   hdma_tx.Instance                 = DMA1_Stream6;
 
@@ -256,9 +255,6 @@ static HAL_StatusTypeDef I2C1_Init(void){
   hdma_tx.Init.Mode                = DMA_NORMAL;
   hdma_tx.Init.Priority            = DMA_PRIORITY_LOW;
   hdma_tx.Init.FIFOMode            = DMA_FIFOMODE_DISABLE;
-  hdma_tx.Init.FIFOThreshold       = DMA_FIFO_THRESHOLD_FULL;
-  hdma_tx.Init.MemBurst            = DMA_MBURST_INC4;
-  hdma_tx.Init.PeriphBurst         = DMA_PBURST_INC4;
 
   HAL_DMA_Init(&hdma_tx);
 
@@ -277,9 +273,6 @@ static HAL_StatusTypeDef I2C1_Init(void){
   hdma_rx.Init.Mode                = DMA_NORMAL;
   hdma_rx.Init.Priority            = DMA_PRIORITY_HIGH;
   hdma_rx.Init.FIFOMode            = DMA_FIFOMODE_DISABLE;
-  hdma_rx.Init.FIFOThreshold       = DMA_FIFO_THRESHOLD_FULL;
-  hdma_rx.Init.MemBurst            = DMA_MBURST_INC4;
-  hdma_rx.Init.PeriphBurst         = DMA_PBURST_INC4;
 
   HAL_DMA_Init(&hdma_rx);
 
@@ -296,19 +289,14 @@ static HAL_StatusTypeDef I2C1_Init(void){
   HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
 
+  HAL_NVIC_SetPriority(I2C1_ER_IRQn, 0, 1);
+  HAL_NVIC_EnableIRQ(I2C1_ER_IRQn);
+  HAL_NVIC_SetPriority(I2C1_EV_IRQn, 0, 2);
+  HAL_NVIC_EnableIRQ(I2C1_EV_IRQn);
 
-  res = HAL_I2C_Master_Receive_DMA(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)portExpBuf, sizeof(portExpBuf));
-
+  uint16_t portExpBuf[100] = {0};
+  while(HAL_I2C_Master_Receive_DMA(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)portExpBuf, sizeof(portExpBuf))!= HAL_OK){};
+  while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY){} ;
 
   return HAL_OK;
-}
-
-void DMA1_Stream5_IRQHandler(void)
-{
-  HAL_DMA_IRQHandler(hi2c1.hdmarx);
-}
-
-void DMA1_Stream6_IRQHandler(void)
-{
-  HAL_DMA_IRQHandler(hi2c1.hdmatx);
 }

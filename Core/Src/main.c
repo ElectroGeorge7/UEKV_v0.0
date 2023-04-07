@@ -105,6 +105,8 @@ int main(void)
   MX_GPIO_Init();
   buttons_init();
 
+  ub_check_init();
+
   LCD_Init();
 
   rtc_init();
@@ -115,7 +117,6 @@ int main(void)
 	  bkp_write_data(UEKV_LAST_STATE_REG, UEKV_IDLE_STATE);
   }
 
-  ub_check_init();
 
   osKernelInitialize();
 

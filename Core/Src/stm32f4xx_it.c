@@ -27,6 +27,7 @@ extern DMA_HandleTypeDef hdma_uart4_rx;
 extern TIM_HandleTypeDef htim9;
 extern TIM_HandleTypeDef htim13;
 extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
+extern I2C_HandleTypeDef hi2c1;
 
 
 /******************************************************************************/
@@ -192,6 +193,26 @@ void EXTI15_10_IRQHandler(void)
 void TIM8_UP_TIM13_IRQHandler(void)
 {
   HAL_TIM_IRQHandler(&htim13);
+}
+
+void I2C1_EV_IRQHandler(void)
+{
+  HAL_I2C_EV_IRQHandler(&hi2c1);
+}
+
+void I2C1_ER_IRQHandler(void)
+{
+  HAL_I2C_ER_IRQHandler(&hi2c1);
+}
+
+void DMA1_Stream5_IRQHandler(void)
+{
+  HAL_DMA_IRQHandler(hi2c1.hdmarx);
+}
+
+void DMA1_Stream6_IRQHandler(void)
+{
+  HAL_DMA_IRQHandler(hi2c1.hdmatx);
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
