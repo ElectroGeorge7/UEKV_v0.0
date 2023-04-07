@@ -105,8 +105,6 @@ int main(void)
   MX_GPIO_Init();
   buttons_init();
 
-  ub_check_init();
-
   LCD_Init();
 
   rtc_init();

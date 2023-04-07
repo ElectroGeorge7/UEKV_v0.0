@@ -15,19 +15,14 @@
 
 uint16_t resultMatrix[RESULT_MATRIX_MAX_ROW_NUM];
 
-HAL_StatusTypeDef result_check_init(void){
+HAL_StatusTypeDef result_check_init(TestType_t type, ResCheckMethod_t method){
 
 	/* UB check*/
-	ub_check_init();
-	rch_timer_init();
-	// phase alignment on the first signal of row1
-	uartprintf("phase alignment on the first signal of row1: wait");
-	rch_timer_start();
-//	if ( ub_check_sig_level_wait(0, 1, 0xffff) == HAL_OK){
-//		rch_timer_start();
-//		uartprintf("phase alignment on the first signal of row1: ok");
-//		return HAL_OK;
-//	}
+	if ( type == RELIABILITY_TEST ){
+		ub_check_init(method);
+	} else if ( type == ETT_TEST ){
+		ett_check_init();
+	};
 
 	return HAL_ERROR;
 }

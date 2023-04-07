@@ -3,7 +3,7 @@
 
 #include "stm32f4xx_hal.h"
 
-HAL_StatusTypeDef rch_timer_init(void);
+HAL_StatusTypeDef rch_timer_init(uint16_t period_ms);
 HAL_StatusTypeDef rch_timer_start(void);
 HAL_StatusTypeDef rch_timer_stop(void);
 

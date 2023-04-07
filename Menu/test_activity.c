@@ -146,7 +146,7 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 					osEventFlagsSet(testEvents, LPS_LIST_UDATE_START);
 					osThreadYield();
 					osDelay(1);
-					result_check_init();
+					result_check_init(curConfig.testType, curConfig.resCheckMethod);
 					testActStatusFlags |= TEST_ACT_TEST_IS_ACTIVE;
 				}
 			}

@@ -12,27 +12,7 @@
 #include "activity.h"
 
 #include "rtc_hardware.h"
-
-typedef enum TestType{
-	RELIABILITY_TEST,
-	ETT_TEST,
-} TestType_t;
-
-typedef enum ResCheckMethod{
-	EVERY_RESULT,
-	AVERAGE_RESULT_PER_1S,
-	AVERAGE_RESULT_PER_2S,
-	AVERAGE_RESULT_PER_3S,
-	AVERAGE_RESULT_PER_4S,
-	AVERAGE_RESULT_PER_5S,
-	JUST_FAULTES,
-	TRIAL_UB_1DAY,
-	TRIAL_UB_1WEEK,
-	TRIAL_UB_4WEEK,
-	TRIAL_ETT_1DAY,
-	TRIAL_ETT_1WEEK,
-	TRIAL_ETT_4WEEK
-} ResCheckMethod_t;
+#include "result_check.h"
 
 typedef struct {
 	char partNumber[34];

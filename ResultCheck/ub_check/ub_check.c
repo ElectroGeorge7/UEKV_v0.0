@@ -12,6 +12,8 @@
 
 #include "terminal.h"
 
+#include "rch_timer.h"
+
 #define PCF8575_READ_ADDR	0x41
 #define PCF8575_WRITE_ADDR	0x40
 
@@ -33,39 +35,92 @@ uint32_t row1SigResPeriod = 0;			// period of new results based on row1 signal
 
 uint8_t ubMatrix[8] = {0};
 
-//static uint16_t ubError |= UB_SIG_LEV_TIMEOUT;;
-
 static HAL_StatusTypeDef I2C1_Init(void);
+static HAL_StatusTypeDef I2C1_DMA_Init(void);
 
-HAL_StatusTypeDef ub_check_init(){
-	HAL_StatusTypeDef res = 0;
+HAL_StatusTypeDef ub_check_init(ResCheckMethod_t method){
+	HAL_StatusTypeDef res = HAL_OK;
 	uint32_t row1SigStart = 0;
 
 	res |= I2C1_Init();
-//	res |= HAL_I2C_Master_Transmit(&hi2c1, PCF8575_WRITE_ADDR, (uint8_t *)&portInitPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
-//	res |= HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
-//
-//	if (!res){
-//		uartprintf("ub check i2c init");
-//
-//		uint8_t cnt = 5;
-//		do{
-//			if ( ub_check_freq_adjust() == HAL_OK ){
-//				row1SigStart = HAL_GetTick();
-//
-//				if ( ub_check_new_res_wait(0, 0, 2*row1SigResRepPeriod, 0xffff) == HAL_OK ){
-//					row1SigResPeriod = HAL_GetTick() - row1SigStart;
-//					uartprintf("HAL_GetTick(): %d", HAL_GetTick());
-//					uartprintf("row1SigResPeriod: %d", row1SigResPeriod);
-//				}
-//				return HAL_OK;
-//			}
-//
-//		} while (cnt--);
-//
-//		uartprintf("ub check freq adjust failed");
-//	} else
-//		uartprintf("ub check i2c init failed");
+	res |= HAL_I2C_Master_Transmit(&hi2c1, PCF8575_WRITE_ADDR, (uint8_t *)&portInitPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
+	res |= HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
+
+	switch (method){
+		case EVERY_RESULT:
+
+			if (!res){
+				uartprintf("ub check i2c init");
+
+				uint8_t cnt = 5;
+				do{
+					if ( ub_check_freq_adjust() == HAL_OK ){
+						row1SigStart = HAL_GetTick();
+
+						if ( ub_check_new_res_wait(0, 0, 2*row1SigResRepPeriod, 0xffff) == HAL_OK ){
+							row1SigResPeriod = HAL_GetTick() - row1SigStart;
+							uartprintf("HAL_GetTick(): %d", HAL_GetTick());
+							uartprintf("row1SigResPeriod: %d", row1SigResPeriod);
+						}
+
+						res |= rch_timer_init(row1SigResPeriod /*- 2*row1SigResRepPeriod*/);
+						// phase alignment on the first signal of row1
+						uartprintf("phase alignment on the first signal of row1: wait");
+						if ( ub_check_sig_level_wait(0, 1, 0xffff) == HAL_OK){
+							res |= rch_timer_start();
+							uartprintf("phase alignment on the first signal of row1: ok");
+							return HAL_OK;
+						}
+
+					}
+
+				} while (cnt--);
+
+				uartprintf("ub check freq adjust failed");
+			} else
+				uartprintf("ub check i2c init failed");
+
+			break;
+
+		case AVERAGE_RESULT_PER_1S:
+			res |= I2C1_DMA_Init();
+			res |= rch_timer_init(1000);
+			res |= rch_timer_start();
+			break;
+
+		case AVERAGE_RESULT_PER_2S:
+			res |= I2C1_DMA_Init();
+			res |= rch_timer_init(2000);
+			res |= rch_timer_start();
+			break;
+
+		case AVERAGE_RESULT_PER_3S:
+			res |= I2C1_DMA_Init();
+			res |= rch_timer_init(3000);
+			res |= rch_timer_start();
+			break;
+
+		case AVERAGE_RESULT_PER_4S:
+			res |= I2C1_DMA_Init();
+			res |= rch_timer_init(4000);
+			res |= rch_timer_start();
+			break;
+
+		case AVERAGE_RESULT_PER_5S:
+			res |= I2C1_DMA_Init();
+			res |= rch_timer_init(5000);
+			res |= rch_timer_start();
+			break;
+
+		case JUST_FAULTES:
+			break;
+
+		default:
+			res |= I2C1_DMA_Init();
+			res |= rch_timer_init(3000);
+			res |= rch_timer_start();
+			break;
+	}
 
 	return HAL_ERROR;
 }
@@ -237,68 +292,69 @@ static HAL_StatusTypeDef I2C1_Init(void){
   {
     Error_Handler();
   }
-
-  HAL_StatusTypeDef res = 0;
-	res |= HAL_I2C_Master_Transmit(&hi2c1, PCF8575_WRITE_ADDR, (uint8_t *)&portInitPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
-	res |= HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
+}
 
 
-  __HAL_RCC_DMA1_CLK_ENABLE();
-  hdma_tx.Instance                 = DMA1_Stream6;
+static HAL_StatusTypeDef I2C1_DMA_Init(void){
+	HAL_StatusTypeDef res = HAL_OK;
 
-  hdma_tx.Init.Channel             = DMA_CHANNEL_1;
-  hdma_tx.Init.Direction           = DMA_MEMORY_TO_PERIPH;
-  hdma_tx.Init.PeriphInc           = DMA_PINC_DISABLE;
-  hdma_tx.Init.MemInc              = DMA_MINC_ENABLE;
-  hdma_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-  hdma_tx.Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;
-  hdma_tx.Init.Mode                = DMA_NORMAL;
-  hdma_tx.Init.Priority            = DMA_PRIORITY_LOW;
-  hdma_tx.Init.FIFOMode            = DMA_FIFOMODE_DISABLE;
+	__HAL_RCC_DMA1_CLK_ENABLE();
 
-  HAL_DMA_Init(&hdma_tx);
+	hdma_tx.Instance                 = DMA1_Stream6;
 
-  /* Associate the initialized DMA handle to the the I2C handle */
-  __HAL_LINKDMA(&hi2c1, hdmatx, hdma_tx);
+	hdma_tx.Init.Channel             = DMA_CHANNEL_1;
+	hdma_tx.Init.Direction           = DMA_MEMORY_TO_PERIPH;
+	hdma_tx.Init.PeriphInc           = DMA_PINC_DISABLE;
+	hdma_tx.Init.MemInc              = DMA_MINC_ENABLE;
+	hdma_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+	hdma_tx.Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;
+	hdma_tx.Init.Mode                = DMA_NORMAL;
+	hdma_tx.Init.Priority            = DMA_PRIORITY_LOW;
+	hdma_tx.Init.FIFOMode            = DMA_FIFOMODE_DISABLE;
 
-  /* Configure the DMA handler for Transmission process */
-  hdma_rx.Instance                 = DMA1_Stream5;
+	res |= HAL_DMA_Init(&hdma_tx);
 
-  hdma_rx.Init.Channel             = DMA_CHANNEL_1;
-  hdma_rx.Init.Direction           = DMA_PERIPH_TO_MEMORY;
-  hdma_rx.Init.PeriphInc           = DMA_PINC_DISABLE;
-  hdma_rx.Init.MemInc              = DMA_MINC_ENABLE;
-  hdma_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-  hdma_rx.Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;
-  hdma_rx.Init.Mode                = DMA_NORMAL;
-  hdma_rx.Init.Priority            = DMA_PRIORITY_HIGH;
-  hdma_rx.Init.FIFOMode            = DMA_FIFOMODE_DISABLE;
+	/* Associate the initialized DMA handle to the the I2C handle */
+	__HAL_LINKDMA(&hi2c1, hdmatx, hdma_tx);
 
-  HAL_DMA_Init(&hdma_rx);
+	/* Configure the DMA handler for Transmission process */
+	hdma_rx.Instance                 = DMA1_Stream5;
 
-  /* Associate the initialized DMA handle to the the I2C handle */
-  __HAL_LINKDMA(&hi2c1, hdmarx, hdma_rx);
+	hdma_rx.Init.Channel             = DMA_CHANNEL_1;
+	hdma_rx.Init.Direction           = DMA_PERIPH_TO_MEMORY;
+	hdma_rx.Init.PeriphInc           = DMA_PINC_DISABLE;
+	hdma_rx.Init.MemInc              = DMA_MINC_ENABLE;
+	hdma_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+	hdma_rx.Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;
+	hdma_rx.Init.Mode                = DMA_NORMAL;
+	hdma_rx.Init.Priority            = DMA_PRIORITY_HIGH;
+	hdma_rx.Init.FIFOMode            = DMA_FIFOMODE_DISABLE;
 
+	res |= HAL_DMA_Init(&hdma_rx);
 
-  /*##-6- Configure the NVIC for DMA #########################################*/
-  /* NVIC configuration for DMA transfer complete interrupt (I2C1_TX) */
-  HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 1, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Stream6_IRQn);
+	/* Associate the initialized DMA handle to the the I2C handle */
+	__HAL_LINKDMA(&hi2c1, hdmarx, hdma_rx);
 
-  /* NVIC configuration for DMA transfer complete interrupt (I2C1_RX) */
-  HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
+	/*##-6- Configure the NVIC for DMA #########################################*/
+	/* NVIC configuration for DMA transfer complete interrupt (I2C1_TX) */
+	HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 1, 0);
+	HAL_NVIC_EnableIRQ(DMA1_Stream6_IRQn);
 
-  HAL_NVIC_SetPriority(I2C1_ER_IRQn, 0, 1);
-  HAL_NVIC_EnableIRQ(I2C1_ER_IRQn);
-  HAL_NVIC_SetPriority(I2C1_EV_IRQn, 0, 2);
-  HAL_NVIC_EnableIRQ(I2C1_EV_IRQn);
+	/* NVIC configuration for DMA transfer complete interrupt (I2C1_RX) */
+	HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
 
-//  uint16_t portExpBuf[1000] = {0};
-//  while(HAL_I2C_Master_Receive_DMA(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)portExpBuf, sizeof(portExpBuf))!= HAL_OK){};
-//  while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY){} ;
+	/* this IRQs are needed for hal i2c dma funcs*/
+	HAL_NVIC_SetPriority(I2C1_ER_IRQn, 0, 1);
+	HAL_NVIC_EnableIRQ(I2C1_ER_IRQn);
+	HAL_NVIC_SetPriority(I2C1_EV_IRQn, 0, 2);
+	HAL_NVIC_EnableIRQ(I2C1_EV_IRQn);
 
-  return HAL_OK;
+	//  uint16_t portExpBuf[1000] = {0};
+	//  while(HAL_I2C_Master_Receive_DMA(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)portExpBuf, sizeof(portExpBuf))!= HAL_OK){};
+	//  while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY){} ;
+
+	return HAL_OK;
 }
 
 void ub_check_dma(uint16_t *buf, uint32_t size){

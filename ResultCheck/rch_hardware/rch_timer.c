@@ -17,7 +17,7 @@ TIM_HandleTypeDef htim9;
 
 extern osSemaphoreId_t ubCheckSem;
 
-static void TIM9_Init(void);
+static void TIM9_Init(uint16_t period_ms);
 
 ///@todo remove long functions from interrupt callback (use RTOS)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
@@ -35,8 +35,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	 }
 }
 
-HAL_StatusTypeDef rch_timer_init(void){
-	TIM9_Init();
+HAL_StatusTypeDef rch_timer_init(uint16_t period_ms){
+	TIM9_Init(period_ms);
     return HAL_OK;
 }
 
@@ -56,9 +56,8 @@ extern uint32_t row1SigResRepPeriod;
   * @retval None
   * @todo Добавить автоматическую подстройку частоты таймера в зависимости от системной частоты
   */
-static void TIM9_Init(void)
+static void TIM9_Init(uint16_t period_ms)
 {
-
   TIM_ClockConfigTypeDef sClockSourceConfig = {0};
 
   __HAL_RCC_TIM9_CLK_ENABLE();
@@ -67,8 +66,7 @@ static void TIM9_Init(void)
   htim9.Init.Prescaler = 44999;
   htim9.Init.CounterMode = TIM_COUNTERMODE_UP;
   // interrupts timing adjustment to result updating freq
-  //htim9.Init.Period = (uint16_t) ((( 180000000 / ( htim9.Init.Prescaler + 1 ) ) * (row1SigResPeriod /*- 2*row1SigResRepPeriod*/)) / 1000);
-  htim9.Init.Period = 13332; // period 3s
+  htim9.Init.Period = (uint16_t) ((( 180000000 / ( htim9.Init.Prescaler + 1 ) ) * period_ms) / 1000);
   htim9.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim9.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim9) != HAL_OK)
@@ -84,7 +82,4 @@ static void TIM9_Init(void)
   /* TIM9 interrupt Init */
   HAL_NVIC_SetPriority(TIM1_BRK_TIM9_IRQn, 7, 0);
   HAL_NVIC_EnableIRQ(TIM1_BRK_TIM9_IRQn);
-
-  //HAL_TIM_Base_Start_IT(&htim9);
-
 }
