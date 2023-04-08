@@ -48,8 +48,7 @@ HAL_StatusTypeDef rch_timer_stop(void){
 	HAL_TIM_Base_Stop_IT(&htim9);
 }
 
-extern uint32_t row1SigResPeriod;
-extern uint32_t row1SigResRepPeriod;
+
 /**
   * @brief TIM9 Initialization Function
   * @param None

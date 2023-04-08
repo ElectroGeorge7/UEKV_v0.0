@@ -31,7 +31,6 @@ extern osSemaphoreId_t ubCheckSem;
 extern osMessageQueueId_t logQueueHandler;
 extern osEventFlagsId_t testEvents;
 
-uint16_t portExpBuf[1000] = {0};
 
 void UbCheckTask(void *argument){
 	osStatus_t osRes;
@@ -51,7 +50,7 @@ void UbCheckTask(void *argument){
 
 		uartprintf("TIM9 interrupt time: %d", HAL_GetTick());
 
-		ub_check_dma(portExpBuf, sizeof(portExpBuf));
+		ub_check_dma_stop();
 
 		//ub_check();
 		for (uint8_t rowNum = 0; rowNum < UB_MATRIX_ROW_NUM; rowNum++){
@@ -125,6 +124,10 @@ void UbCheckTask(void *argument){
 
 		result_check_clear();
 		HAL_GPIO_TogglePin(GPIOC, LED_PROCESS_Pin);
+
+		if ( (osEventFlag = osEventFlagsWait(testEvents, TEST_LOG_PROCCESS_FINISHED, osFlagsWaitAny, osWaitForever)) & TEST_LOG_PROCCESS_FINISHED ){
+			ub_check_dma_start();
+		}
 
 
 		osThreadYield();

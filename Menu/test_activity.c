@@ -182,6 +182,7 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 						LCD_PrintString(testActMenu[curMenuRow+1]);
 						LCD_SetCursor( 15, curCursorPos = 0 );
 
+						osEventFlagsSet(testEvents, TEST_LOG_PROCCESS_FINISHED);
 					}
 			}
 			break;

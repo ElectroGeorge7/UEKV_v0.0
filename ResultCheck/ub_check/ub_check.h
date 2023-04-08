@@ -18,6 +18,7 @@ HAL_StatusTypeDef ub_check_freq_adjust(void);
 HAL_StatusTypeDef ub_check();
 HAL_StatusTypeDef ub_res_clear(void);
 
-void ub_check_dma(uint16_t *buf, uint32_t size);
+void ub_check_dma_start(void);
+void ub_check_dma_stop(void);
 
 #endif
