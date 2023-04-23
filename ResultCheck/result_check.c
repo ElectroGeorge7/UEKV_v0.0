@@ -12,6 +12,7 @@
 #include "terminal.h"
 #include "rch_timer.h"
 #include "ub_check.h"
+#include "ett_check.h"
 
 uint16_t resultMatrix[RESULT_MATRIX_MAX_ROW_NUM];
 

@@ -115,6 +115,7 @@ int main(void)
 	  bkp_write_data(UEKV_LAST_STATE_REG, UEKV_IDLE_STATE);
   }
 
+  ett_check_init();
 
   osKernelInitialize();
 

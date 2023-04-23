@@ -23,8 +23,7 @@ HAL_StatusTypeDef ett_check_init(){
 static void MX_SPI1_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-  if(hspi1.Instance==SPI1)
-  {
+
 	/* Peripheral clock enable */
 	__HAL_RCC_SPI1_CLK_ENABLE();
 
@@ -40,11 +39,10 @@ static void MX_SPI1_Init(void)
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
 	GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-  }
 
   __HAL_RCC_GPIOB_CLK_ENABLE();
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS1_Pin|SPI_ETT_CS2_Pin|SPI_ETT_CS3_Pin|SPI_ETT_CS4_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS1_Pin|SPI_ETT_CS2_Pin|SPI_ETT_CS3_Pin|SPI_ETT_CS4_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pins : SPI_ETT_CS2_Pin SPI_ETT_CS3_Pin SPI_ETT_CS4_Pin SPI_ETT_CS_Pin */
   GPIO_InitStruct.Pin = SPI_ETT_CS1_Pin|SPI_ETT_CS2_Pin|SPI_ETT_CS3_Pin|SPI_ETT_CS4_Pin;
@@ -61,7 +59,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -69,6 +67,20 @@ static void MX_SPI1_Init(void)
   if (HAL_SPI_Init(&hspi1) != HAL_OK)
   {
     Error_Handler();
+  }
+
+  uint16_t start = 0x5555;
+  uint16_t letsgo = 0x5005;
+
+  while (1){
+	  HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS1_Pin|SPI_ETT_CS2_Pin|SPI_ETT_CS3_Pin|SPI_ETT_CS4_Pin, GPIO_PIN_RESET);
+	  HAL_Delay(1);
+	  HAL_SPI_Transmit(&hspi1, &start, sizeof(start), 0xff);
+	  HAL_SPI_Transmit(&hspi1, &letsgo, sizeof(letsgo), 0xff);
+	  HAL_Delay(1);
+	  HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS1_Pin|SPI_ETT_CS2_Pin|SPI_ETT_CS3_Pin|SPI_ETT_CS4_Pin, GPIO_PIN_SET);
+
+	  HAL_Delay(1000);
   }
 }
 
