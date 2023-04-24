@@ -27,6 +27,7 @@
 #include "control_task.h"
 #include "storage_task.h"
 #include "ub_check_task.h"
+#include "ett_check_task.h"
 #include "lps_task.h"
 
 TIM_HandleTypeDef htim12;
@@ -59,6 +60,14 @@ const osThreadAttr_t ubCheckTask_attributes = {
   .stack_size = 500 * 4
 };
 
+osThreadId_t ettCheckTaskHandle;
+const osThreadAttr_t ettCheckTask_attributes = {
+  .name = "ettCheckTask",
+  .priority = (osPriority_t) osPriorityNormal3,
+  .stack_size = 500 * 4
+};
+
+
 osThreadId_t lpsTaskHandle;
 const osThreadAttr_t lpsTask_attributes = {
   .name = "lpsTask",
@@ -80,7 +89,7 @@ const osMessageQueueAttr_t logQueue = {
 	.name = "logQueue"
 };
 
-osSemaphoreId_t ubCheckSem;
+osSemaphoreId_t resCheckSem;
 osSemaphoreId_t lpsRespondSem;
 osEventFlagsId_t testEvents;
 
@@ -115,15 +124,15 @@ int main(void)
 	  bkp_write_data(UEKV_LAST_STATE_REG, UEKV_IDLE_STATE);
   }
 
-  ett_check_init();
+//  ett_check_init();
 
   osKernelInitialize();
 
   eventQueueHandler = osMessageQueueNew (EVENT_QUEUE_OBJECTS, EVENT_QUEUE_OBJ_SIZE, &eventQueue);
   logQueueHandler = osMessageQueueNew (LOG_QUEUE_OBJECTS, LOG_QUEUE_OBJ_SIZE, &logQueue);
 
-  ubCheckSem = osSemaphoreNew(1U, 0U, NULL);
-  if (ubCheckSem == NULL) {
+  resCheckSem = osSemaphoreNew(1U, 0U, NULL);
+  if (resCheckSem == NULL) {
 	  uartprintf("Semaphore object not created: ubCheckSem");
   }
 
@@ -140,7 +149,8 @@ int main(void)
   controlTaskHandle = osThreadNew(ControlTask, NULL, &controlTask_attributes);
   storageTaskHandle = osThreadNew(StorageTask, NULL, &storageTask_attributes);
   lpsTaskHandle = osThreadNew(LpsTask, NULL, &lpsTask_attributes);
-  ubCheckTaskHandle = osThreadNew(UbCheckTask, NULL, &ubCheckTask_attributes);
+//  ubCheckTaskHandle = osThreadNew(UbCheckTask, NULL, &ubCheckTask_attributes);
+//  ettCheckTaskHandle = osThreadNew(EttCheckTask, NULL, &ettCheckTask_attributes);
 
   osKernelStart();
 

@@ -1,11 +1,12 @@
 /*
- * ub_check_task.c
+ * ett_check_task.c
  *
- *  Created on: Jan 7, 2023
+ *  Created on: 24 апр. 2023 г.
  *      Author: George
  */
 
-#include "ub_check_task.h"
+
+#include "ett_check_task.h"
 
 #include "main.h"
 #include "terminal.h"
@@ -32,7 +33,7 @@ extern osMessageQueueId_t logQueueHandler;
 extern osEventFlagsId_t testEvents;
 
 
-void UbCheckTask(void *argument){
+void EttCheckTask(void *argument){
 	osStatus_t osRes;
 	Log_t curLog = {0};
 	LpsStatus_t *ubLpsList = NULL;
@@ -50,28 +51,7 @@ void UbCheckTask(void *argument){
 
 		uartprintf("TIM9 interrupt time: %d", HAL_GetTick());
 
-		ub_check_dma_stop();
 
-		//ub_check();
-		for (uint8_t rowNum = 0; rowNum < UB_MATRIX_ROW_NUM; rowNum++){
-			resultMatrix[rowNum] |= ubMatrix[rowNum];
-		}
-		ub_res_clear();
-
-
-/*
- 	 	 	// phase synchro
-			rch_timer_stop();
-			if ( ub_check_sig_level_wait(0, 1, 0xffff) == HAL_OK){
-				rch_timer_start();
-				uartprintf("phase alignment on the first signal of row1: ok");
-				return HAL_OK;
-			}
-*/
-		leds_matrix_clear();
-		HAL_Delay(50);
-		memcpy(ledsBitMatrix, resultMatrix, sizeof(resultMatrix));
-		leds_matrix_show_result();
 
 
 
@@ -89,17 +69,8 @@ void UbCheckTask(void *argument){
 
 		memcpy(curLog.result, resultMatrix, sizeof(resultMatrix));
 		curLog.temp[0] = ts_check(1);
-		curLog.temp[1] = ts_check(2);;
+		curLog.temp[1] = ts_check(2);
 
-
-
-		//curLog.supplyCurrents[0].intVal = 1;
-		//curLog.supplyCurrents[0].fracVal = 15;
-		//curLog.supplyVoltages[0].intVal = 3;
-		//curLog.supplyVoltages[0].fracVal = 6;
-
-		// get the lps`s data from
-		//lps_read_status(1, curLog.lpsState, sizeof(curLog.lpsState));
 
 		if (lpsNum == 0){
 			lpsNum = lps_get_connected_num();
@@ -124,11 +95,6 @@ void UbCheckTask(void *argument){
 
 		result_check_clear();
 		HAL_GPIO_TogglePin(GPIOC, LED_PROCESS_Pin);
-
-		if ( (osEventFlag = osEventFlagsWait(testEvents, TEST_LOG_PROCCESS_FINISHED, osFlagsWaitAny, osWaitForever)) & TEST_LOG_PROCCESS_FINISHED ){
-			ub_check_dma_start();
-		}
-
 
 		osThreadYield();
 	}

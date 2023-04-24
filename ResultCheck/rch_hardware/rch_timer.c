@@ -15,7 +15,7 @@ extern uint16_t ledsBitMatrix[];
 
 TIM_HandleTypeDef htim9;
 
-extern osSemaphoreId_t ubCheckSem;
+extern osSemaphoreId_t resCheckSem;
 
 static void TIM9_Init(uint16_t period_ms);
 
@@ -30,7 +30,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 	} else if (htim->Instance == TIM9) {
 
-		osSemaphoreRelease(ubCheckSem);
+		osSemaphoreRelease(resCheckSem);
 
 	 }
 }

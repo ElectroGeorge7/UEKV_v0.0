@@ -15,6 +15,9 @@
 #include "ts_spi.h"
 #include "LCD1602.h"
 
+#include "ub_check_task.h"
+#include "ett_check_task.h"
+
 
 #define TEST_ACT_TEST_IS_ACTIVE 	0x01
 #define TEST_ACT_CONFIG_IS_SET 		0x02
@@ -35,6 +38,12 @@ TestConfig_t curConfig = {0};
 #define TEST_CONFIG_TEST_DUR_IS_SET				0x40
 #define TEST_CONFIG_POW_SUP_NUM_IS_SET			0x80
 #define TEST_CONFIG_PCB_NUM_IS_SET				0x100
+
+extern osThreadId_t ubCheckTaskHandle;
+extern const osThreadAttr_t ubCheckTask_attributes;
+
+extern osThreadId_t ettCheckTaskHandle;
+extern const osThreadAttr_t ettCheckTask_attributes;
 
 extern osEventFlagsId_t testEvents;
 extern osMessageQueueId_t eventQueueHandler;
@@ -146,6 +155,19 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 					osEventFlagsSet(testEvents, LPS_LIST_UDATE_START);
 					osThreadYield();
 					osDelay(1);
+
+					switch(curConfig.testType){
+					case RELIABILITY_TEST:
+						 ubCheckTaskHandle = osThreadNew(UbCheckTask, NULL, &ubCheckTask_attributes);
+						break;
+					case ETT_TEST:
+						ettCheckTaskHandle = osThreadNew(EttCheckTask, NULL, &ettCheckTask_attributes);
+						break;
+					default:
+						usbprintf("Incorrect test was set.");
+						activity_change(BACK_CMD);
+					}
+
 					result_check_init(curConfig.testType, curConfig.resCheckMethod);
 					testActStatusFlags |= TEST_ACT_TEST_IS_ACTIVE;
 				}
@@ -157,6 +179,25 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 			testActStatusFlags = 0;
 			testConfigsSetFlag = 0;
 			osEventFlagsSet(testEvents, TEST_FINISH);
+
+			switch(curConfig.testType){
+			case RELIABILITY_TEST:
+				res = osThreadTerminate(ubCheckTaskHandle);
+				if (res != osOK) {
+					usbprintf("Incorrect ubCheckTask termination.");
+				}
+				break;
+			case ETT_TEST:
+				res = osThreadTerminate(ettCheckTaskHandle);
+				if (res != osOK) {
+					usbprintf("Incorrect ettCheckTask termination.");
+				}
+				break;
+			default:
+				usbprintf("Incorrect test was set.");
+				activity_change(BACK_CMD);
+			}
+
 			//osThreadYield();
 			activity_change(MENU_ACTIVITY);
 			break;
