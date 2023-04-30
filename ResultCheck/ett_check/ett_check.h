@@ -10,10 +10,24 @@
 
 #include "stm32f4xx_hal.h"
 
-#define UB_MATRIX_ROW_NUM	5
-#define UB_MATRIX_COL_NUM	7
+#include "result_check.h"
 
-uint8_t ettMatrix[8];
+#define ETT_MATRIX_ROW_NUM	10
+#define ETT_MATRIX_COL_NUM	14
+
+/*
+ * ett segments sequence:
+ *
+ * 		1	|	3
+ *		---------
+ * 		2	|	4
+ *
+*/
+
+#define ETT_SEG_ROW_NUM	(ETT_MATRIX_ROW_NUM / 2)
+#define ETT_SEG_COL_NUM	(ETT_MATRIX_COL_NUM / 2)
+
+extern uint16_t ettMatrix[ETT_MATRIX_ROW_NUM];
 
 #define SPI_ETT_CS1_Pin GPIO_PIN_5
 #define SPI_ETT_CS1_GPIO_Port GPIOB
@@ -24,8 +38,9 @@ uint8_t ettMatrix[8];
 #define SPI_ETT_CS4_Pin GPIO_PIN_14
 #define SPI_ETT_CS4_GPIO_Port GPIOB
 
-HAL_StatusTypeDef ett_check_init();
+HAL_StatusTypeDef ett_check_init(ResCheckMethod_t method);
 HAL_StatusTypeDef ett_check();
+HAL_StatusTypeDef ett_res_clear(void);
 HAL_StatusTypeDef ett_res_clear(void);
 
 #endif /* ETT_CHECK_H_ */

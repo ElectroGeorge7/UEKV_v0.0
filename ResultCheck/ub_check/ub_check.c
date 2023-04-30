@@ -34,7 +34,7 @@ uint32_t row1SigStart = 0;				// HAL tick when signal has started on row1
 uint32_t row1SigResRepPeriod = 0;		// repetition period of one result based on row1 signal
 uint32_t row1SigResPeriod = 0;			// period of new results based on row1 signal
 
-uint8_t ubMatrix[8] = {0};
+uint8_t ubMatrix[UB_MATRIX_ROW_NUM] = {0};
 
 #define UB_RX_DMA_BUF_SIZE	1000
 static uint16_t portExpBuf[UB_RX_DMA_BUF_SIZE] = {0};
@@ -278,8 +278,8 @@ HAL_StatusTypeDef ub_check(){
 	ubMatrix[3] = 0x1f;
 	ubMatrix[4] = 0x0f;
 	ubMatrix[5] = 0x07;
-	ubMatrix[6] = 0x03;
-	ubMatrix[7] = 0x01;
+//	ubMatrix[6] = 0x03;
+//	ubMatrix[7] = 0x01;
 #endif
   return HAL_OK;
 }

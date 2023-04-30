@@ -17,7 +17,7 @@
 #include <stdlib.h>
 
 #include "result_check.h"
-#include "ub_check.h"
+#include "ett_check.h"
 #include "leds_matrix.h"
 #include "ts_spi.h"
 
@@ -51,8 +51,18 @@ void EttCheckTask(void *argument){
 
 		uartprintf("TIM9 interrupt time: %d", HAL_GetTick());
 
+		ett_check();
+
+		for (uint8_t rowNum = 0; rowNum < ETT_MATRIX_ROW_NUM; rowNum++){
+			resultMatrix[rowNum] |= ettMatrix[rowNum];
+		}
+		ett_res_clear();
 
 
+		leds_matrix_clear();
+		HAL_Delay(50);
+		memcpy(ledsBitMatrix, resultMatrix, sizeof(resultMatrix));
+		leds_matrix_show_result();
 
 
 		curLog.index = logNum++;

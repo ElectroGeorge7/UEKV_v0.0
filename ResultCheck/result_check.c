@@ -22,7 +22,7 @@ HAL_StatusTypeDef result_check_init(TestType_t type, ResCheckMethod_t method){
 	if ( type == RELIABILITY_TEST ){
 		ub_check_init(method);
 	} else if ( type == ETT_TEST ){
-		ett_check_init();
+		ett_check_init(method);
 	};
 
 	return HAL_ERROR;

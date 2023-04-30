@@ -7,13 +7,228 @@
 
 #include "ett_check.h"
 
+#include "main.h"
+#include "cmsis_os2.h"
+
+#include "terminal.h"
+
+#include "rch_timer.h"
+
+#define ETT_START_FLAG 0x5555
+#define ETT_LETSGO_FLAG 0x5005
+
+#define ETT_TIMEOUT 100
+
 SPI_HandleTypeDef hspi1;
+
+uint16_t ettMatrix[ETT_MATRIX_ROW_NUM] = {0};
 
 static void MX_SPI1_Init(void);
 
-HAL_StatusTypeDef ett_check_init(){
+static HAL_StatusTypeDef ett_send_flag(uint16_t flag, uint8_t segNum);
+static void ett_seg_res_save(uint8_t segNum);
+
+
+HAL_StatusTypeDef ett_check_init(ResCheckMethod_t method){
+	HAL_StatusTypeDef res = HAL_OK;
 	MX_SPI1_Init();
+
+	switch (method){
+		case EVERY_RESULT:
+		case AVERAGE_RESULT_PER_1S:
+			res |= rch_timer_init(1000);
+			res |= rch_timer_start();
+			break;
+
+		case AVERAGE_RESULT_PER_2S:
+			res |= rch_timer_init(2000);
+			res |= rch_timer_start();
+			break;
+
+		case AVERAGE_RESULT_PER_3S:
+			res |= rch_timer_init(3000);
+			res |= rch_timer_start();
+			break;
+
+		case AVERAGE_RESULT_PER_4S:
+			res |= rch_timer_init(4000);
+			res |= rch_timer_start();
+			break;
+
+		case AVERAGE_RESULT_PER_5S:
+			res |= rch_timer_init(5000);
+			res |= rch_timer_start();
+			break;
+
+		case JUST_FAULTES:
+			break;
+
+		default:
+			res |= rch_timer_init(3000);
+			res |= rch_timer_start();
+			break;
+	}
+
 }
+
+HAL_StatusTypeDef ett_check(){
+    if (ett_send_flag(ETT_START_FLAG, 1) == HAL_OK){
+      if (ett_send_flag(ETT_LETSGO_FLAG, 1) == HAL_OK){
+        ett_seg_res_save(1);
+      }
+    }
+
+    if (ett_send_flag(ETT_START_FLAG, 2) == HAL_OK){
+      if (ett_send_flag(ETT_LETSGO_FLAG, 2) == HAL_OK){
+        ett_seg_res_save(2);
+      }
+    }
+
+    if (ett_send_flag(ETT_START_FLAG, 3) == HAL_OK){
+      if (ett_send_flag(ETT_LETSGO_FLAG, 3) == HAL_OK){
+        ett_seg_res_save(3);
+      }
+    }
+
+    if (ett_send_flag(ETT_START_FLAG, 4) == HAL_OK){
+      if (ett_send_flag(ETT_LETSGO_FLAG, 4) == HAL_OK){
+        ett_seg_res_save(4);
+      }
+    }
+
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef ett_res_clear(void){
+	memset(ettMatrix, 0, sizeof(ettMatrix));
+	return HAL_OK;
+}
+
+uint16_t flagResp = 0;
+static HAL_StatusTypeDef ett_send_flag(uint16_t flag, uint8_t segNum){
+  uint16_t timeout = ETT_TIMEOUT;
+  flagResp = 0;
+
+  HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS1_Pin|SPI_ETT_CS2_Pin|SPI_ETT_CS3_Pin|SPI_ETT_CS4_Pin, GPIO_PIN_SET);
+
+  while (flagResp != flag+1 && timeout--) {
+
+	switch(segNum){
+		case 1:
+			HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS1_Pin, GPIO_PIN_RESET);
+			break;
+		case 2:
+			HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS2_Pin, GPIO_PIN_RESET);
+			break;
+		case 3:
+			HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS3_Pin, GPIO_PIN_RESET);
+			break;
+		case 4:
+			HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS4_Pin, GPIO_PIN_RESET);
+			break;
+		default:
+			HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS1_Pin|SPI_ETT_CS2_Pin|SPI_ETT_CS3_Pin|SPI_ETT_CS4_Pin, GPIO_PIN_SET);
+	};
+//	  HAL_SPI_Receive(&hspi1, (uint8_t *)&flagResp, sizeof(flagResp), 0xff);
+//	  HAL_SPI_Transmit(&hspi1, &flag, sizeof(flag), 0xff);
+	  HAL_SPI_TransmitReceive(&hspi1, (uint8_t *)&flag, (uint8_t *)&flagResp,  1, 0xff);
+
+	  HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS1_Pin|SPI_ETT_CS2_Pin|SPI_ETT_CS3_Pin|SPI_ETT_CS4_Pin, GPIO_PIN_SET);
+
+	  if (flagResp == flag+1) {
+		  return HAL_OK;
+	  }
+  }
+
+  return HAL_ERROR;
+}
+
+static void ett_seg_res_save(uint8_t segNum){
+	uint16_t segResBuf = 0;
+	uint16_t timeout = ETT_TIMEOUT;
+
+	switch(segNum){
+		case 1:
+			for (uint8_t rowNum = 0; rowNum < (ETT_SEG_ROW_NUM); rowNum++){
+				do{
+					HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS1_Pin, GPIO_PIN_RESET);
+					HAL_SPI_Receive(&hspi1, (uint8_t *)&segResBuf, 1, 0xfff);
+					HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS1_Pin, GPIO_PIN_SET);
+				} while( ((segResBuf >> 8) != 0) && timeout-- );
+
+				if (timeout == 0)
+					return;
+
+				ettMatrix[rowNum] |= segResBuf;
+			}
+			HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS1_Pin, GPIO_PIN_RESET);
+			HAL_SPI_Receive(&hspi1, (uint8_t *)&segResBuf, 1, 0xfff);	// read 6th zero`s packet
+			HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS1_Pin, GPIO_PIN_SET);
+			break;
+
+		case 2:
+			for (uint8_t rowNum = 0; rowNum < ETT_SEG_ROW_NUM; rowNum++){
+				do{
+					HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS2_Pin, GPIO_PIN_RESET);
+					HAL_SPI_Receive(&hspi1, (uint8_t *)&segResBuf, 1, 0xfff);
+					HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS2_Pin, GPIO_PIN_SET);
+				} while( ((segResBuf >> 8) != 0) && timeout-- );
+
+				if (timeout == 0)
+					return;
+
+				ettMatrix[rowNum+ETT_SEG_ROW_NUM] |= segResBuf;
+			}
+			HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS2_Pin, GPIO_PIN_RESET);
+			HAL_SPI_Receive(&hspi1, (uint8_t *)&segResBuf, 1, 0xfff);	// read 6th zero`s packet
+			HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS2_Pin, GPIO_PIN_SET);
+			break;
+
+		case 3:
+			for (uint8_t rowNum = 0; rowNum < ETT_SEG_ROW_NUM; rowNum++){
+				do{
+					HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS3_Pin, GPIO_PIN_RESET);
+					HAL_SPI_Receive(&hspi1, (uint8_t *)&segResBuf, 1, 0xfff);
+					HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS3_Pin, GPIO_PIN_SET);
+				} while( ((segResBuf >> 8) != 0) && timeout-- );
+
+				if (timeout == 0)
+					return;
+
+				ettMatrix[rowNum] |= segResBuf << 7;
+			}
+			HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS3_Pin, GPIO_PIN_RESET);
+			HAL_SPI_Receive(&hspi1, (uint8_t *)&segResBuf, 1, 0xfff);	// read 6th zero`s packet
+			HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS3_Pin, GPIO_PIN_SET);
+			break;
+
+		case 4:
+			for (uint8_t rowNum = 0; rowNum < ETT_SEG_ROW_NUM; rowNum++){
+				do{
+					HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS4_Pin, GPIO_PIN_RESET);
+					HAL_SPI_Receive(&hspi1, (uint8_t *)&segResBuf, 1, 0xfff);
+					HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS4_Pin, GPIO_PIN_SET);
+				} while( ((segResBuf >> 8) != 0) && timeout-- );
+
+				if (timeout == 0)
+					return;
+
+				ettMatrix[rowNum+ETT_SEG_ROW_NUM] |= segResBuf << 7;
+			}
+			HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS4_Pin, GPIO_PIN_RESET);
+			HAL_SPI_Receive(&hspi1, (uint8_t *)&segResBuf, 1, 0xfff);	// read 6th zero`s packet
+			HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS4_Pin, GPIO_PIN_SET);
+			break;
+
+		default:
+			uartprintf("Wrong ETT segment checking");
+
+	}
+
+	HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS1_Pin|SPI_ETT_CS2_Pin|SPI_ETT_CS3_Pin|SPI_ETT_CS4_Pin, GPIO_PIN_SET);
+}
+
+
 
 /**
   * @brief SPI1 Initialization Function
@@ -55,7 +270,7 @@ static void MX_SPI1_Init(void)
   hspi1.Instance = SPI1;
   hspi1.Init.Mode = SPI_MODE_MASTER;
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi1.Init.DataSize = SPI_DATASIZE_16BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
@@ -69,19 +284,6 @@ static void MX_SPI1_Init(void)
     Error_Handler();
   }
 
-  uint16_t start = 0x5555;
-  uint16_t letsgo = 0x5005;
-
-  while (1){
-	  HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS1_Pin|SPI_ETT_CS2_Pin|SPI_ETT_CS3_Pin|SPI_ETT_CS4_Pin, GPIO_PIN_RESET);
-	  HAL_Delay(1);
-	  HAL_SPI_Transmit(&hspi1, &start, sizeof(start), 0xff);
-	  HAL_SPI_Transmit(&hspi1, &letsgo, sizeof(letsgo), 0xff);
-	  HAL_Delay(1);
-	  HAL_GPIO_WritePin(GPIOB, SPI_ETT_CS1_Pin|SPI_ETT_CS2_Pin|SPI_ETT_CS3_Pin|SPI_ETT_CS4_Pin, GPIO_PIN_SET);
-
-	  HAL_Delay(1000);
-  }
 }
 
 
