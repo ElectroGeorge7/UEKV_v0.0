@@ -168,7 +168,7 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 						activity_change(BACK_CMD);
 					}
 
-					result_check_init(curConfig.testType, curConfig.resCheckMethod);
+					result_check_init(curConfig);
 					testActStatusFlags |= TEST_ACT_TEST_IS_ACTIVE;
 				}
 			}

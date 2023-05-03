@@ -55,7 +55,6 @@ void ControlTask(void *argument){
 	HAL_Delay(1000);
 	leds_matrix_clear();
 
-	//result_check_init();
 
 	// if it was reset during the test process than resume the test
 	if ( bkp_read_data(UEKV_LAST_STATE_REG) == UEKV_TEST_STATE ){

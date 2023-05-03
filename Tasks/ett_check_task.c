@@ -24,8 +24,6 @@
 #include "rtc_hardware.h"
 #include "lps_task.h"
 
-extern uint16_t ledsBitMatrix[];
-
 static uint32_t logNum = 0;
 
 extern osSemaphoreId_t resCheckSem;
@@ -56,14 +54,8 @@ void EttCheckTask(void *argument){
 		for (uint8_t rowNum = 0; rowNum < ETT_MATRIX_ROW_NUM; rowNum++){
 			resultMatrix[rowNum] |= ettMatrix[rowNum];
 		}
-		ett_res_clear();
 
-
-		leds_matrix_clear();
-		HAL_Delay(50);
-		memcpy(ledsBitMatrix, resultMatrix, sizeof(resultMatrix));
-		leds_matrix_show_result();
-
+		result_show(resultMatrix);
 
 		curLog.index = logNum++;
 		bkp_write_data(UEKV_LAST_TEST_RES_NUM_REG, logNum);

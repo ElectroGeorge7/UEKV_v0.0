@@ -10,16 +10,17 @@
 #include "lm_timer.h"
 #include "ARGB.h"
 #include <string.h>
-
-#define LEDS_MATRIX_ROW_NUM	10
-#define LEDS_MATRIX_COL_NUM	14
+#include "result_check.h"
 
 #define LED_RESULT_BRIGHTNESS	10
 
 #define LED_COLOR_OK		0, LED_RESULT_BRIGHTNESS, 0
-#define LED_COLOR_FAULT		0, 0, 0//LED_RESULT_BRIGHTNESS, 0, 0
+#define LED_COLOR_FAULT		LED_RESULT_BRIGHTNESS, 0, 0
+#define LED_COLOR_NO		0, 0, 0
 
 uint16_t ledsBitMatrix[LEDS_MATRIX_ROW_NUM] = {0};
+
+ResCellStatus_t ledsMatrix[LEDS_MATRIX_ROW_NUM][LEDS_MATRIX_COL_NUM] = {0};
 
 HAL_StatusTypeDef leds_matrix_init(void){
   lm_timer_init();
@@ -31,7 +32,9 @@ HAL_StatusTypeDef leds_matrix_init(void){
 }
 
 HAL_StatusTypeDef leds_matrix_clear(void){
-	memset(ledsBitMatrix, 0, LEDS_MATRIX_ROW_NUM *sizeof(uint16_t));
+	for (uint8_t rowNum = 0; rowNum < LEDS_MATRIX_ROW_NUM; rowNum++)
+		for(uint8_t colNum = 0; colNum < LEDS_MATRIX_COL_NUM; colNum++)
+			ledsMatrix[rowNum][colNum] = RES_CELL_NO;
 
 	ARGB_Clear(); // Clear stirp
 	while (ARGB_Show() != ARGB_OK); // Update - Option 1
@@ -52,10 +55,12 @@ HAL_StatusTypeDef leds_matrix_show_result(void){
 
 			curColNum = ( rowNum % 2 ) ? colNum : LEDS_MATRIX_COL_NUM - 1 - colNum;
 
-			if ( ledsBitMatrix[rowNum] & (1 << colNum) )
+			if ( ledsMatrix[rowNum][colNum] == RES_CELL_OK )
 				ARGB_SetRGB(curColNum+curRowNum*LEDS_MATRIX_COL_NUM, LED_COLOR_OK);
-			else
+			else if ( ledsMatrix[rowNum][colNum] == RES_CELL_FAULT )
 				ARGB_SetRGB(curColNum+curRowNum*LEDS_MATRIX_COL_NUM, LED_COLOR_FAULT);
+			else if ( ledsMatrix[rowNum][colNum] == RES_CELL_NO )
+				ARGB_SetRGB(curColNum+curRowNum*LEDS_MATRIX_COL_NUM, LED_COLOR_NO);
 		}
 	}
 
