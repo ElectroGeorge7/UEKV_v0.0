@@ -49,7 +49,7 @@ typedef struct {
 	char partNumber[34];
 	char mldrNum[10];
 	TestType_t testType;
-	//uint32_t curResNum;		// number of current displayed result
+	//uint32_t curResNum;			// number of current displayed result
 	uint8_t cellNum;
 	uint8_t	rowNum;
 	uint8_t colNum;
@@ -57,7 +57,7 @@ typedef struct {
 	DataTime_t testStartDataTime;
 	uint32_t testDurationInHours;
 	uint8_t powerSupplyNum;
-	uint8_t	pcbNum;		// only for ett
+	uint8_t	pcbNum;					// only for ett
 } TestConfig_t;
 
 HAL_StatusTypeDef result_check_init(TestConfig_t conf);

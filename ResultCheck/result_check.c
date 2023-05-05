@@ -20,7 +20,7 @@ static TestType_t testType = RELIABILITY_TEST;
 static uint8_t confRowNum = 0;
 static uint8_t confColNum = 0;
 static uint8_t confCellNum = 0;
-static uint8_t confEttPcbsNum = 0;
+static uint8_t confEttPcbNum = 0;
 
 extern ResCellStatus_t ledsMatrix[LEDS_MATRIX_ROW_NUM][LEDS_MATRIX_COL_NUM];
 
@@ -30,12 +30,12 @@ HAL_StatusTypeDef result_check_init(TestConfig_t conf){
 	confRowNum = conf.rowNum;
 	confColNum = conf.colNum;
 	confCellNum = conf.cellNum;
-	confEttPcbsNum = 4;
+	confEttPcbNum = conf.pcbNum;
 
 	if ( testType == RELIABILITY_TEST ){
 		ub_check_init(conf.resCheckMethod);
 	} else if ( testType == ETT_TEST ){
-		ett_check_init(conf.resCheckMethod);
+		ett_check_init(conf);
 	};
 
 	return HAL_OK;
@@ -61,7 +61,7 @@ HAL_StatusTypeDef result_show(uint16_t *resBitMatrix){
 
 	} else if ( testType == ETT_TEST ){
 
-		for (uint8_t pcbNum = 0; pcbNum < confEttPcbsNum; pcbNum++){
+		for (uint8_t pcbNum = 0; pcbNum < confEttPcbNum; pcbNum++){
 			switch(pcbNum){
 			case 0:
 				startRowNum = 0;

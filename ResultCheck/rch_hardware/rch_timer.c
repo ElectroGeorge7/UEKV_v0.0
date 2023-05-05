@@ -67,7 +67,7 @@ static void TIM9_Init(uint16_t period_ms)
   // interrupts timing adjustment to result updating freq
   htim9.Init.Period = (uint16_t) ((( 180000000 / ( htim9.Init.Prescaler + 1 ) ) * period_ms) / 1000);
   htim9.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim9.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  htim9.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim9) != HAL_OK)
   {
     Error_Handler();
@@ -79,6 +79,8 @@ static void TIM9_Init(uint16_t period_ms)
   }
 
   /* TIM9 interrupt Init */
+  __HAL_TIM_CLEAR_IT(&htim9, TIM_IT_UPDATE);
+  NVIC_ClearPendingIRQ (TIM1_BRK_TIM9_IRQn);
   HAL_NVIC_SetPriority(TIM1_BRK_TIM9_IRQn, 7, 0);
   HAL_NVIC_EnableIRQ(TIM1_BRK_TIM9_IRQn);
 }
