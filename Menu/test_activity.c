@@ -348,7 +348,7 @@ void test_menu_update(TestConfig_t *curConfig){
 		12,
 		4,
 		3,
-		EVERY_RESULT,
+		SYNCHRO_RESULT,
 		{0, 30, 14, 12, 2, 2023 },
 		10000,
 		1,

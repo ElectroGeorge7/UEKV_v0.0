@@ -38,6 +38,8 @@ void UbCheckTask(void *argument){
 	uint8_t lpsNum = 0;
 	uint32_t osEventFlag = 0;
 
+	ResCheckMethod_t ubCheckMeth = ub_check_method_get();
+
 	if ( bkp_read_data(UEKV_LAST_STATE_REG) == UEKV_TEST_STATE ){
 		logNum = bkp_read_data(UEKV_LAST_TEST_RES_NUM_REG);
 	}
@@ -48,13 +50,6 @@ void UbCheckTask(void *argument){
 
 		uartprintf("TIM9 interrupt time: %d", HAL_GetTick());
 
-		ub_check_dma_stop();
-
-		//ub_check();
-		for (uint8_t rowNum = 0; rowNum < UB_MATRIX_ROW_NUM; rowNum++){
-			resultMatrix[rowNum] |= ubMatrix[rowNum];
-		}
-
 /*
  	 	 	// phase synchro
 			rch_timer_stop();
@@ -64,7 +59,16 @@ void UbCheckTask(void *argument){
 				return HAL_OK;
 			}
 */
+
+		if ( ubCheckMeth == AVERAGE_RESULT ){
+			ub_check_aver_finish(resultMatrix);
+		} else if ( ubCheckMeth == SYNCHRO_RESULT ){
+			ub_check_synchro(resultMatrix);
+		}
 		result_show(resultMatrix);
+
+
+
 
 		curLog.index = logNum++;
 		bkp_write_data(UEKV_LAST_TEST_RES_NUM_REG, logNum);
@@ -80,7 +84,7 @@ void UbCheckTask(void *argument){
 
 		memcpy(curLog.result, resultMatrix, sizeof(resultMatrix));
 		curLog.temp[0] = ts_check(1);
-		curLog.temp[1] = ts_check(2);;
+		curLog.temp[1] = ts_check(2);
 
 
 
@@ -116,9 +120,14 @@ void UbCheckTask(void *argument){
 		result_check_clear();
 		HAL_GPIO_TogglePin(GPIOC, LED_PROCESS_Pin);
 
-		if ( (osEventFlag = osEventFlagsWait(testEvents, TEST_LOG_PROCCESS_FINISHED, osFlagsWaitAny, osWaitForever)) & TEST_LOG_PROCCESS_FINISHED ){
-			ub_check_dma_start();
+
+
+		if ( ubCheckMeth == AVERAGE_RESULT ){
+			if ( (osEventFlag = osEventFlagsWait(testEvents, TEST_LOG_PROCCESS_FINISHED, osFlagsWaitAny, osWaitForever)) & TEST_LOG_PROCCESS_FINISHED ){
+				ub_check_aver_start();
+			}
 		}
+
 
 
 		osThreadYield();

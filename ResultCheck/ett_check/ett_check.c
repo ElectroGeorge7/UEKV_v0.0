@@ -14,14 +14,14 @@
 
 #include "rch_timer.h"
 
-#define SPI_ETT_CS1_Pin GPIO_PIN_5
-#define SPI_ETT_CS1_GPIO_Port GPIOB
-#define SPI_ETT_CS2_Pin GPIO_PIN_12
-#define SPI_ETT_CS2_GPIO_Port GPIOB
-#define SPI_ETT_CS3_Pin GPIO_PIN_13
-#define SPI_ETT_CS3_GPIO_Port GPIOB
-#define SPI_ETT_CS4_Pin GPIO_PIN_14
-#define SPI_ETT_CS4_GPIO_Port GPIOB
+#define SPI_ETT_CS1_Pin 		GPIO_PIN_5
+#define SPI_ETT_CS1_GPIO_Port 	GPIOB
+#define SPI_ETT_CS2_Pin 		GPIO_PIN_12
+#define SPI_ETT_CS2_GPIO_Port 	GPIOB
+#define SPI_ETT_CS3_Pin 		GPIO_PIN_13
+#define SPI_ETT_CS3_GPIO_Port 	GPIOB
+#define SPI_ETT_CS4_Pin 		GPIO_PIN_14
+#define SPI_ETT_CS4_GPIO_Port 	GPIOB
 
 #define ETT_START_FLAG 0x5555
 #define ETT_LETSGO_FLAG 0x5005
@@ -50,36 +50,14 @@ HAL_StatusTypeDef ett_check_init(TestConfig_t conf){
 	MX_SPI1_Init();
 
 	switch (conf.resCheckMethod){
-		case AVERAGE_RESULT_PER_1S:
-			res |= rch_timer_init(1000);
+		case AVERAGE_RESULT:
+			res |= rch_timer_init(1000 * conf.resCheckPeriod);
 			res |= rch_timer_start();
 			break;
 
-		case AVERAGE_RESULT_PER_2S:
-			res |= rch_timer_init(2000);
-			res |= rch_timer_start();
-			break;
-
-		case AVERAGE_RESULT_PER_3S:
-			res |= rch_timer_init(3000);
-			res |= rch_timer_start();
-			break;
-
-		case AVERAGE_RESULT_PER_4S:
-			res |= rch_timer_init(4000);
-			res |= rch_timer_start();
-			break;
-
-		case AVERAGE_RESULT_PER_5S:
-			res |= rch_timer_init(5000);
-			res |= rch_timer_start();
-			break;
-
-		case JUST_FAULTES:
-		case EVERY_RESULT:
+		case SYNCHRO_RESULT:
 		default:
-			res |= rch_timer_init(3000);
-			res |= rch_timer_start();
+			uartprintf("ett check incorrect method");
 			break;
 	}
 
@@ -202,8 +180,6 @@ static HAL_StatusTypeDef ett_seg_res_save(uint8_t segNum){
 		}
 
 	}
-//	// read 6th zero`s packet
-//	res = ett_read_row_res((uint8_t *)&rowRes, segNum);
 
 	return res;
 }

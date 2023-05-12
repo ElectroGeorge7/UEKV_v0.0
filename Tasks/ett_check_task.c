@@ -24,7 +24,7 @@
 #include "rtc_hardware.h"
 #include "lps_task.h"
 
-#define UEKV_DEBUG_ETT_TEST	1
+#define UEKV_DEBUG_ETT_TEST	0
 
 static uint32_t logNum = 0;
 
@@ -46,7 +46,7 @@ void EttCheckTask(void *argument){
 	}
 
 #if ( UEKV_DEBUG_ETT_TEST )
-		uint16_t dbgStartLogNum = logNum + 1;	// execute module test after first result check
+		uint32_t dbgStartLogNum = logNum;	// execute module test after first result check
 		/*
 		 * 	dbgEttTestNum = 1 - check ett indication from 1x1 to 7x5 matrix of 0x55/0xaa for 1-4 pcbs,
 		 * 	119*4 result indications once in 1s

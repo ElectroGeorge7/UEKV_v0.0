@@ -25,6 +25,10 @@ I2C_HandleTypeDef hi2c1;
 static DMA_HandleTypeDef hdma_tx;
 static DMA_HandleTypeDef hdma_rx;
 
+ResCheckMethod_t confUbCheckMeth = AVERAGE_RESULT;
+
+uint8_t ubBitMatrix[UB_MATRIX_ROW_NUM] = {0};
+
 uint16_t portExpPacket = 0;
 uint16_t portInitPacket = 0xffff;
 uint8_t rowBitArray = 0;
@@ -33,8 +37,6 @@ uint8_t colBitArray = 0;
 uint32_t row1SigStart = 0;				// HAL tick when signal has started on row1
 uint32_t row1SigResRepPeriod = 0;		// repetition period of one result based on row1 signal
 uint32_t row1SigResPeriod = 0;			// period of new results based on row1 signal
-
-uint8_t ubMatrix[UB_MATRIX_ROW_NUM] = {0};
 
 #define UB_RX_DMA_BUF_SIZE	1000
 static uint16_t portExpBuf[UB_RX_DMA_BUF_SIZE] = {0};
@@ -69,95 +71,62 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c){
 	HAL_GPIO_TogglePin(GPIOC, LED_PROCESS_Pin);
 }
 
-HAL_StatusTypeDef ub_check_init(ResCheckMethod_t method){
+HAL_StatusTypeDef ub_check_init(TestConfig_t conf){
 	HAL_StatusTypeDef res = HAL_OK;
-	uint32_t row1SigStart = 0;
+
+	confUbCheckMeth = conf.resCheckMethod;
 
 	res |= I2C1_Init();
 	res |= HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
 	res |= HAL_I2C_Master_Transmit(&hi2c1, PCF8575_WRITE_ADDR, (uint8_t *)&portInitPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
 	res |= HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
 
-	switch (method){
-		case EVERY_RESULT:
+	if (!res){
+		uartprintf("ub check i2c init");
 
-			if (!res){
-				uartprintf("ub check i2c init");
+		switch (conf.resCheckMethod){
+			case SYNCHRO_RESULT:
+				{
+					uint8_t cnt = 5;
+					do{
+						if ( ub_check_freq_adjust() == HAL_OK ){
+							uint32_t row1SigStart = HAL_GetTick();
 
-				uint8_t cnt = 5;
-				do{
-					if ( ub_check_freq_adjust() == HAL_OK ){
-						row1SigStart = HAL_GetTick();
+							if ( ub_check_new_res_wait(0, 0, 2*row1SigResRepPeriod, 0xffff) == HAL_OK ){
+								row1SigResPeriod = HAL_GetTick() - row1SigStart;
+								uartprintf("HAL_GetTick(): %d", HAL_GetTick());
+								uartprintf("row1SigResPeriod: %d", row1SigResPeriod);
+							}
 
-						if ( ub_check_new_res_wait(0, 0, 2*row1SigResRepPeriod, 0xffff) == HAL_OK ){
-							row1SigResPeriod = HAL_GetTick() - row1SigStart;
-							uartprintf("HAL_GetTick(): %d", HAL_GetTick());
-							uartprintf("row1SigResPeriod: %d", row1SigResPeriod);
+							res |= rch_timer_init(row1SigResPeriod /*- 2*row1SigResRepPeriod*/);
+							// phase alignment on the first signal of row1
+							uartprintf("phase alignment on the first signal of row1: wait");
+							if ( ub_check_sig_level_wait(0, 1, 0xffff) == HAL_OK){
+								res |= rch_timer_start();
+								uartprintf("phase alignment on the first signal of row1: ok");
+								return HAL_OK;
+							}
+
 						}
 
-						res |= rch_timer_init(row1SigResPeriod /*- 2*row1SigResRepPeriod*/);
-						// phase alignment on the first signal of row1
-						uartprintf("phase alignment on the first signal of row1: wait");
-						if ( ub_check_sig_level_wait(0, 1, 0xffff) == HAL_OK){
-							res |= rch_timer_start();
-							uartprintf("phase alignment on the first signal of row1: ok");
-							return HAL_OK;
-						}
+					} while (cnt--);
+					uartprintf("ub check freq adjust failed");
+				}
+				break;
 
-					}
+			case AVERAGE_RESULT:
+				res |= I2C1_DMA_Init();
+				res |= ub_check_aver_start();
+				res |= rch_timer_init(1000 * conf.resCheckPeriod);
+				res |= rch_timer_start();
+				break;
 
-				} while (cnt--);
-
-				uartprintf("ub check freq adjust failed");
-			} else
-				uartprintf("ub check i2c init failed");
-
-			break;
-
-		case AVERAGE_RESULT_PER_1S:
-			res |= I2C1_DMA_Init();
-			res |= rch_timer_init(1000);
-			res |= rch_timer_start();
-			break;
-
-		case AVERAGE_RESULT_PER_2S:
-			res |= I2C1_DMA_Init();
-			res |= rch_timer_init(2000);
-			res |= rch_timer_start();
-			break;
-
-		case AVERAGE_RESULT_PER_3S:
-			res |= I2C1_DMA_Init();
-			res |= rch_timer_init(3000);
-			res |= rch_timer_start();
-
-			if (HAL_I2C_GetState(&hi2c1) == HAL_I2C_STATE_READY){
-				HAL_I2C_Master_Receive_DMA(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)portExpBuf, sizeof(portExpBuf));
-			}
-
-			break;
-
-		case AVERAGE_RESULT_PER_4S:
-			res |= I2C1_DMA_Init();
-			res |= rch_timer_init(4000);
-			res |= rch_timer_start();
-			break;
-
-		case AVERAGE_RESULT_PER_5S:
-			res |= I2C1_DMA_Init();
-			res |= rch_timer_init(5000);
-			res |= rch_timer_start();
-			break;
-
-		case JUST_FAULTES:
-			break;
-
-		default:
-			res |= I2C1_DMA_Init();
-			res |= rch_timer_init(3000);
-			res |= rch_timer_start();
-			break;
-	}
+			default:
+				uartprintf("ub check incorrect method");
+				break;
+		}
+	} else
+		uartprintf("ub check i2c init failed");
 
 	return HAL_ERROR;
 }
@@ -235,14 +204,13 @@ HAL_StatusTypeDef ub_check_freq_adjust(void){
 }
 
 
-HAL_StatusTypeDef ub_check(){
+HAL_StatusTypeDef ub_check_synchro(uint16_t *resBitMatrix){
 	uint16_t data = 0;
 	uint8_t lastColCirBuf[1] = {0}; uint8_t cirColBufIndex = 0;
 	uint8_t lastRowCirBuf[1] = {0}; uint8_t cirRowBufIndex = 0;
 	uint8_t newColBitArray = 0;
 	uint8_t newRowBitArray = 0;
-#define UB_CHECK
-#ifdef UB_CHECK
+
 	if ( ub_check_sig_level_wait(0 , 1, 0xffff) == HAL_OK ){
 			uint16_t checkRepeatCnt = 500;
 			while (checkRepeatCnt--){
@@ -253,7 +221,7 @@ HAL_StatusTypeDef ub_check(){
 
 				for (uint8_t rowNum = 0; rowNum < UB_MATRIX_ROW_NUM; rowNum++){
 					if ( newRowBitArray & lastRowCirBuf[0] & (1<<rowNum) ){
-						ubMatrix[rowNum] |= newColBitArray;
+						ubBitMatrix[rowNum] |= newColBitArray;
 						//break;
 					}
 				}
@@ -271,27 +239,60 @@ HAL_StatusTypeDef ub_check(){
 			}
 			return HAL_OK;
 	}
-#else
-	ubMatrix[0] = 0xff;
-	ubMatrix[1] = 0x7f;
-	ubMatrix[2] = 0x3f;
-	ubMatrix[3] = 0x1f;
-	ubMatrix[4] = 0x0f;
-	ubMatrix[5] = 0x07;
-//	ubMatrix[6] = 0x03;
-//	ubMatrix[7] = 0x01;
-#endif
+
+
+	if ( resBitMatrix != NULL )
+		memcpy(resBitMatrix, ubBitMatrix, sizeof(ubBitMatrix));
+
   return HAL_OK;
 }
 
-HAL_StatusTypeDef ub_res_clear(void){
-	memset(ubMatrix, 0, sizeof(ubMatrix));
+HAL_StatusTypeDef ub_check_aver_start(void){
+	HAL_StatusTypeDef res = HAL_OK;
+	// don`t remove, need to free SDA line if it was blocked
+	res = I2C1_Init();
+
+	if ( (res == HAL_OK) && (HAL_I2C_GetState(&hi2c1) == HAL_I2C_STATE_READY) ){
+		HAL_I2C_Master_Receive_DMA(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)portExpBuf, sizeof(portExpBuf));
+	} else
+		return HAL_ERROR;
+}
+
+void ub_check_aver_finish(uint16_t *resBitMatrix){
+	uint8_t newColBitArray = 0;
+	uint8_t newRowBitArray = 0;
+
+//	HAL_DMA_Abort(&hdma_tx);
+//	HAL_DMA_Abort_IT(&hdma_tx);
+//	HAL_DMA_Abort(&hdma_rx);
+//	HAL_DMA_Abort_IT(&hdma_rx);
+	HAL_I2C_Master_Abort_IT(&hi2c1, PCF8575_READ_ADDR);
+
+	for (uint8_t rowNum = 0; rowNum < UB_MATRIX_ROW_NUM; rowNum++){
+		for (uint8_t colNum = 0; colNum < UB_MATRIX_COL_NUM; colNum++){
+			if ( colBitsSum[rowNum][colNum] > 100 )
+				ubBitMatrix[rowNum] |= (1<<colNum);
+		}
+	}
+
+	memset(colBitsSum, 0, sizeof(colBitsSum));
+
+	for (uint8_t rowNum = 0; rowNum < UB_MATRIX_ROW_NUM; rowNum++){
+		resultMatrix[rowNum] = ubBitMatrix[rowNum];
+	}
+}
+
+
+ResCheckMethod_t ub_check_method_get(void){
+	return confUbCheckMeth;
+}
+
+void ub_res_clear(void){
+	memset(ubBitMatrix, 0, sizeof(ubBitMatrix));
 
 	portExpPacket = 0;
 	rowBitArray = 0;
 	colBitArray = 0;
-
-	return HAL_OK;
 }
 
 /**
@@ -306,7 +307,8 @@ static HAL_StatusTypeDef I2C1_Init(void){
   /*
    * After i2c transmission break during one packet reading
    * PCF8575 can set the low level on SDA line, so master packets can`t be sent.
-   * We should to toggle SCL line to make SDA free*/
+   * We should to toggle SCL line to make SDA free
+  */
   GPIO_InitStruct.Pin = GPIO_PIN_6;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
@@ -319,7 +321,7 @@ static HAL_StatusTypeDef I2C1_Init(void){
   }
 
   __HAL_RCC_GPIOB_CLK_ENABLE();
-  /**I2C1 GPIO Configuration
+  /* I2C1 GPIO Configuration
   PB6     ------> I2C1_SCL
   PB7     ------> I2C1_SDA
   */
@@ -346,7 +348,6 @@ static HAL_StatusTypeDef I2C1_Init(void){
     Error_Handler();
   }
 }
-
 
 static HAL_StatusTypeDef I2C1_DMA_Init(void){
 	HAL_StatusTypeDef res = HAL_OK;
@@ -388,7 +389,7 @@ static HAL_StatusTypeDef I2C1_DMA_Init(void){
 	/* Associate the initialized DMA handle to the the I2C handle */
 	__HAL_LINKDMA(&hi2c1, hdmarx, hdma_rx);
 
-	/*##-6- Configure the NVIC for DMA #########################################*/
+	/* Configure the NVIC for DMA */
 	/* NVIC configuration for DMA transfer complete interrupt (I2C1_TX) */
 	HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 1, 0);
 	HAL_NVIC_EnableIRQ(DMA1_Stream6_IRQn);
@@ -404,29 +405,4 @@ static HAL_StatusTypeDef I2C1_DMA_Init(void){
 	HAL_NVIC_EnableIRQ(I2C1_EV_IRQn);
 
 	return HAL_OK;
-}
-
-void ub_check_dma_start(){
-	// don`t remove, need to free SDA line if it was blocked
-	I2C1_Init();
-
-	if (HAL_I2C_GetState(&hi2c1) == HAL_I2C_STATE_READY){
-		HAL_I2C_Master_Receive_DMA(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)portExpBuf, sizeof(portExpBuf));
-	}
-}
-
-void ub_check_dma_stop(){
-	uint8_t newColBitArray = 0;
-	uint8_t newRowBitArray = 0;
-
-	HAL_I2C_Master_Abort_IT(&hi2c1, PCF8575_READ_ADDR);
-
-	for (uint8_t rowNum = 0; rowNum < UB_MATRIX_ROW_NUM; rowNum++){
-		for (uint8_t colNum = 0; colNum < UB_MATRIX_COL_NUM; colNum++){
-			if ( colBitsSum[rowNum][colNum] > 100 )
-				ubMatrix[rowNum] |= (1<<colNum);
-		}
-	}
-
-	memset(colBitsSum, 0, sizeof(colBitsSum));
 }

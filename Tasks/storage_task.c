@@ -214,7 +214,7 @@ FRESULT storage_file_open_create( FIL* fp, char* path) {
 
 HAL_StatusTypeDef storage_config_search(const char *configFileName, TestConfig_t *curConfig){
 
-	char strBuf[50] = {0};
+	char strBuf[100] = {0};
 	FIL readFile;
 
 	int testType = 0;
@@ -222,6 +222,8 @@ HAL_StatusTypeDef storage_config_search(const char *configFileName, TestConfig_t
 	int rowNum = 0;
 	int colNum = 0;
 	int resCheckMethod = 0;
+	int resCheckPeriod = 0;
+	int resCheckOption = 0;
 	int testDurationInHours = 0;
 	int powerSupplyNum = 0;
 	int pcbNum = 0;
@@ -275,13 +277,31 @@ HAL_StatusTypeDef storage_config_search(const char *configFileName, TestConfig_t
 		 sscanf(strBuf, "result check method: %1d", &resCheckMethod);
 		 curConfig->resCheckMethod = resCheckMethod;
 		 usbprintf("Result check method: %d", curConfig->resCheckMethod);
-		 usbprintf("0 - every result,");
-		 usbprintf("1 - average result during 1s period,");
-		 usbprintf("2 - average result during 2s period,");
-		 usbprintf("3 - average result during 3s period,");
-		 usbprintf("4 - average result during 4s period,");
-		 usbprintf("5 - average result during 5s period,");
-		 usbprintf("6 - just faults");
+		 usbprintf("0 - average result,");
+		 usbprintf("1 - synchro result for UB");
+	 }
+	 if ( !f_eof(&readFile) ){
+		 f_gets(strBuf, sizeof(strBuf), &readFile);
+		 sscanf(strBuf, "result check period: %2d", &resCheckPeriod);
+		 if ( (resCheckPeriod >= 1) && (resCheckPeriod <= 15) )
+			 curConfig->resCheckPeriod = resCheckPeriod;
+		 else
+			 curConfig->resCheckPeriod = 3;
+		 usbprintf("Result check period: %d", curConfig->resCheckPeriod);
+		 usbprintf("1-15s, check period just for average check");
+	 }
+	 if ( !f_eof(&readFile) ){
+		 f_gets(strBuf, sizeof(strBuf), &readFile);
+		 sscanf(strBuf, "result check option: %1d", &resCheckOption);
+		 if ( (resCheckOption >= 0) && (resCheckOption <= 3) )
+			 curConfig->resCheckOption = resCheckMethod;
+		 else
+			 curConfig->resCheckPeriod = 0;
+		 usbprintf("Result check option: %d", curConfig->resCheckOption);
+		 usbprintf("0 - no option,");
+		 usbprintf("1 - save just faults,");
+		 usbprintf("2 - trial 1 day,");
+		 usbprintf("3 - trial 1 week");
 	 }
 	 if ( !f_eof(&readFile) ){
 		 f_gets(strBuf, sizeof(strBuf), &readFile);

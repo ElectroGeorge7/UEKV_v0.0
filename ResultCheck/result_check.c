@@ -33,7 +33,7 @@ HAL_StatusTypeDef result_check_init(TestConfig_t conf){
 	confEttPcbNum = conf.pcbNum;
 
 	if ( testType == RELIABILITY_TEST ){
-		ub_check_init(conf.resCheckMethod);
+		ub_check_init(conf);
 	} else if ( testType == ETT_TEST ){
 		ett_check_init(conf);
 	};
