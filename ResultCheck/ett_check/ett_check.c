@@ -157,12 +157,12 @@ static HAL_StatusTypeDef ett_seg_res_save(uint8_t segNum){
 	for (uint8_t rowNum = 0; rowNum < ETT_SEG_ROW_NUM; rowNum++){
 		do{
 			res = ett_read_row_res((uint8_t *)&rowRes, segNum);
-		} while( ((rowRes >> 8) != 0) && timeout-- );	// check that it`s not a flag
+		} while( ((rowRes >> 8) >= 0x50) && timeout-- );	// check that it`s not a flag
 
 		if (timeout == 0)
 			return (res != HAL_OK) ? res : HAL_ERROR;
 
-		rowRes &= ~(1 << 7);
+		rowRes &= 0x7f;
 
 		switch(segNum){
 		case 1:
@@ -218,7 +218,7 @@ static void MX_SPI1_Init(void)
   GPIO_InitStruct.Pin = SPI_ETT_CS1_Pin|SPI_ETT_CS2_Pin|SPI_ETT_CS3_Pin|SPI_ETT_CS4_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* SPI1 parameter configuration*/
