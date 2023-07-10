@@ -87,6 +87,8 @@ HAL_StatusTypeDef ub_check_init(TestConfig_t conf){
 		switch (conf.resCheckMethod){
 			case SYNCHRO_RESULT:
 				{
+
+#if	DEBUG_UB_SYNCHRO
 					uint8_t cnt = 5;
 					do{
 						if ( ub_check_freq_adjust() == HAL_OK ){
@@ -111,6 +113,35 @@ HAL_StatusTypeDef ub_check_init(TestConfig_t conf){
 
 					} while (cnt--);
 					uartprintf("ub check freq adjust failed");
+#endif
+
+					// инициализация дма
+					// активация прерывания
+					res |= I2C1_DMA_Init();
+
+					// disable EXTI15_10_IRQn as it was enabled by setting buttons
+					__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_15);
+					NVIC_ClearPendingIRQ (EXTI15_10_IRQn);
+					HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
+
+					GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+					/* GPIO Ports Clock Enable */
+					__HAL_RCC_GPIOB_CLK_ENABLE();
+
+					GPIO_InitStruct.Pin = GPIO_PIN_15;
+					GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+					GPIO_InitStruct.Pull = GPIO_PULLUP;
+					HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+					/* EXTI interrupt init*/
+					/*
+					* @note all FreeRTOS safe ISR should have priority <= configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY
+					* see FreeRTOSConfig.h
+					*/
+					HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
+					HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
 				}
 				break;
 

@@ -18,8 +18,6 @@
 #define LED_COLOR_FAULT		LED_RESULT_BRIGHTNESS, 0, 0
 #define LED_COLOR_NO		0, 0, 0
 
-uint16_t ledsBitMatrix[LEDS_MATRIX_ROW_NUM] = {0};
-
 ResCellStatus_t ledsMatrix[LEDS_MATRIX_ROW_NUM][LEDS_MATRIX_COL_NUM] = {0};
 
 HAL_StatusTypeDef leds_matrix_init(void){

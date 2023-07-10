@@ -63,7 +63,15 @@ void UbCheckTask(void *argument){
 		if ( ubCheckMeth == AVERAGE_RESULT ){
 			ub_check_aver_finish(resultMatrix);
 		} else if ( ubCheckMeth == SYNCHRO_RESULT ){
-			ub_check_synchro(resultMatrix);
+			//ub_check_synchro(resultMatrix);
+			// wait for result showing pause
+			uint16_t timeout = 150;
+			uint32_t timeoutStart = osKernelGetTickCount();
+			while ( osKernelGetTickCount() - timeoutStart < timeout){
+				if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_15) != GPIO_PIN_SET)
+					timeoutStart = osKernelGetTickCount();
+			}
+			ub_check_aver_finish(resultMatrix);
 		}
 		result_show(resultMatrix);
 
@@ -126,6 +134,11 @@ void UbCheckTask(void *argument){
 			if ( (osEventFlag = osEventFlagsWait(testEvents, TEST_LOG_PROCCESS_FINISHED, osFlagsWaitAny, osWaitForever)) & TEST_LOG_PROCCESS_FINISHED ){
 				ub_check_aver_start();
 			}
+		} else if ( ubCheckMeth == SYNCHRO_RESULT ){
+			__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_15);
+			NVIC_ClearPendingIRQ (EXTI15_10_IRQn);
+			HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
+			HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 		}
 
 
