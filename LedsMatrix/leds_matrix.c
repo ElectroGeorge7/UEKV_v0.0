@@ -12,7 +12,7 @@
 #include <string.h>
 #include "result_check.h"
 
-#define LED_RESULT_BRIGHTNESS	10
+#define LED_RESULT_BRIGHTNESS	30
 
 #define LED_COLOR_OK		0, LED_RESULT_BRIGHTNESS, 0
 #define LED_COLOR_FAULT		LED_RESULT_BRIGHTNESS, 0, 0
@@ -34,7 +34,7 @@ HAL_StatusTypeDef leds_matrix_clear(void){
 		for(uint8_t colNum = 0; colNum < LEDS_MATRIX_COL_NUM; colNum++)
 			ledsMatrix[rowNum][colNum] = RES_CELL_NO;
 
-	ARGB_Clear(); // Clear stirp
+	ARGB_Clear(); // Clear strip
 	while (ARGB_Show() != ARGB_OK); // Update - Option 1
 
 	return HAL_OK;
@@ -62,6 +62,6 @@ HAL_StatusTypeDef leds_matrix_show_result(void){
 		}
 	}
 
-	 while (!ARGB_Show());  // Update - Option 2
+	 while (ARGB_Show() != ARGB_OK);  // Update - Option 2
 	 return HAL_OK;
 }

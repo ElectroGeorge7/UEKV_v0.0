@@ -40,7 +40,7 @@ HAL_StatusTypeDef date_time_view_update(Command_t dateTimeAction, uint8_t *data)
 			LCD_SetCursor( 0, 1 );
 			LCD_PrintString("Настр-ка по USB");
 
-			usbprintf("Date and time set. Enter new date and time in format: hh:mm dd:mm:yyyy.");
+			usbprintf("Date and time set. Enter new date and time in format: hh:mm dd.mm.yyyy.");
 			usbprintf("current date and time: %s", pBuf);
 			break;
 		case BACK_CMD:

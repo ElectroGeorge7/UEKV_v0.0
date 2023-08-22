@@ -38,12 +38,6 @@ typedef struct
 
 HAL_StatusTypeDef menu_init(void);
 HAL_StatusTypeDef menu_view_update(Command_t menuAction, uint8_t *data);
-
-void DrawMenu(Menu_t*);
-void DrawFunction(Menu_t*);
-void MenuDisplayUpdate(MenuAction_t menuAction);
-
-void MenuViewUpdate(Command_t menuAction, uint8_t *data);
-void MenuRegisterActivityCb(ActivityViewUpdateCb_t *pMenuViewUpdateCb);
+void menu_reg_activity_cb(ActivityViewUpdateCb_t *pMenuViewUpdateCb);
 
 #endif	//MENU_H_

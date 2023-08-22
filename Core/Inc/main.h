@@ -34,9 +34,9 @@ extern "C" {
 void Error_Handler(void);
 
 /* Private defines -----------------------------------------------------------*/
-#define LED_ERROR_Pin GPIO_PIN_12
+#define LED_ERROR_Pin GPIO_PIN_13
 #define LED_ERROR_GPIO_Port GPIOC
-#define LED_PROCESS_Pin GPIO_PIN_13
+#define LED_PROCESS_Pin GPIO_PIN_12
 #define LED_PROCESS_GPIO_Port GPIOC
 
 #define BUTTON_UP_PRESS_EVENT 			0x01

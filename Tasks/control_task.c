@@ -31,16 +31,13 @@ extern osEventFlagsId_t testEvents;
 extern ResCellStatus_t ledsMatrix[LEDS_MATRIX_ROW_NUM][LEDS_MATRIX_COL_NUM];
 
 void ControlTask(void *argument){
-	uint8_t tempVal = 0;
-	char tempStr[8] = {0};
-
-
 	osStatus_t res;
 	Event_t msg;
 
 	activity_init();
 
 	leds_matrix_init();
+	HAL_Delay(10);	// find out why on new boards after leds_matrix_clear() it`s need delay
 	for (uint8_t rowNum = 0; rowNum < 10; rowNum++){
 		for(uint8_t colNum = 0; (colNum < 14); colNum++){
 			ledsMatrix[rowNum][colNum] = RES_CELL_OK;
@@ -49,7 +46,9 @@ void ControlTask(void *argument){
 	leds_matrix_show_result();
 	HAL_Delay(1000);
 	leds_matrix_clear();
+	HAL_Delay(10);
 
+	HAL_GPIO_WritePin(GPIOC, LED_ERROR_Pin|LED_PROCESS_Pin, GPIO_PIN_RESET);
 
 	// if it was reset during the test process than resume the test
 	if ( bkp_read_data(UEKV_LAST_STATE_REG) == UEKV_TEST_STATE ){

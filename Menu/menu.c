@@ -10,82 +10,6 @@
 #include "terminal.h"
 #include "LCD1602.h"
 
-Menu_t *CurrentMenu;	//указатель на текущее меню
-Menu_t TopMenu = {"--- Главное меню ---",0,2,0,0,0,{"Отображаемые символы","Описание"}};
-Menu_t Submenu1 = {"Отображаемые символы",1,0,0,1,0};
-Menu_t Submenu2 = {"Описание",1,0,0,1,0};
-
-#ifdef DEB
-//Функция отображения меню на LCD-диссплее
-//Параметры: Menu - указатель на меню, которое необходимо отобразить на LCD
-void DrawMenu(_Menu* Menu)
-{	
-	uint32_t i;
-
-	PrintConstText(Menu->MenuName,0,(64-(StrLen(Menu->MenuName)*FONT_WIDTH/2)),0);
-	for(i=1;i<(Menu->NumberOfSubMenu+1);i++)
-	{
-		if(Menu->CurrentAssignSubMenu != i)	PrintConstText(Menu->SubMenuName[i-1],i,(64-(StrLen(Menu->SubMenuName[i-1])*FONT_WIDTH/2)),0);
-		else PrintConstText(Menu->SubMenuName[i-1],i,(64-(StrLen(Menu->SubMenuName[i-1])*FONT_WIDTH/2)),1);
-	}
-}
-
-//Функция вывода действий на дисплей
-//Параметры: Menu - указатель на меню, при выборе которого надо выполнить какие-либо действия
-void DrawFunction(_Menu* Menu)
-{
-	uint32_t Symbol,i,j;	
-	uint8_t* Text1={"Демоплата EVAL22.0B"};
-	uint8_t* Text2={"для 32-разрядного "};
-	uint8_t* Text3={"микрконтроллера "};
-	uint8_t* Text4={"1986ВЕ1"};
-
-	if(Menu == &Submenu1)
-	{
-		Symbol = 0;
-		for(i=0;i<8;i++)
-		{
-			SetPage(i,First);
-			SetPage(i,Second);
-			for(j=0;j<126;j++)
-			{
-				WriteByte(Font_6x8_Data[Symbol++],j);
-				if(Symbol == 42) Symbol = 192;
-				if(Symbol == 762) Symbol = 1008;
-				if(Symbol == 1014) Symbol = 1104;
-				if(Symbol == 1110) Symbol = 1152;
-			}
-		}	
-	}
-	if(CurrentMenu == &Submenu2)
-	{
-		ClearLCD();
-		PrintConstText(Text1,2,(64-(19*FONT_WIDTH/2)),0);
-		PrintConstText(Text2,3,(64-(17*FONT_WIDTH/2)),0);
-		PrintConstText(Text3,4,(64-(15*FONT_WIDTH/2)),0);
-		PrintConstText(Text4,5,(64-(7*FONT_WIDTH/2)),0);
-	}
-}
-
-void MenuDisplayUpdate(MenuAction_t menuAction){
-	uint8_t *tempStr;
-	
-	if ( menuAction == MENU_START ){
-		ClearLCD();
-		tempStr = "АО `ПКК Миландр`";
-		PrintConstText(tempStr, 0, (64-(StrLen(tempStr)*6/2)), 0);
-		tempStr = "Универсальный";
-		PrintConstText(tempStr, 2, (64-(StrLen(tempStr)*6/2)), 0);
-		tempStr = "эквивалент";
-		PrintConstText(tempStr, 3, (64-(StrLen(tempStr)*6/2)), 0);
-		tempStr = "`EQV-V1`";
-		PrintConstText(tempStr, 4, (64-(StrLen(tempStr)*6/2)), 0);
-		tempStr = "2021";
-		PrintConstText(tempStr, 7, (64-(StrLen(tempStr)*6/2)), 0);
-	}
-}
-#endif
-
 extern MenuItem_t *firstViewItem;
 extern MenuItem_t *lastViewItem;
 extern MenuItem_t *currentItem;
@@ -118,7 +42,7 @@ HAL_StatusTypeDef menu_init(void){
 	LCD_SetCursor( 0, 0 );
 	LCD_PrintString("АО `ПКК Миландр`");
 	LCD_SetCursor( 4, 1 );
-	LCD_PrintString("UEKV-V1.0");
+	LCD_PrintString("UEKV_V3");
 
 	HAL_Delay(2000);
 
@@ -201,7 +125,7 @@ HAL_StatusTypeDef menu_view_update(Command_t menuAction, uint8_t *data){
 }
 
 
-void MenuRegisterActivityCb(ActivityViewUpdateCb_t *pMenuViewUpdateCb){
+void menu_reg_activity_cb(ActivityViewUpdateCb_t *pMenuViewUpdateCb){
 	*pMenuViewUpdateCb = menu_view_update;
 }
 

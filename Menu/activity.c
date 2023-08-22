@@ -11,7 +11,7 @@ static Activity_t gActivity = MENU_ACTIVITY;
 static ActivityViewUpdateCb_t activityViewUpdateCbArray[ACTIVITY_NMBR] = {0};
 
 void activity_init(void){
-	MenuRegisterActivityCb(&(activityViewUpdateCbArray[MENU_ACTIVITY]));
+	menu_reg_activity_cb(&(activityViewUpdateCbArray[MENU_ACTIVITY]));
 	//TestRegisterActivityCb(&ActivityViewUpdateCbArray[TEST_ACTIVITY]);
 	test_reg_activity_cb(&activityViewUpdateCbArray[TEST_ACTIVITY]);
 	date_time_reg_activity_cb(&activityViewUpdateCbArray[DATE_TIME_ACTIVITY]);
