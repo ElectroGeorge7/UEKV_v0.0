@@ -33,7 +33,8 @@ MenuItem_t ItemName = {&Previous, &Next, &Parent, &Child, Func, ItemStrName}
 
 MAKE_MENU_ITEM(Tests, NULL_MENU_ITEM, Time, NULL_MENU_ITEM, NULL_MENU_ITEM, TEST_ACTIVITY, "Испытания");
 MAKE_MENU_ITEM(Time, Tests, Lps, NULL_MENU_ITEM, NULL_MENU_ITEM, DATE_TIME_ACTIVITY, "Дата и время");
-MAKE_MENU_ITEM(Lps, Time, NULL_MENU_ITEM, NULL_MENU_ITEM, NULL_MENU_ITEM, LPS_ACTIVITY, "ИП");
+MAKE_MENU_ITEM(Lps, Time, Temp, NULL_MENU_ITEM, NULL_MENU_ITEM, LPS_ACTIVITY, "ИП");
+MAKE_MENU_ITEM(Temp, Lps, NULL_MENU_ITEM, NULL_MENU_ITEM, NULL_MENU_ITEM, TEMP_ACTIVITY, "Температура");
 
 // display the zero menu level
 static MenuItem_t *firstViewItem = &Tests;

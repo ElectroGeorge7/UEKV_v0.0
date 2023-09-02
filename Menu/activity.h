@@ -4,13 +4,14 @@
 
 #include "stm32f4xx_hal.h"
 
-#define ACTIVITY_NMBR 5
+#define ACTIVITY_NMBR 6
 
 typedef enum Activity{
 	MENU_ACTIVITY,
 	TEST_ACTIVITY,
 	DATE_TIME_ACTIVITY,
 	LPS_ACTIVITY,
+	TEMP_ACTIVITY,
 	NULL_ACTIVITY
 } Activity_t;
 

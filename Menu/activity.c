@@ -5,6 +5,7 @@
 #include "date_time_activity.h"
 #include "test_activity.h"
 #include "lps_activity.h"
+#include "temp_activity.h"
 
 static Activity_t gActivity = MENU_ACTIVITY;
 
@@ -12,11 +13,10 @@ static ActivityViewUpdateCb_t activityViewUpdateCbArray[ACTIVITY_NMBR] = {0};
 
 void activity_init(void){
 	menu_reg_activity_cb(&(activityViewUpdateCbArray[MENU_ACTIVITY]));
-	//TestRegisterActivityCb(&ActivityViewUpdateCbArray[TEST_ACTIVITY]);
 	test_reg_activity_cb(&activityViewUpdateCbArray[TEST_ACTIVITY]);
 	date_time_reg_activity_cb(&activityViewUpdateCbArray[DATE_TIME_ACTIVITY]);
 	lps_reg_activity_cb(&activityViewUpdateCbArray[LPS_ACTIVITY]);
-	//NetworkRegisterActivityCb(&ActivityViewUpdateCbArray[NETWORK_ACTIVITY]);
+	temp_reg_activity_cb(&activityViewUpdateCbArray[TEMP_ACTIVITY]);
 	
 	activity_cmd_execute(START_CMD, NULL);
 };
