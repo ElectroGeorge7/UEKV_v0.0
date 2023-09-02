@@ -112,8 +112,7 @@ void StorageTask(void *argument) {
 				 f_printf(&logFile, "Row: %d \n", curConfig.rowNum );
 				 f_printf(&logFile, "Col: %d \n", curConfig.colNum );
 				 f_printf(&logFile, "Result check method: %d \n", curConfig.resCheckMethod );
-				 f_printf(&logFile, "Test duration in hours: %d h \n", curConfig.testDurationInHours );
-				 f_printf(&logFile, "Number of power supplies: %d \n", curConfig.powerSupplyNum );
+				 f_printf(&logFile, "Result check method: %d \n", curConfig.resCheckPeriod );
 				 f_printf(&logFile, "Number of PCBs: %d \n", curConfig.pcbNum );
 				 gfr = f_sync(&logFile);
 
@@ -223,9 +222,6 @@ HAL_StatusTypeDef storage_config_search(const char *configFileName, TestConfig_t
 	int colNum = 0;
 	int resCheckMethod = 0;
 	int resCheckPeriod = 0;
-	int resCheckOption = 0;
-	int testDurationInHours = 0;
-	int powerSupplyNum = 0;
 	int pcbNum = 0;
 
 	 uint8_t temp = 5;
@@ -289,31 +285,6 @@ HAL_StatusTypeDef storage_config_search(const char *configFileName, TestConfig_t
 			 curConfig->resCheckPeriod = 3;
 		 usbprintf("Result check period: %d", curConfig->resCheckPeriod);
 		 usbprintf("1-15s, check period just for average check");
-	 }
-	 if ( !f_eof(&readFile) ){
-		 f_gets(strBuf, sizeof(strBuf), &readFile);
-		 sscanf(strBuf, "result check option: %1d", &resCheckOption);
-		 if ( (resCheckOption >= 0) && (resCheckOption <= 3) )
-			 curConfig->resCheckOption = resCheckMethod;
-		 else
-			 curConfig->resCheckPeriod = 0;
-		 usbprintf("Result check option: %d", curConfig->resCheckOption);
-		 usbprintf("0 - no option,");
-		 usbprintf("1 - save just faults,");
-		 usbprintf("2 - trial 1 day,");
-		 usbprintf("3 - trial 1 week");
-	 }
-	 if ( !f_eof(&readFile) ){
-		 f_gets(strBuf, sizeof(strBuf), &readFile);
-		 sscanf(strBuf, "test duration in hours: %5d h", &testDurationInHours);
-		 curConfig->testDurationInHours = testDurationInHours;
-		 usbprintf("Test duration in hours: %d h", curConfig->testDurationInHours);
-	 }
-	 if ( !f_eof(&readFile) ){
-		 f_gets(strBuf, sizeof(strBuf), &readFile);
-		 sscanf(strBuf, "number of power supplies: %2d", &powerSupplyNum);
-		 curConfig->powerSupplyNum = powerSupplyNum;
-		 usbprintf("Number of power supplies: %d", curConfig->powerSupplyNum);
 	 }
 	 if ( !f_eof(&readFile) ){
 		 f_gets(strBuf, sizeof(strBuf), &readFile);

@@ -32,20 +32,7 @@ typedef enum TestType{
 typedef enum ResCheckMethod{
 	AVERAGE_RESULT,
 	SYNCHRO_RESULT
-//	AVERAGE_RESULT_PER_1S,
-//	AVERAGE_RESULT_PER_2S,
-//	AVERAGE_RESULT_PER_3S,
-//	AVERAGE_RESULT_PER_4S,
-//	AVERAGE_RESULT_PER_5S,
-//	JUST_FAULTES,
-//	TRIAL_UB_1DAY,
-//	TRIAL_UB_1WEEK,
-//	TRIAL_UB_4WEEK,
-//	TRIAL_ETT_1DAY,
-//	TRIAL_ETT_1WEEK,
-//	TRIAL_ETT_4WEEK
 } ResCheckMethod_t;
-
 
 typedef enum ResCheckOption{
 	NO_OPTION = 0,
@@ -58,16 +45,15 @@ typedef struct {
 	char partNumber[34];
 	char mldrNum[10];
 	TestType_t testType;
-	//uint32_t curResNum;				// number of current displayed result
 	uint8_t cellNum;
 	uint8_t	rowNum;
 	uint8_t colNum;
 	ResCheckMethod_t resCheckMethod;
 	uint8_t resCheckPeriod;				// in seconds, only for average method
-	ResCheckOption_t resCheckOption;
-	DataTime_t testStartDataTime;
-	uint32_t testDurationInHours;
-	uint8_t powerSupplyNum;
+//	ResCheckOption_t resCheckOption;
+//	DataTime_t testStartDataTime;
+//	uint32_t testDurationInHours;
+//	uint8_t powerSupplyNum;
 	uint8_t	pcbNum;						// only for ett
 } TestConfig_t;
 

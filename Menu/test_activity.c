@@ -35,8 +35,7 @@ TestConfig_t curConfig = {0};
 #define TEST_CONFIG_TEST_TYPE_IS_SET			0x04
 #define TEST_CONFIG_MATRIX_IS_SET				0x10
 #define TEST_CONFIG_RES_CHECK_METHOD_IS_SET		0x20
-#define TEST_CONFIG_TEST_DUR_IS_SET				0x40
-#define TEST_CONFIG_POW_SUP_NUM_IS_SET			0x80
+#define TEST_CONFIG_RES_CHECK_PERIOD_IS_SET		0x40
 #define TEST_CONFIG_PCB_NUM_IS_SET				0x100
 
 extern osThreadId_t ubCheckTaskHandle;
@@ -272,8 +271,7 @@ HAL_StatusTypeDef test_terminal_config(uint8_t *data, TestConfig_t *curConfig, u
 	int rowNum = 0;
 	int colNum = 0;
 	int resCheckMethod = 0;
-	int testDurationInHours = 0;
-	int powerSupplyNum = 0;
+	int resCheckPeriod = 0;
 	int pcbNum = 0;
 
 
@@ -300,32 +298,21 @@ HAL_StatusTypeDef test_terminal_config(uint8_t *data, TestConfig_t *curConfig, u
 		curConfig->colNum = colNum;
 		usbprintf("cell:%d row:%d col:%d", curConfig->cellNum, curConfig->rowNum, curConfig->colNum);
 		usbprintf("Enter result check method:");
-		usbprintf("0 - every result,");
-		usbprintf("1 - average result during 1s period,");
-		usbprintf("2 - average result during 2s period,");
-		usbprintf("3 - average result during 3s period,");
-		usbprintf("4 - average result during 4s period,");
-		usbprintf("5 - average result during 5s period,");
-		usbprintf("6 - just faults");
+		usbprintf("0 - average result,");
+		usbprintf("1 - synchro result for UB,");
 		*flag |= TEST_CONFIG_MATRIX_IS_SET;
 	} else if ( !(*flag & TEST_CONFIG_RES_CHECK_METHOD_IS_SET) ){
 		sscanf(data, "%1d", &resCheckMethod);
 		curConfig->resCheckMethod = resCheckMethod;
 		usbprintf("Result check method: %d", curConfig->resCheckMethod);
-		usbprintf("Enter test duration in hours (up to 99999 hours).");
+		usbprintf("Enter result check period: ( 1-15s, check period just for average check )");
 		*flag |= TEST_CONFIG_RES_CHECK_METHOD_IS_SET;
-	} else if ( !(*flag & TEST_CONFIG_TEST_DUR_IS_SET) ){
-		sscanf(data, "%5d", &testDurationInHours);
-		curConfig->testDurationInHours = testDurationInHours;
-		usbprintf("Test duration in hours: %d h", curConfig->testDurationInHours);
-		usbprintf("Enter number of power supplies (up to 32).");
-		*flag |= TEST_CONFIG_TEST_DUR_IS_SET;
-	} else if ( !(*flag & TEST_CONFIG_POW_SUP_NUM_IS_SET) ){
-		sscanf(data, "%2d", &powerSupplyNum);
-		curConfig->powerSupplyNum = powerSupplyNum;
-		usbprintf("Number of power supplies: %d", curConfig->powerSupplyNum);
+	} else if ( !(*flag & TEST_CONFIG_RES_CHECK_PERIOD_IS_SET) ){
+		sscanf(data, "%2d", &resCheckPeriod);
+		curConfig->resCheckPeriod = resCheckPeriod;
+		usbprintf("Result check period: %d", curConfig->resCheckPeriod);
 		usbprintf("Enter number of PCBs, just for ETT (up to 4 PCBs).");
-		*flag |= TEST_CONFIG_POW_SUP_NUM_IS_SET;
+		*flag |= TEST_CONFIG_RES_CHECK_PERIOD_IS_SET;
 	} else if ( !(*flag & TEST_CONFIG_PCB_NUM_IS_SET) ){
 		sscanf(data, "%d", &pcbNum);
 		curConfig->pcbNum = pcbNum;
@@ -378,19 +365,6 @@ void test_menu_update(TestConfig_t *curConfig){
 	snprintf(testActMenu[8], 32, "тек. время:");
 	rtc_get(&dataTime);
 	snprintf(testActMenu[9], 32, "%d:%d %d.%d.%d", dataTime.hour, dataTime.min, dataTime.day, dataTime.mon, dataTime.year);
-
-	snprintf(testActMenu[10], 32, "начало испыт-ия:");
-	memcpy(&(curConfig->testStartDataTime), &dataTime, sizeof(DataTime_t));
-	snprintf(testActMenu[11], 32, "%d:%d %d.%d.%d", dataTime.hour, dataTime.min, dataTime.day, dataTime.mon, dataTime.year);
-
-	snprintf(testActMenu[12], 32, "конец испыт-ия:");
-	snprintf(testActMenu[13], 32, "%d:%d %d.%d.%d", 5, 0, 7, 5, 2023);
-
-	snprintf(testActMenu[14], 32, "осталось:");
-	snprintf(testActMenu[15], 32, "%d:%d %d.%d.%d", 5, 3, 2, 3, 0);
-
-	snprintf(testActMenu[16], 32, "кол-во Vпит:%d", curConfig->powerSupplyNum);
-	memset(testActMenu[17], 0, 32);
 
 	float temp1 = ts_check(1);
 	float temp2 = ts_check(2);
