@@ -19,7 +19,7 @@
 #include "ub_check.h"
 #include "leds_matrix.h"
 #include "ts_spi.h"
-
+#include "status_leds.h"
 #include "rtc_hardware.h"
 #include "lps_task.h"
 
@@ -126,8 +126,7 @@ void UbCheckTask(void *argument){
 		osEventFlagsSet(testEvents, TEST_LOG_SAVE);
 
 		result_check_clear();
-		HAL_GPIO_TogglePin(GPIOC, LED_PROCESS_Pin);
-
+		status_leds_toggle(LED_PROCESS_Pin);
 
 
 		if ( ubCheckMeth == AVERAGE_RESULT ){

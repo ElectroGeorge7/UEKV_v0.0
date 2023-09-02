@@ -17,6 +17,7 @@
 
 #include "buttons_hardware.h"
 #include "reliability.h"
+#include "status_leds.h"
 
 #include "leds_matrix.h"
 #include "result_check.h"
@@ -48,7 +49,7 @@ void ControlTask(void *argument){
 	leds_matrix_clear();
 	HAL_Delay(10);
 
-	HAL_GPIO_WritePin(GPIOC, LED_ERROR_Pin|LED_PROCESS_Pin, GPIO_PIN_RESET);
+	status_leds_reset(LED_PROCESS_Pin | LED_ERROR_Pin);
 
 	// if it was reset during the test process than resume the test
 	if ( bkp_read_data(UEKV_LAST_STATE_REG) == UEKV_TEST_STATE ){

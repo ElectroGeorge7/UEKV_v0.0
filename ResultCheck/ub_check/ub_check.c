@@ -13,6 +13,7 @@
 
 #include "terminal.h"
 
+#include "status_leds.h"
 #include "rch_timer.h"
 
 #define PCF8575_READ_ADDR	0x41
@@ -68,7 +69,7 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c){
 		HAL_I2C_Master_Receive_DMA(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)portExpBuf, sizeof(portExpBuf));
 	}
 
-	HAL_GPIO_TogglePin(GPIOC, LED_PROCESS_Pin);
+	status_leds_toggle(LED_PROCESS_Pin);
 }
 
 HAL_StatusTypeDef ub_check_init(TestConfig_t conf){
