@@ -16,5 +16,9 @@
 HAL_StatusTypeDef leds_matrix_init(void);
 HAL_StatusTypeDef leds_matrix_show_result(void);
 HAL_StatusTypeDef leds_matrix_clear(void);
+HAL_StatusTypeDef leds_matrix_all_green(void);
+HAL_StatusTypeDef leds_matrix_all_red(void);
+HAL_StatusTypeDef leds_matrix_rainbow(void);
+HAL_StatusTypeDef leds_matrix_milandr(void);
 
 #endif /* LEDS_MATRIX_H_ */

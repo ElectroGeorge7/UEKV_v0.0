@@ -38,16 +38,12 @@ void ControlTask(void *argument){
 	activity_init();
 
 	leds_matrix_init();
-	HAL_Delay(10);	// find out why on new boards after leds_matrix_clear() it`s need delay
-	for (uint8_t rowNum = 0; rowNum < 10; rowNum++){
-		for(uint8_t colNum = 0; (colNum < 14); colNum++){
-			ledsMatrix[rowNum][colNum] = RES_CELL_OK;
-		}
-	}
-	leds_matrix_show_result();
-	HAL_Delay(1000);
-	leds_matrix_clear();
 	HAL_Delay(10);
+
+	leds_matrix_milandr();
+	leds_matrix_rainbow();
+	leds_matrix_all_green();
+	leds_matrix_all_red();
 
 	status_leds_reset(LED_PROCESS_Pin | LED_ERROR_Pin);
 
