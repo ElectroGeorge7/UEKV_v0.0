@@ -92,11 +92,14 @@ int main(void)
   HAL_Delay(500);
 
   terminal_init();
-  uartprintf("UEKV_V3");
+  uartprintf(SOFTWARE_VER);
+  uartprintf(HARDWARE_VER);
   uartprintf("UART terminal init");
 
   MX_USB_DEVICE_Init();
   HAL_Delay(500);
+  usbprintf(SOFTWARE_VER);
+  usbprintf(HARDWARE_VER);
   usbprintf("USB terminal init");
 
   status_leds_init();
@@ -152,6 +155,7 @@ int main(void)
   */
 void Error_Handler(void)
 {
+	status_leds_set(LED_ERROR_Pin);
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();

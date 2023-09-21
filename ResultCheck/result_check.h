@@ -58,8 +58,8 @@ typedef struct {
 } TestConfig_t;
 
 HAL_StatusTypeDef result_check_init(TestConfig_t conf);
+HAL_StatusTypeDef result_check_deinit(TestConfig_t conf);
 HAL_StatusTypeDef result_show(uint16_t *resBitMatrix);
-HAL_StatusTypeDef result_check_deinit(void);
 HAL_StatusTypeDef result_check_clear(void);
 
 #endif /* RESULT_CHECK_H_ */

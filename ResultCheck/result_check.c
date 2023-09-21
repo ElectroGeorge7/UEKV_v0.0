@@ -100,8 +100,12 @@ HAL_StatusTypeDef result_show(uint16_t *resBitMatrix){
 	return HAL_OK;
 }
 
-HAL_StatusTypeDef result_check_deinit(void){
+HAL_StatusTypeDef result_check_deinit(TestConfig_t conf){
 	rch_timer_stop();
+	if (conf.resCheckMethod == AVERAGE_RESULT)
+		ub_check_aver_stop();
+	else
+		ub_check_synchro_stop();
 	result_check_clear();
 	leds_matrix_clear();
 	return HAL_OK;

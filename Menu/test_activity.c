@@ -100,14 +100,14 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 					LCD_Clear();
 					LCD_CursorOnOff(0);
 					LCD_SetCursor( 0, 0 );
-					LCD_PrintString("Поиск config.txt");
+					LCD_PrintString("Поиск");
 					LCD_SetCursor( 0, 1 );
-					LCD_PrintString("...");
+					LCD_PrintString("test_cfg.txt");
 					HAL_Delay(1000);
 
 //////////////////// убрать после отладки
-					osEventFlagsSet(testEvents, LPS_FIND_CONNECTED_START);
-					osEventFlag = osEventFlagsWait(testEvents, LPS_FIND_CONNECTED_FINISHED, osFlagsWaitAny, osWaitForever);
+					//osEventFlagsSet(testEvents, LPS_FIND_CONNECTED_START);
+					//osEventFlag = osEventFlagsWait(testEvents, LPS_FIND_CONNECTED_FINISHED, osFlagsWaitAny, osWaitForever);
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 					osEventFlagsSet(testEvents, TEST_CONFIG_SEARCH);
@@ -136,7 +136,7 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 						testActStatusFlags |= TEST_ACT_CONFIG_IS_SET;
 					} else {
 						LCD_SetCursor( 0, 1 );
-						LCD_PrintString("не найдено");
+						LCD_PrintString("не найдено      ");
 						HAL_Delay(1000);
 
 						LCD_Clear();
@@ -174,7 +174,7 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 
 			break;
 		case BACK_CMD:
-			result_check_deinit();
+			result_check_deinit(curConfig);
 			testActStatusFlags = 0;
 			testConfigsSetFlag = 0;
 			osEventFlagsSet(testEvents, TEST_FINISH);
@@ -265,7 +265,6 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 }
 
 HAL_StatusTypeDef test_terminal_config(uint8_t *data, TestConfig_t *curConfig, uint16_t *flag){
-
 	int testType = 0;
 	int cellNum = 0;
 	int rowNum = 0;
@@ -273,7 +272,6 @@ HAL_StatusTypeDef test_terminal_config(uint8_t *data, TestConfig_t *curConfig, u
 	int resCheckMethod = 0;
 	int resCheckPeriod = 0;
 	int pcbNum = 0;
-
 
 	if ( !(*flag & TEST_CONFIG_PART_NUM_IS_SET) ){
 		sscanf(data, "%16s", curConfig->partNumber);
@@ -359,8 +357,8 @@ void test_menu_update(TestConfig_t *curConfig){
 	snprintf(testActMenu[4], 32, "Испытание:");
 	snprintf(testActMenu[5], 32, "%s", curConfig->testType ? "ЭТТ" : "Безотказность");
 
-	snprintf(testActMenu[6], 32, "Считыв. рез-та:");
-	snprintf(testActMenu[7], 32, "%d", curConfig->resCheckMethod);
+	snprintf(testActMenu[6], 32, "Метод считыв.:");
+	snprintf(testActMenu[7], 32, "%d", curConfig->resCheckMethod ? "синхро" : "среднее" );
 
 	snprintf(testActMenu[8], 32, "тек. время:");
 	rtc_get(&dataTime);

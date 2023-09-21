@@ -16,6 +16,7 @@
 #include "test_activity.h"
 
 #include "reliability.h"
+#include "status_leds.h"
 
 #include <string.h>
 
@@ -46,10 +47,8 @@ void StorageTask(void *argument) {
 	Event_t msg = {0};
 	TestConfig_t curConfig = {0};
 
-    char pBufStart[] = "Successful file creation\n";
-
-  fatfs_init();
-  gfr = f_mount(&sdFatFs, "", 1);
+	fatfs_init();
+	gfr = f_mount(&sdFatFs, "", 1);
 
   for(;;)
   {
@@ -63,7 +62,7 @@ void StorageTask(void *argument) {
 			 // encode config to queue type
 
 			 msg.event = TEST_CONFIG_SEND;
-			if ( storage_config_search("config.txt", &curConfig) == HAL_OK ){
+			if ( storage_config_search("test_cfg.txt", &curConfig) == HAL_OK ){
 				memcpy(msg.eventStr, (uint8_t *)&curConfig, sizeof(TestConfig_t));
 				//for (uint16_t i=0; i < sizeof(TestConfig_t); i++){
 				//	*((&curConfig)+i)
@@ -97,7 +96,8 @@ void StorageTask(void *argument) {
 				// create file that named after part number
 				uint8_t temp = 5;
 				  do{
-					  gfr = storage_file_open_create(&logFile, curConfig.partNumber);
+					  snprintf(buf, 38, "%s.txt", curConfig.partNumber);
+					  gfr = storage_file_open_create(&logFile, buf);
 				  }while (gfr && --temp);
 
 				 if (!temp)
@@ -112,7 +112,7 @@ void StorageTask(void *argument) {
 				 f_printf(&logFile, "Row: %d \n", curConfig.rowNum );
 				 f_printf(&logFile, "Col: %d \n", curConfig.colNum );
 				 f_printf(&logFile, "Result check method: %d \n", curConfig.resCheckMethod );
-				 f_printf(&logFile, "Result check method: %d \n", curConfig.resCheckPeriod );
+				 f_printf(&logFile, "Result check period: %d \n", curConfig.resCheckPeriod );
 				 f_printf(&logFile, "Number of PCBs: %d \n", curConfig.pcbNum );
 				 gfr = f_sync(&logFile);
 
@@ -139,6 +139,7 @@ void StorageTask(void *argument) {
 			 } else if ( osEventFlag & TEST_LOG_SAVE ){
 				 // wait for logs
 				 if ( osMessageQueueGet(logQueueHandler, &curLog, NULL, osWaitForever) == osOK ){
+					  memset(buf, 0, sizeof(buf));
 					  prNum = snprintf(buf, sizeof(Log_t), "%d. ", curLog.index);
 					  pBuf = buf+prNum;
 					  prNum = snprintf(pBuf, sizeof(Log_t), "%d:%d:%d %d.%d.%d ", curLog.dataTime.hour, curLog.dataTime.min, curLog.dataTime.sec, curLog.dataTime.day, curLog.dataTime.mon, curLog.dataTime.year );
@@ -230,7 +231,7 @@ HAL_StatusTypeDef storage_config_search(const char *configFileName, TestConfig_t
 	  }while (gfr && --temp);
 
 	 if (!temp){
-		 usbprintf("config.txt file not found");
+		 usbprintf("test_cfg.txt file not found");
 		 return HAL_ERROR;
 	 }
 	 // extract needed info

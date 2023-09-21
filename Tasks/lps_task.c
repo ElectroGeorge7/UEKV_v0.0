@@ -101,7 +101,7 @@ void LpsTask(void *argument){
 
 		lps_list_init();
 		///////////убрать после отладки
-		lps_ctrl_output(1, LPS_OUTPUT_ON);
+		//lps_ctrl_output(1, LPS_OUTPUT_ON);
 		/////////////////////////////////
 		osEventFlagsSet(testEvents, LPS_FIND_CONNECTED_FINISHED);
 	}
@@ -261,7 +261,7 @@ HAL_StatusTypeDef lps_find_connected(LpsStatusList_t *lpsList){
 	lpsList->conNum = 0;
 	memset(lpsList->conAddrsList, 0, 32 * sizeof(LpsAddrType_t));
 
-	for (uint8_t addr=1; addr<=6/*32*/; addr++){
+	for (uint8_t addr=1; addr<=32; addr++){
 		if ( addr < 10 )
 			snprintf(ADR_cmd, sizeof(ADR_cmd), ":ADR0%1d;\r", addr);
 		else

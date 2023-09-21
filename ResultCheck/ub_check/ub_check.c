@@ -84,65 +84,11 @@ HAL_StatusTypeDef ub_check_init(TestConfig_t conf){
 
 	if (!res){
 		uartprintf("ub check i2c init");
-
 		switch (conf.resCheckMethod){
 			case SYNCHRO_RESULT:
 				{
-
-#if	DEBUG_UB_SYNCHRO
-					uint8_t cnt = 5;
-					do{
-						if ( ub_check_freq_adjust() == HAL_OK ){
-							uint32_t row1SigStart = HAL_GetTick();
-
-							if ( ub_check_new_res_wait(0, 0, 2*row1SigResRepPeriod, 0xffff) == HAL_OK ){
-								row1SigResPeriod = HAL_GetTick() - row1SigStart;
-								uartprintf("HAL_GetTick(): %d", HAL_GetTick());
-								uartprintf("row1SigResPeriod: %d", row1SigResPeriod);
-							}
-
-							res |= rch_timer_init(row1SigResPeriod /*- 2*row1SigResRepPeriod*/);
-							// phase alignment on the first signal of row1
-							uartprintf("phase alignment on the first signal of row1: wait");
-							if ( ub_check_sig_level_wait(0, 1, 0xffff) == HAL_OK){
-								res |= rch_timer_start();
-								uartprintf("phase alignment on the first signal of row1: ok");
-								return HAL_OK;
-							}
-
-						}
-
-					} while (cnt--);
-					uartprintf("ub check freq adjust failed");
-#endif
-
-					// инициализация дма
-					// активация прерывания
 					res |= I2C1_DMA_Init();
-
-					// disable EXTI15_10_IRQn as it was enabled by setting buttons
-					__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_15);
-					NVIC_ClearPendingIRQ (EXTI15_10_IRQn);
-					HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
-
-					GPIO_InitTypeDef GPIO_InitStruct = {0};
-
-					/* GPIO Ports Clock Enable */
-					__HAL_RCC_GPIOB_CLK_ENABLE();
-
-					GPIO_InitStruct.Pin = GPIO_PIN_15;
-					GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-					GPIO_InitStruct.Pull = GPIO_PULLUP;
-					HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-					/* EXTI interrupt init*/
-					/*
-					* @note all FreeRTOS safe ISR should have priority <= configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY
-					* see FreeRTOSConfig.h
-					*/
-					HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
-					HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
-
+					ub_check_synchro_start();
 				}
 				break;
 
@@ -163,121 +109,6 @@ HAL_StatusTypeDef ub_check_init(TestConfig_t conf){
 	return HAL_ERROR;
 }
 
-HAL_StatusTypeDef ub_check_sig_level_wait(uint8_t sigNum , uint8_t sigLev, uint16_t timeout){
-	uint16_t data = 0;
-	while (timeout--){
-		if (HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&data, sizeof(data), UB_CHECK_TIMEOUT) != HAL_OK){
-			uartprintf("port expander i2c error");
-			return HAL_ERROR;
-		}
-		data = (sigLev == 0) ? ~data : data;
-		if ( data & (1<<sigNum) ) {
-			return HAL_OK;
-		}
-	}
-
-	uartprintf("too long waiting for sig level");
-	return HAL_TIMEOUT;
-}
-
-HAL_StatusTypeDef ub_check_new_res_wait(uint8_t sigNum, uint8_t sigLev, uint16_t sigMinDur, uint16_t timeout){
-	uint32_t row1SigStart = HAL_GetTick();
-	uint16_t data = 0;
-	while (timeout--){
-		if (HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&data, sizeof(data), UB_CHECK_TIMEOUT) != HAL_OK){
-			uartprintf("port expander i2c error");
-			return HAL_ERROR;
-		}
-		data = (sigLev == 0) ? ~data : data;
-		if ( data & (1<<sigNum) ) {
-			if ( ( (HAL_GetTick() - row1SigStart) > sigMinDur ) ){
-
-				if ( ub_check_sig_level_wait(0, (sigLev == 0) ? 1 : 0, 0xffff) == HAL_OK )
-					return HAL_OK;
-			}
-		} else {
-			row1SigStart = HAL_GetTick();
-		}
-	}
-
-	uartprintf("too long waiting for a new result");
-	return HAL_TIMEOUT;
-}
-
-HAL_StatusTypeDef ub_check_freq_adjust(void){
-	uint32_t row1SigStart = 0;
-	row1SigResRepPeriod = 0;
-	row1SigResPeriod = 0;
-
-	uint32_t i2cPeriodStart = 0;
-	uint32_t i2cPeriod = 0;
-	uartprintf("HAL_GetTickFreq(): %d", HAL_GetTickFreq());
-	i2cPeriodStart = HAL_GetTick();
-	HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
-	HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&portExpPacket, sizeof(portExpPacket), UB_CHECK_TIMEOUT);
-	i2cPeriod = HAL_GetTick() - i2cPeriodStart;
-	uartprintf("i2cPeriodStart: %d", i2cPeriodStart);
-	uartprintf("i2cPeriod: %d", i2cPeriod);
-
-
-	if ( ub_check_new_res_wait(0, 0, 2*120, 0xffff) == HAL_OK ){
-		row1SigStart = HAL_GetTick();
-		if ( ub_check_sig_level_wait(0, 0, 0xffff) == HAL_OK ){
-			if ( ub_check_sig_level_wait(0, 1, 0xffff) == HAL_OK ){
-				row1SigResRepPeriod = HAL_GetTick() - row1SigStart;
-				uartprintf("row1SigStart: %d", row1SigStart);
-				uartprintf("row1SigResRepPeriod: %d", row1SigResRepPeriod);
-				return HAL_OK;
-			}
-		}
-	}
-
-	return HAL_ERROR;
-}
-
-
-HAL_StatusTypeDef ub_check_synchro(uint16_t *resBitMatrix){
-	uint16_t data = 0;
-	uint8_t lastColCirBuf[1] = {0}; uint8_t cirColBufIndex = 0;
-	uint8_t lastRowCirBuf[1] = {0}; uint8_t cirRowBufIndex = 0;
-	uint8_t newColBitArray = 0;
-	uint8_t newRowBitArray = 0;
-
-	if ( ub_check_sig_level_wait(0 , 1, 0xffff) == HAL_OK ){
-			uint16_t checkRepeatCnt = 500;
-			while (checkRepeatCnt--){
-				HAL_I2C_Master_Receive(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)&data, sizeof(data), UB_CHECK_TIMEOUT);
-
-				newRowBitArray = (uint8_t)data;
-				newColBitArray = (uint8_t) (data >> 8);
-
-				for (uint8_t rowNum = 0; rowNum < UB_MATRIX_ROW_NUM; rowNum++){
-					if ( newRowBitArray & lastRowCirBuf[0] & (1<<rowNum) ){
-						ubBitMatrix[rowNum] |= newColBitArray;
-						//break;
-					}
-				}
-
-//				if(++cirColBufIndex == 1){
-//					cirColBufIndex = 0;
-//				}
-//				lastColCirBuf[cirColBufIndex] = newColBitArray;
-
-				if(++cirRowBufIndex == 1){
-					cirRowBufIndex = 0;
-				}
-				lastRowCirBuf[cirRowBufIndex] = newRowBitArray;
-
-			}
-			return HAL_OK;
-	}
-
-
-	if ( resBitMatrix != NULL )
-		memcpy(resBitMatrix, ubBitMatrix, sizeof(ubBitMatrix));
-
-  return HAL_OK;
-}
 
 HAL_StatusTypeDef ub_check_aver_start(void){
 	HAL_StatusTypeDef res = HAL_OK;
@@ -312,6 +143,72 @@ void ub_check_aver_finish(uint16_t *resBitMatrix){
 	for (uint8_t rowNum = 0; rowNum < UB_MATRIX_ROW_NUM; rowNum++){
 		resultMatrix[rowNum] = ubBitMatrix[rowNum];
 	}
+}
+
+void ub_check_aver_stop(void){
+	HAL_I2C_Master_Abort_IT(&hi2c1, PCF8575_READ_ADDR);
+	HAL_I2C_DeInit(&hi2c1);
+	HAL_DMA_DeInit(&hdma_tx);
+	HAL_DMA_DeInit(&hdma_rx);
+
+	status_leds_reset(LED_PROCESS_Pin);
+}
+
+void ub_check_synchro_start(void){
+	// disable EXTI15_10_IRQn as it was enabled by setting buttons
+	__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_15);
+	NVIC_ClearPendingIRQ (EXTI15_10_IRQn);
+	HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
+
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+	/* GPIO Ports Clock Enable */
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+
+	GPIO_InitStruct.Pin = GPIO_PIN_15;
+	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+	/* EXTI interrupt init*/
+	/*
+	* @note all FreeRTOS safe ISR should have priority <= configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY
+	* see FreeRTOSConfig.h
+	*/
+	HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
+	HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+}
+
+void ub_check_synchro_stop(void){
+	HAL_I2C_Master_Abort_IT(&hi2c1, PCF8575_READ_ADDR);
+	HAL_I2C_DeInit(&hi2c1);
+	HAL_DMA_DeInit(&hdma_tx);
+	HAL_DMA_DeInit(&hdma_rx);
+
+	// disable EXTI15_10_IRQn as it was enabled by setting buttons
+	__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_15);
+	NVIC_ClearPendingIRQ (EXTI15_10_IRQn);
+	HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
+
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+	/* GPIO Ports Clock Enable */
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+
+	GPIO_InitStruct.Pin = GPIO_PIN_15;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+	/* EXTI interrupt init*/
+	/*
+	* @note all FreeRTOS safe ISR should have priority <= configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY
+	* see FreeRTOSConfig.h
+	*/
+	HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
+	HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
+	status_leds_reset(LED_PROCESS_Pin);
 }
 
 

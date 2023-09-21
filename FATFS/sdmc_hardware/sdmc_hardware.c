@@ -6,6 +6,7 @@
  */
 
 #include "sdmc_hardware.h"
+#include "LCD1602.h"
 
 SD_HandleTypeDef hsd;
 
@@ -29,6 +30,12 @@ void sdio_sd_init(void)
   hsd.Init.ClockDiv = 0;
   if (HAL_SD_Init(&hsd) != HAL_OK)
   {
+	LCD_Clear();
+	LCD_SetCursor( 0, 0 );
+	LCD_PrintString("MicroSDMC");
+	LCD_SetCursor( 0, 1 );
+	LCD_PrintString("Error");
+
     Error_Handler();
   }
   if (HAL_SD_ConfigWideBusOperation(&hsd, SDIO_BUS_WIDE_4B) != HAL_OK)

@@ -27,7 +27,7 @@ extern osEventFlagsId_t testEvents;
 */
 
 #define LPS_ACT_MENU_ROW_NUM 2
-static char lpsActMenu[LPS_ACT_MENU_ROW_NUM][32] = {"ЛБП всего: ", "Конф-ия ЛБП: "}; // cyrillic letters take 2 bytes
+static char lpsActMenu[LPS_ACT_MENU_ROW_NUM][32] = {"ИП всего: ", "Конф-ия ИП: "}; // cyrillic letters take 2 bytes
 static uint8_t curCursorPos = 0;
 
 #define LPS_ACT_MENU_START     	0x01

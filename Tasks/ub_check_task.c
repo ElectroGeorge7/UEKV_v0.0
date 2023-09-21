@@ -50,20 +50,9 @@ void UbCheckTask(void *argument){
 
 		uartprintf("TIM9 interrupt time: %d", HAL_GetTick());
 
-/*
- 	 	 	// phase synchro
-			rch_timer_stop();
-			if ( ub_check_sig_level_wait(0, 1, 0xffff) == HAL_OK){
-				rch_timer_start();
-				uartprintf("phase alignment on the first signal of row1: ok");
-				return HAL_OK;
-			}
-*/
-
 		if ( ubCheckMeth == AVERAGE_RESULT ){
 			ub_check_aver_finish(resultMatrix);
 		} else if ( ubCheckMeth == SYNCHRO_RESULT ){
-			//ub_check_synchro(resultMatrix);
 			// wait for result showing pause
 			uint16_t timeout = 150;
 			uint32_t timeoutStart = osKernelGetTickCount();
@@ -74,8 +63,6 @@ void UbCheckTask(void *argument){
 			ub_check_aver_finish(resultMatrix);
 		}
 		result_show(resultMatrix);
-
-
 
 
 		curLog.index = logNum++;
@@ -94,15 +81,6 @@ void UbCheckTask(void *argument){
 		curLog.temp[0] = ts_check(1);
 		curLog.temp[1] = ts_check(2);
 
-
-
-		//curLog.supplyCurrents[0].intVal = 1;
-		//curLog.supplyCurrents[0].fracVal = 15;
-		//curLog.supplyVoltages[0].intVal = 3;
-		//curLog.supplyVoltages[0].fracVal = 6;
-
-		// get the lps`s data from
-		//lps_read_status(1, curLog.lpsState, sizeof(curLog.lpsState));
 
 		if (lpsNum == 0){
 			lpsNum = lps_get_connected_num();
@@ -128,7 +106,6 @@ void UbCheckTask(void *argument){
 		result_check_clear();
 		status_leds_toggle(LED_PROCESS_Pin);
 
-
 		if ( ubCheckMeth == AVERAGE_RESULT ){
 			if ( (osEventFlag = osEventFlagsWait(testEvents, TEST_LOG_PROCCESS_FINISHED, osFlagsWaitAny, osWaitForever)) & TEST_LOG_PROCCESS_FINISHED ){
 				ub_check_aver_start();
@@ -139,8 +116,6 @@ void UbCheckTask(void *argument){
 			HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
 			HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 		}
-
-
 
 		osThreadYield();
 	}
