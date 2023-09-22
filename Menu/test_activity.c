@@ -24,7 +24,7 @@
 #define TEST_ACT_CONFIG_TO_WRITE 	0x04
 static uint8_t testActStatusFlags = 0;
 
-#define TEST_ACT_MENU_ROW_NUM 22
+#define TEST_ACT_MENU_ROW_NUM 14
 static uint8_t curMenuRow = 0;
 static uint8_t curCursorPos = 0;
 static char testActMenu[TEST_ACT_MENU_ROW_NUM][32] = {0}; // cyrillic letters take 2 bytes
@@ -358,7 +358,7 @@ void test_menu_update(TestConfig_t *curConfig){
 	snprintf(testActMenu[5], 32, "%s", curConfig->testType ? "ЭТТ" : "Безотказность");
 
 	snprintf(testActMenu[6], 32, "Метод считыв.:");
-	snprintf(testActMenu[7], 32, "%d", curConfig->resCheckMethod ? "синхро" : "среднее" );
+	snprintf(testActMenu[7], 32, "%s", curConfig->resCheckMethod ? "синхро" : "среднее" );
 
 	snprintf(testActMenu[8], 32, "тек. время:");
 	rtc_get(&dataTime);
@@ -366,11 +366,11 @@ void test_menu_update(TestConfig_t *curConfig){
 
 	float temp1 = ts_check(1);
 	float temp2 = ts_check(2);
-	snprintf(testActMenu[18], 32, "темп.1:%3.0fC", temp1);
-	snprintf(testActMenu[19], 32, "темп.2:%3.0fC", temp2);
+	snprintf(testActMenu[10], 32, "темп.1:%3.0fC", temp1);
+	snprintf(testActMenu[11], 32, "темп.2:%3.0fC", temp2);
 
-	snprintf(testActMenu[20], 32, "кол-во плат:%d", curConfig->pcbNum);
-	memset(testActMenu[21], 0, 32);
+	snprintf(testActMenu[12], 32, "кол-во плат:%d", curConfig->pcbNum);
+	memset(testActMenu[13], 0, 32);
 }
 
 void test_reg_activity_cb(ActivityViewUpdateCb_t *pTestUpdateCb){
