@@ -106,17 +106,16 @@ void UbCheckTask(void *argument){
 		result_check_clear();
 		status_leds_toggle(LED_PROCESS_Pin);
 
-		if ( ubCheckMeth == AVERAGE_RESULT ){
-			if ( (osEventFlag = osEventFlagsWait(testEvents, TEST_LOG_PROCCESS_FINISHED, osFlagsWaitAny, osWaitForever)) & TEST_LOG_PROCCESS_FINISHED ){
+		if ( (osEventFlag = osEventFlagsWait(testEvents, TEST_LOG_PROCCESS_FINISHED, osFlagsWaitAny, osWaitForever)) & TEST_LOG_PROCCESS_FINISHED ){
+			if ( ubCheckMeth == AVERAGE_RESULT ){
 				ub_check_aver_start();
+			} else if ( ubCheckMeth == SYNCHRO_RESULT ){
+				__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_15);
+				NVIC_ClearPendingIRQ (EXTI15_10_IRQn);
+				HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
+				HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 			}
-		} else if ( ubCheckMeth == SYNCHRO_RESULT ){
-			__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_15);
-			NVIC_ClearPendingIRQ (EXTI15_10_IRQn);
-			HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
-			HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 		}
-
 		osThreadYield();
 	}
 }

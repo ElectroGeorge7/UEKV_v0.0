@@ -93,7 +93,6 @@ HAL_StatusTypeDef ub_check_init(TestConfig_t conf){
 				break;
 
 			case AVERAGE_RESULT:
-				res |= I2C1_DMA_Init();
 				res |= ub_check_aver_start();
 				res |= rch_timer_init(1000 * conf.resCheckPeriod);
 				res |= rch_timer_start();
@@ -113,7 +112,8 @@ HAL_StatusTypeDef ub_check_init(TestConfig_t conf){
 HAL_StatusTypeDef ub_check_aver_start(void){
 	HAL_StatusTypeDef res = HAL_OK;
 	// don`t remove, need to free SDA line if it was blocked
-	res = I2C1_Init();
+	res |= I2C1_Init();
+	res |= I2C1_DMA_Init();
 
 	if ( (res == HAL_OK) && (HAL_I2C_GetState(&hi2c1) == HAL_I2C_STATE_READY) ){
 		HAL_I2C_Master_Receive_DMA(&hi2c1, PCF8575_READ_ADDR, (uint8_t *)portExpBuf, sizeof(portExpBuf));
