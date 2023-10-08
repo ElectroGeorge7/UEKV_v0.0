@@ -2,7 +2,7 @@
  * lps_activity.c
  *
  *  Created on: 23 февр. 2023 г.
- *      Author: EKF
+ *      Author: George
  */
 
 #include "lps_activity.h"
@@ -84,7 +84,20 @@ HAL_StatusTypeDef lps_view_update(Command_t lpsAction, uint8_t *data){
 
                 lpsActStatusFlags = LPS_ACT_FIND_CONNECTED;
             } else if ( (curCursorPos == 1) && (lpsActStatusFlags != LPS_ACT_CONFIG_ALL) ){
-                // найти config_lbp.txt файл
+
+                LCD_Clear();
+                LCD_SetCursor( 0, 0 );
+                LCD_PrintString(lpsActMenu[0]);
+                LCD_SetCursor( 0, 1 );
+                LCD_PrintString(lpsActMenu[1]);
+                LCD_SetCursor( 15, curCursorPos = 1 );
+
+                osEventFlagsSet(testEvents, LPS_CONFIG_SEARCH);
+                if ( (osEventFlag = osEventFlagsWait(testEvents, LPS_CONFIG_FINISH, osFlagsWaitAny, osWaitForever)) & LPS_CONFIG_FINISH ){
+                	;
+                }
+
+            	// найти config_lbp.txt файл
                 // и установить ограничения для ЛБП в соответствии с этим файлом
             	lpsActStatusFlags = LPS_ACT_CONFIG_ALL;
             }

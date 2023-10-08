@@ -49,7 +49,7 @@ void ControlTask(void *argument){
 
 	// if it was reset during the test process than resume the test
 	if ( bkp_read_data(UEKV_LAST_STATE_REG) == UEKV_TEST_STATE ){
-		osEventFlagsSet(testEvents, LPS_LIST_UDATE_START);
+		osEventFlagsSet(testEvents, LPS_LIST_UPDATE_START);
 		osThreadYield();
 		osDelay(1);
 

@@ -2,7 +2,7 @@
  * lps_activity.h
  *
  *  Created on: 23 февр. 2023 г.
- *      Author: EKF
+ *      Author: George
  */
 
 #ifndef LPS_ACTIVITY_H_

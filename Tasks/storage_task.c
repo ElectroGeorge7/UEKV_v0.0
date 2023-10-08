@@ -32,7 +32,8 @@ static uint16_t testFlags = 0;
 
 void fRead(char *configFileName, uint8_t *buf, uint32_t num, uint32_t *br);
 FRESULT storage_file_open_create ( FIL* fp, char* path);
-HAL_StatusTypeDef storage_config_search(const char *configFileName, TestConfig_t *curConfig);
+HAL_StatusTypeDef storage_test_config_search(const char *configFileName, TestConfig_t *curConfig);
+HAL_StatusTypeDef storage_lps_config_search(const char *configFileName);
 
 void StorageTask(void *argument) {
 	osStatus_t osRes;
@@ -56,13 +57,14 @@ void StorageTask(void *argument) {
 	  // if configuration is not set
 	  if (!testFlags){
 		  // wait for cmd to find config file
-		 if ( (osEventFlag = osEventFlagsWait(testEvents, TEST_CONFIG_SEARCH, osFlagsWaitAny, osWaitForever)) & TEST_CONFIG_SEARCH ){
+		 osEventFlag = osEventFlagsWait(testEvents, TEST_CONFIG_SEARCH | LPS_CONFIG_SEARCH, osFlagsWaitAny, osWaitForever);
+		 if ( osEventFlag & TEST_CONFIG_SEARCH ){
 
 			 // find config file
 			 // encode config to queue type
 
 			 msg.event = TEST_CONFIG_SEND;
-			if ( storage_config_search("test_cfg.txt", &curConfig) == HAL_OK ){
+			if ( storage_test_config_search("test_cfg.txt", &curConfig) == HAL_OK ){
 				memcpy(msg.eventStr, (uint8_t *)&curConfig, sizeof(TestConfig_t));
 				//for (uint16_t i=0; i < sizeof(TestConfig_t); i++){
 				//	*((&curConfig)+i)
@@ -83,13 +85,21 @@ void StorageTask(void *argument) {
 			}
 
 			testFlags |= TEST_CONFIG_SEARCH;
-		 }
+
+		 } else if ( osEventFlag & LPS_CONFIG_SEARCH ){
+
+			  if ( storage_lps_config_search("lps_cfg.txt") == HAL_OK ){
+
+			  } else {
+				  // print the file is missing
+			  }
+		  }
 
 	  } else {
 
 		  if ( ! (testFlags & TEST_START) ){
 
-			 uint32_t osEventFlag = osEventFlagsWait(testEvents, TEST_START | TEST_FINISH, osFlagsWaitAny, osWaitForever);
+			 osEventFlag = osEventFlagsWait(testEvents, TEST_START | TEST_FINISH, osFlagsWaitAny, osWaitForever);
 
 			 if ( osEventFlag & TEST_START ){
 
@@ -212,7 +222,7 @@ FRESULT storage_file_open_create( FIL* fp, char* path) {
     return fr;
 }
 
-HAL_StatusTypeDef storage_config_search(const char *configFileName, TestConfig_t *curConfig){
+HAL_StatusTypeDef storage_test_config_search(const char *configFileName, TestConfig_t *curConfig){
 
 	char strBuf[100] = {0};
 	FIL readFile;
@@ -301,3 +311,84 @@ HAL_StatusTypeDef storage_config_search(const char *configFileName, TestConfig_t
 	  f_close(&readFile);
 	  return HAL_OK;
 }
+
+
+
+
+
+uint8_t  storage_lps_config_get_num(const char *configFileName){
+	char strBuf[100] = {0};
+	FIL readFile;
+
+	uint8_t	lpsNum = 0;
+
+	uint8_t temp = 5;
+	do{
+		gfr = f_open(&readFile, configFileName, FA_READ);
+	}while (gfr && --temp);
+
+	if (!temp){
+		usbprintf("lps_cfg.txt file not found");
+		return 0;
+	}
+
+	while( !f_eof(&readFile) ){
+		int addr = 0;
+		f_gets(strBuf, sizeof(strBuf), &readFile);
+		if ( sscanf(strBuf, "lps adr: %2d", addr) )
+			lpsNum++;
+	}
+
+	f_close(&readFile);
+
+	return lpsNum;
+}
+
+HAL_StatusTypeDef storage_lps_config_search(const char *configFileName){
+	char strBuf[100] = {0};
+	FIL readFile;
+
+	uint8_t	lpsNum = 0;
+	LpsStatus_t lpsConfig = {0};
+
+	// посчитать количество lps в файле
+	// инициализация lpsConfigList (выделение памяти)
+	// цикл ( до конца файла )
+	// 	прочитать параметры в lpsConfig
+	//		из lpsConfig перевести в lpsConfigList
+
+	lpsNum = storage_lps_config_get_num(configFileName);
+	//lps_conf_list_init(lpsNum);
+
+	uint8_t temp = 5;
+	do{
+		gfr = f_open(&readFile, configFileName, FA_READ);
+	}while (gfr && --temp);
+
+	if (!temp){
+		usbprintf("lps_cfg.txt file not found");
+		return HAL_ERROR;
+	}
+
+	uint8_t curLpsNum = 0;
+	int lpsAddr = 0;
+	while( !f_eof(&readFile) && (curLpsNum < lpsNum) ){
+		f_gets(strBuf, sizeof(strBuf), &readFile);
+		if ( sscanf(strBuf, "lps adr: %2d", &lpsAddr) ){
+			lpsConfig.addr = lpsAddr;
+			f_gets(strBuf, sizeof(strBuf), &readFile);
+			sscanf(strBuf, "lps vol: %6s", lpsConfig.volStr);
+			f_gets(strBuf, sizeof(strBuf), &readFile);
+			sscanf(strBuf, "lps cur: %6s", lpsConfig.curStr);
+			// вместо копирования всех данных в структуру лучше настраивать ИП по одному
+			// функция возвращает статус, при любой ошибке настройка прекращается
+			lps_conf_set(&lpsConfig);
+			memset(&lpsConfig, 0, sizeof(lpsConfig));
+		}
+	}
+
+	f_close(&readFile);
+
+	return HAL_OK;
+}
+

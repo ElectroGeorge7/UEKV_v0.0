@@ -27,12 +27,36 @@ extern osEventFlagsId_t testEvents;
 
 #define LPS_STT_RESPOND_SIZE 	54
 
-#define LPS_ZUP60_7_STT_VOL_START_BIT	2
-#define LPS_ZUP60_7_STT_CUR_START_BIT	16
+typedef enum LpsParamType{
+	LPS_VOL,
+	LPS_CUR
+} LpsParamType_t;
+
+typedef enum LpsParamFormat{
+	LPS_PARAM_FORMAT_0,		//xx.xx
+	LPS_PARAM_FORMAT_1,		//x.xxx
+	LPS_PARAM_FORMAT_2		//xx.xxx
+//	LPS_FORMAT_3			//xxx.xx - only for ZUP6-132, this format isn`t used
+} LpsParamFormat_t;
+
+
+#define LPS_ZUP60_7_VOL_FORMAT			LPS_PARAM_FORMAT_0
+#define LPS_ZUP60_7_CUR_FORMAT			LPS_PARAM_FORMAT_1
+#define LPS_ZUP60_7_STT_AV_START_BIT	2
+#define LPS_ZUP60_7_STT_SV_START_BIT	LPS_ZUP60_7_STT_AV_START_BIT + 2 + ((LPS_ZUP60_7_VOL_FORMAT == LPS_PARAM_FORMAT_2) ? 6 : 5)
+#define LPS_ZUP60_7_STT_AA_START_BIT	LPS_ZUP60_7_STT_SV_START_BIT + 2 + ((LPS_ZUP60_7_VOL_FORMAT == LPS_PARAM_FORMAT_2) ? 6 : 5)
+#define LPS_ZUP60_7_STT_SA_START_BIT	LPS_ZUP60_7_STT_AA_START_BIT + 2 + ((LPS_ZUP60_7_CUR_FORMAT == LPS_PARAM_FORMAT_2) ? 6 : 5)
 #define LPS_ZUP60_7_STT_OS_REG_OUT_BIT	33
 
-#define LPS_ZUP10_40_STT_VOL_START_BIT	2
-#define LPS_ZUP10_40_STT_CUR_START_BIT	18
+#define LPS_ZUP10_40_VOL_FORMAT			LPS_PARAM_FORMAT_2
+#define LPS_ZUP10_40_CUR_FORMAT			LPS_PARAM_FORMAT_0
+#define LPS_ZUP10_40_STT_AV_START_BIT	2
+#define LPS_ZUP10_40_STT_SV_START_BIT	LPS_ZUP10_40_STT_AV_START_BIT + 2 + ((LPS_ZUP10_40_VOL_FORMAT == LPS_PARAM_FORMAT_2) ? 6 : 5)
+#define LPS_ZUP10_40_STT_AA_START_BIT	LPS_ZUP10_40_STT_SV_START_BIT + 2 + ((LPS_ZUP10_40_VOL_FORMAT == LPS_PARAM_FORMAT_2) ? 6 : 5)
+#define LPS_ZUP10_40_STT_SA_START_BIT	LPS_ZUP10_40_STT_AA_START_BIT + 2 + ((LPS_ZUP10_40_CUR_FORMAT == LPS_PARAM_FORMAT_2) ? 6 : 5)
+
+
+#define LPS_ZUP10_40_STT_AA_START_BIT	18
 #define LPS_ZUP10_40_STT_OS_REG_OUT_BIT	33
 
 #define LPS_NAMES_NUM	2
@@ -42,14 +66,23 @@ static const char *lpsNames[LPS_NAMES_NUM] = {
 		/// @todo add the second type of lps
 };
 
-const uint8_t MDL_cmd[] = ":MDL?;\r";
-const uint8_t REV_cmd[] = ":REV?;\r";
-const uint8_t RMT0_cmd[] = ":RMT0;\r";
-const uint8_t RMT1_cmd[] = ":RMT1;\r";
-const uint8_t RMT2_cmd[] = ":RMT2;\r";
-const uint8_t OUT1_cmd[] = ":OUT1;\r";
-const uint8_t OUT0_cmd[] = ":OUT0;\r";
-const uint8_t STT_cmd[] = ":STT?;\r";
+const char MDL_cmd[] = ":MDL?;\r";
+const char REV_cmd[] = ":REV?;\r";
+const char RMT0_cmd[] = ":RMT0;\r";
+const char RMT1_cmd[] = ":RMT1;\r";
+const char RMT2_cmd[] = ":RMT2;\r";
+const char OUT1_cmd[] = ":OUT1;\r";
+const char OUT0_cmd[] = ":OUT0;\r";
+const char STT_cmd[] = ":STT?;\r";
+const char VOL_cmd[] = ":VOL;\r";
+const char CUR_cmd[] = ":CUR;\r";
+
+const uint8_t VOL1_cmd[] = ":VOL06.000;\r";
+const uint8_t VOL2_cmd[] = ":VOL7.300;\r";
+const uint8_t VOL3_cmd[] = ":VOL08.50;\r";
+const uint8_t CUR1_cmd[] = ":CUR01.000;\r";
+const uint8_t CUR2_cmd[] = ":CUR1.200;\r";
+const uint8_t CUR3_cmd[] = ":CUR01.30;\r";
 
 typedef enum LpsOutputState{
 	LPS_OUTPUT_OFF,
@@ -72,13 +105,13 @@ static LpsStatusList_t lpsStatusList = {0};
 
 
 
-HAL_StatusTypeDef lps_tx_w_respond(uint8_t *cmd, uint16_t txSize, uint8_t *respond, uint16_t rxSize, uint8_t repeat);
-HAL_StatusTypeDef lps_read_status(uint8_t addr, uint8_t *rxData, uint16_t size);
-HAL_StatusTypeDef lps_ctrl_output(uint8_t addr, LpsOutputState_t state);
-HAL_StatusTypeDef lps_find_connected(LpsStatusList_t *lpsList);
-HAL_StatusTypeDef lps_list_init(void);
-
-
+static HAL_StatusTypeDef lps_tx_w_respond(uint8_t *cmd, uint16_t txSize, uint8_t *respond, uint16_t rxSize, uint8_t repeat);
+static HAL_StatusTypeDef lps_read_status(uint8_t addr, uint8_t *rxData, uint16_t size);
+static HAL_StatusTypeDef lps_ctrl_output(uint8_t addr, LpsOutputState_t state);
+static HAL_StatusTypeDef lps_find_connected(LpsStatusList_t *lpsList);
+static HAL_StatusTypeDef lps_list_init(void);
+static HAL_StatusTypeDef lps_param_set(LpsStatus_t *lpsConfig, LpsParamType_t paramType, LpsParamFormat_t format);
+static void lps_param_cmd_make(char *cmdBuf, const char *cmdStr, char *paramStr, LpsParamFormat_t format);
 
 void lps_respond_handler(void){
 	osSemaphoreRelease(lpsRespondSem);
@@ -86,7 +119,7 @@ void lps_respond_handler(void){
 
 void LpsTask(void *argument){
 	HAL_StatusTypeDef res = HAL_ERROR;
-	uint8_t lpsStatusBuf[LPS_STT_RESPOND_SIZE] = {0};
+	char lpsStatusBuf[LPS_STT_RESPOND_SIZE] = {0};
 	LpsStatus_t *pStatusArray = NULL;
 	uint32_t osEventFlag = 0;
 
@@ -110,7 +143,7 @@ void LpsTask(void *argument){
 
 	for(;;){
 
-		osEventFlag = osEventFlagsWait(testEvents, LPS_FIND_CONNECTED_START | LPS_LIST_UDATE_START, osFlagsNoClear, osWaitForever);
+		osEventFlag = osEventFlagsWait(testEvents, LPS_FIND_CONNECTED_START | LPS_LIST_UPDATE_START, osFlagsNoClear, osWaitForever);
 
 		if ( osEventFlag & LPS_FIND_CONNECTED_START ){
 
@@ -119,7 +152,7 @@ void LpsTask(void *argument){
 			osEventFlagsClear(testEvents, LPS_FIND_CONNECTED_START);
 			osEventFlagsSet(testEvents, LPS_FIND_CONNECTED_FINISHED);
 
-		} else if ( osEventFlag & LPS_LIST_UDATE_START ){
+		} else if ( osEventFlag & LPS_LIST_UPDATE_START ){
 
 
 			lpsStatusList.updateReadyFlag = 0;
@@ -132,16 +165,16 @@ void LpsTask(void *argument){
 					pStatusArray->addr = lpsStatusList.conAddrsList[i].addr;
 					switch(lpsStatusList.conAddrsList[i].type){
 					case 0:
-						memcpy(pStatusArray->volStr, lpsStatusBuf+LPS_ZUP60_7_STT_VOL_START_BIT, 7-2);
-						memcpy(pStatusArray->curStr, lpsStatusBuf+LPS_ZUP60_7_STT_CUR_START_BIT, 7-2);
+						memcpy(pStatusArray->volStr, lpsStatusBuf+LPS_ZUP60_7_STT_AV_START_BIT, 7-2);
+						memcpy(pStatusArray->curStr, lpsStatusBuf+LPS_ZUP60_7_STT_AA_START_BIT, 7-2);
 						break;
 					case 1:
-						memcpy(pStatusArray->volStr, lpsStatusBuf+LPS_ZUP10_40_STT_VOL_START_BIT, 7-2);
-						memcpy(pStatusArray->curStr, lpsStatusBuf+LPS_ZUP10_40_STT_CUR_START_BIT, 7-2);
+						memcpy(pStatusArray->volStr, lpsStatusBuf+LPS_ZUP10_40_STT_AV_START_BIT, 7-2);
+						memcpy(pStatusArray->curStr, lpsStatusBuf+LPS_ZUP10_40_STT_AA_START_BIT, 7-2);
 						break;
 					default:
-						memcpy(pStatusArray->volStr, lpsStatusBuf+LPS_ZUP60_7_STT_VOL_START_BIT, 7-2);
-						memcpy(pStatusArray->curStr, lpsStatusBuf+LPS_ZUP60_7_STT_CUR_START_BIT, 7-2);
+						memcpy(pStatusArray->volStr, lpsStatusBuf+LPS_ZUP60_7_STT_AV_START_BIT, 7-2);
+						memcpy(pStatusArray->curStr, lpsStatusBuf+LPS_ZUP60_7_STT_AA_START_BIT, 7-2);
 					}
 
 				}
@@ -149,9 +182,11 @@ void LpsTask(void *argument){
 
 			lpsStatusList.updateReadyFlag = 1;
 
-			osEventFlagsClear(testEvents, LPS_LIST_UDATE_START);
-			//osEventFlagsSet(testEvents, LPS_LIST_UDATE_FINISHED);
+			osEventFlagsClear(testEvents, LPS_LIST_UPDATE_START);
+			//osEventFlagsSet(testEvents, LPS_LIST_UPDATE_FINISHED);
 
+		} else if(0/*добавить флаг одноразовой установки конфигурации ИП*/){
+			// реализовать функцию установки конфигурации ИП
 		}
 
 		osThreadYield();
@@ -163,7 +198,7 @@ uint8_t lps_get_connected_num(void){
 	return lpsStatusList.conNum;
 }
 
-uint8_t lps_get_update_reade_flag(void){
+uint8_t lps_get_update_ready_flag(void){
 	return lpsStatusList.updateReadyFlag;
 }
 
@@ -171,11 +206,32 @@ LpsStatus_t *lps_list_get(void){
 	return lpsStatusList.statusArray;
 }
 
+HAL_StatusTypeDef lps_conf_set(LpsStatus_t *lpsConfig){
+	HAL_StatusTypeDef res = HAL_ERROR;
+	LpsParamFormat_t format = LPS_PARAM_FORMAT_0;
 
-HAL_StatusTypeDef lps_tx_w_respond(uint8_t *cmd, uint16_t txSize, uint8_t *respond, uint16_t rxSize, uint8_t repeat){
+	do{
+		res = lps_param_set(lpsConfig, LPS_VOL, format);
+	}while( (res != HAL_OK) && (++format <= LPS_PARAM_FORMAT_2) );
+
+	if (res != HAL_OK)
+		return HAL_ERROR;
+
+	res = HAL_ERROR;
+	do{
+		res = lps_param_set(lpsConfig, LPS_CUR, format);
+	}while( (res != HAL_OK) && (++format <= LPS_PARAM_FORMAT_2) );
+
+	if (res != HAL_OK)
+		return HAL_ERROR;
+
+	return HAL_OK;
+}
+
+static HAL_StatusTypeDef lps_tx_w_respond(uint8_t *cmd, uint16_t txSize, uint8_t *respond, uint16_t rxSize, uint8_t repeat){
 	HAL_StatusTypeDef res = HAL_ERROR;
 	osStatus_t osRes = osError;
-	uint8_t rxDmaBuf[60] = {0};
+	char rxDmaBuf[60] = {0};
 
 	while(repeat){
 
@@ -197,7 +253,7 @@ HAL_StatusTypeDef lps_tx_w_respond(uint8_t *cmd, uint16_t txSize, uint8_t *respo
 	return res;
 }
 
-HAL_StatusTypeDef lps_read_status(uint8_t addr, uint8_t *rxData, uint16_t size){
+static HAL_StatusTypeDef lps_read_status(uint8_t addr, uint8_t *rxData, uint16_t size){
 	char ADR_cmd[9] = {0};
 	uint8_t repeat = 0;
 
@@ -217,8 +273,7 @@ HAL_StatusTypeDef lps_read_status(uint8_t addr, uint8_t *rxData, uint16_t size){
 	return HAL_ERROR;
 }
 
-
-HAL_StatusTypeDef lps_ctrl_output(uint8_t addr, LpsOutputState_t state){
+static HAL_StatusTypeDef lps_ctrl_output(uint8_t addr, LpsOutputState_t state){
 	char ADR_cmd[9] = {0};
 	char lpsStatus[54] = {0};
 	uint8_t repeat = 2;
@@ -253,7 +308,7 @@ HAL_StatusTypeDef lps_ctrl_output(uint8_t addr, LpsOutputState_t state){
 	return HAL_ERROR;
 }
 
-HAL_StatusTypeDef lps_find_connected(LpsStatusList_t *lpsList){
+static HAL_StatusTypeDef lps_find_connected(LpsStatusList_t *lpsList){
 	HAL_StatusTypeDef res = HAL_ERROR;
 	char ADR_cmd[9] = {0};
 	char lpsMdlStr[30] = {0};
@@ -288,7 +343,7 @@ HAL_StatusTypeDef lps_find_connected(LpsStatusList_t *lpsList){
 	return res;
 }
 
-HAL_StatusTypeDef lps_list_init(void){
+static HAL_StatusTypeDef lps_list_init(void){
 	LpsStatusList_t *lpsList = &lpsStatusList;
 	lps_find_connected(lpsList);
 	// after finding the number of all connected lps let`s allocate mem for statusArray
@@ -298,6 +353,64 @@ HAL_StatusTypeDef lps_list_init(void){
 	return HAL_OK;
 }
 
+static void lps_param_cmd_make(char *cmdBuf, const char *cmdStr, char *paramStr, LpsParamFormat_t format){
+	memset(cmdBuf, 0, sizeof(cmdBuf));
+	memcpy(cmdBuf, cmdStr, 4);				// :VOL
 
+	switch( format ){
+	case LPS_PARAM_FORMAT_0:
+		memcpy(cmdBuf+4, paramStr, 5); 		// :VOLxx.xx
+		memcpy(cmdBuf+9, cmdStr+4, 2);		// :VOLxx.xx;\r
+		break;
+	case LPS_PARAM_FORMAT_1:
+		memcpy(cmdBuf+4, paramStr+1, 5); 	// :VOLx.xxx
+		memcpy(cmdBuf+9, cmdStr+4, 2);		// :VOLx.xxx;\r
+		break;
+	case LPS_PARAM_FORMAT_2: default:
+		memcpy(cmdBuf+4, paramStr, 6); 		// :VOLxx.xxx
+		memcpy(cmdBuf+10, cmdStr+4, 2);		// :VOLxx.xxx;\r
+		break;
+	}
+}
 
+static HAL_StatusTypeDef lps_param_set(LpsStatus_t *lpsConfig, LpsParamType_t paramType, LpsParamFormat_t format){
+	char ADR_cmd[9] = {0};
+	char cmd_buf[13] = {0};
+	char param_buf[7] = {0};
+	char lpsStatus[54] = {0};
+	char *paramStr = (paramType == LPS_VOL) ? lpsConfig->volStr : lpsConfig->curStr;
 
+	float confParam = 0.0;
+	float setParam = 0.0;
+	char *svPos = 0;
+
+	uint8_t repeat = 1;
+
+	uint8_t addr = lpsConfig->addr;
+	if ( addr>=1 && addr<=32 ){
+		if ( addr < 10 )
+			snprintf(ADR_cmd, sizeof(ADR_cmd), ":ADR0%1d;\r", addr);
+		else
+			snprintf(ADR_cmd, sizeof(ADR_cmd), ":ADR%2d;\r", addr);
+
+		sscanf(paramStr, "%f", &confParam);
+		lps_param_cmd_make(cmd_buf, (paramType == LPS_VOL) ? VOL_cmd : CUR_cmd, paramStr, format);
+
+		do{
+			rs485_tx(ADR_cmd, sizeof(ADR_cmd), addr+1, 10);
+			rs485_tx(cmd_buf, strlen(cmd_buf)+1, addr+1, 10);
+			lps_read_status(addr, lpsStatus, sizeof(lpsStatus));
+			// check what was set in real
+			svPos = strstr(lpsStatus, (paramType == LPS_VOL) ? "SV" : "SA");
+			memset(param_buf, 0 , sizeof(param_buf));
+			memcpy(param_buf, svPos + 2, (format == LPS_PARAM_FORMAT_2) ? 6 : 5);
+			sscanf(param_buf, "%f", &setParam);
+
+			if ( ((confParam > setParam) ? confParam - setParam : setParam - confParam) < 0.1 ){
+				return HAL_OK;
+			}
+		} while(repeat--);
+	}
+
+	return HAL_ERROR;
+}

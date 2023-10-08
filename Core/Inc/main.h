@@ -30,7 +30,7 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 
-#define SOFTWARE_VER	"SW: v.1.1.2"
+#define SOFTWARE_VER	"SW: v.1.2.0"
 #define HARDWARE_VER	"HW: UEKV_V3"
 
 /* Exported functions prototypes ---------------------------------------------*/
@@ -51,10 +51,15 @@ void Error_Handler(void);
 #define TEST_LOG_SAVE					0x1000
 #define TEST_LOG_DISPLAY				0x2000
 #define TEST_LOG_PROCCESS_FINISHED		0x4000
-#define LPS_LIST_UDATE_START			0x8000
-#define LPS_LIST_UDATE_FINISHED			0x10000
+#define LPS_LIST_UPDATE_START			0x8000
+#define LPS_LIST_UPDATE_FINISHED		0x10000
 #define LPS_FIND_CONNECTED_START		0x20000
 #define LPS_FIND_CONNECTED_FINISHED		0x40000
+#define LPS_CONFIG_SEARCH				0x80000
+#define LPS_CONFIG_IS_FIND				0x100000
+#define LPS_CONFIG_IS_NOT				0x200000
+#define LPS_CONFIG_START				0x400000
+#define LPS_CONFIG_FINISH				0x800000
 
 #include "rtc_hardware.h"
 #include "lps_task.h"

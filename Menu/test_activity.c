@@ -151,7 +151,7 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 					osEventFlagsSet(testEvents, TEST_START);
 					osThreadYield();
 					osDelay(1);
-					osEventFlagsSet(testEvents, LPS_LIST_UDATE_START);
+					osEventFlagsSet(testEvents, LPS_LIST_UPDATE_START);
 					osThreadYield();
 					osDelay(1);
 
