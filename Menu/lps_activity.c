@@ -20,12 +20,6 @@
 
 extern osEventFlagsId_t testEvents;
 
-/*
-всего у этой активности должно быть 2 функции:
-найти все доступные лбп и поуправлять выходом 
-сконфигурировать лбп по config_lbp.txt
-*/
-
 #define LPS_ACT_MENU_ROW_NUM 2
 static char lpsActMenu[LPS_ACT_MENU_ROW_NUM][32] = {"ИП всего: ", "Конф-ия ИП: "}; // cyrillic letters take 2 bytes
 static uint8_t curCursorPos = 0;
@@ -55,9 +49,6 @@ HAL_StatusTypeDef lps_view_update(Command_t lpsAction, uint8_t *data){
                 LCD_PrintString(lpsActMenu[1]);
                 LCD_SetCursor( 15, curCursorPos = 0 );
 
-                //rs485_init();
-                //HAL_Delay(100);
-
                 lpsActStatusFlags = LPS_ACT_MENU_START;
             } else if ( (curCursorPos == 0) && (lpsActStatusFlags != LPS_ACT_FIND_CONNECTED) ){
 
@@ -74,13 +65,11 @@ HAL_StatusTypeDef lps_view_update(Command_t lpsAction, uint8_t *data){
 					uint8_t lpsNum = lps_get_connected_num();
 
 					LCD_SetCursor( 0, 0 );
+					memset(lcdStr, 0, sizeof(lcdStr));
 					snprintf(lcdStr, 32, "%s%d", lpsActMenu[0], lpsNum);
 					LCD_PrintString(lcdStr);
 					LCD_SetCursor( 15, curCursorPos = 0 );
                 }
-
-                //memset(rs485Buf, 0, sizeof(rs485Buf) );
-                //lps_read_status(1, rs485Buf, sizeof(rs485Buf));
 
                 lpsActStatusFlags = LPS_ACT_FIND_CONNECTED;
             } else if ( (curCursorPos == 1) && (lpsActStatusFlags != LPS_ACT_CONFIG_ALL) ){
@@ -93,12 +82,24 @@ HAL_StatusTypeDef lps_view_update(Command_t lpsAction, uint8_t *data){
                 LCD_SetCursor( 15, curCursorPos = 1 );
 
                 osEventFlagsSet(testEvents, LPS_CONFIG_SEARCH);
-                if ( (osEventFlag = osEventFlagsWait(testEvents, LPS_CONFIG_FINISH, osFlagsWaitAny, osWaitForever)) & LPS_CONFIG_FINISH ){
-                	;
+                osEventFlag = osEventFlagsWait(testEvents, LPS_CONFIG_FINISH, osFlagsWaitAny, osWaitForever);
+
+                if ( (osEventFlag & LPS_CONFIG_FINISH) && (osEventFlag & LPS_CONFIG_ERROR) ){
+                	osEventFlagsClear(testEvents, LPS_CONFIG_ERROR);
+
+					LCD_SetCursor( 0, 1 );
+					memset(lcdStr, 0, sizeof(lcdStr));
+					snprintf(lcdStr, 32, "%s%s", lpsActMenu[1], "ERR");
+					LCD_PrintString(lcdStr);
+					LCD_SetCursor( 15, curCursorPos = 1 );
+                } else if ( osEventFlag  & LPS_CONFIG_FINISH ){
+					LCD_SetCursor( 0, 1 );
+					memset(lcdStr, 0, sizeof(lcdStr));
+					snprintf(lcdStr, 32, "%s%s", lpsActMenu[1], "OK");
+					LCD_PrintString(lcdStr);
+					LCD_SetCursor( 15, curCursorPos = 1 );
                 }
 
-            	// найти config_lbp.txt файл
-                // и установить ограничения для ЛБП в соответствии с этим файлом
             	lpsActStatusFlags = LPS_ACT_CONFIG_ALL;
             }
 			break;

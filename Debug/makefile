@@ -86,7 +86,7 @@ main-build: UEKV_v0.0.elf secondary-outputs
 
 # Tool invocations
 UEKV_v0.0.elf: $(OBJS) $(USER_OBJS) G:\Milandr\UEKV\Software\UEKV_FW\UEKV_v0.0\STM32F446RCTX_FLASH.ld
-	arm-none-eabi-gcc -o "UEKV_v0.0.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"G:\Milandr\UEKV\Software\UEKV_FW\UEKV_v0.0\STM32F446RCTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="UEKV_v0.0.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
+	arm-none-eabi-gcc -o "UEKV_v0.0.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"G:\Milandr\UEKV\Software\UEKV_FW\UEKV_v0.0\STM32F446RCTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="UEKV_v0.0.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

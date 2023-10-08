@@ -30,36 +30,37 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 
-#define SOFTWARE_VER	"SW: v.1.2.0"
+#define SOFTWARE_VER	"SW: v.1.2.1"
 #define HARDWARE_VER	"HW: UEKV_V3"
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
-#define BUTTON_UP_PRESS_EVENT 			0x01
-#define BUTTON_DOWN_PRESS_EVENT 		0x02
-#define BUTTON_RIGHT_PRESS_EVENT 		0x04
-#define BUTTON_LEFT_PRESS_EVENT 		0x08
-#define ACTIVITY_UPDATE_EVENT			0x10
-#define TERMINAL_CMD_RECEIVED_EVENT		0x20
-#define TEST_CONFIG_SEARCH				0x40
-#define TEST_CONFIG_IS_FIND				0x80
-#define TEST_CONFIG_IS_NOT				0x100
-#define TEST_CONFIG_SEND				0x200
-#define TEST_START						0x400
-#define TEST_FINISH						0x800
-#define TEST_LOG_SAVE					0x1000
-#define TEST_LOG_DISPLAY				0x2000
-#define TEST_LOG_PROCCESS_FINISHED		0x4000
-#define LPS_LIST_UPDATE_START			0x8000
-#define LPS_LIST_UPDATE_FINISHED		0x10000
-#define LPS_FIND_CONNECTED_START		0x20000
-#define LPS_FIND_CONNECTED_FINISHED		0x40000
-#define LPS_CONFIG_SEARCH				0x80000
-#define LPS_CONFIG_IS_FIND				0x100000
-#define LPS_CONFIG_IS_NOT				0x200000
-#define LPS_CONFIG_START				0x400000
-#define LPS_CONFIG_FINISH				0x800000
+/* event_groups.h, 116: each event group has 24 usable bits (bit 0 to bit 23). */
+#define BUTTON_UP_PRESS_EVENT 			((uint32_t)(1 << 0))
+#define BUTTON_DOWN_PRESS_EVENT 		((uint32_t)(1 << 1))
+#define BUTTON_RIGHT_PRESS_EVENT 		((uint32_t)(1 << 2))
+#define BUTTON_LEFT_PRESS_EVENT 		((uint32_t)(1 << 3))
+#define ACTIVITY_UPDATE_EVENT			((uint32_t)(1 << 4))
+#define TERMINAL_CMD_RECEIVED_EVENT		((uint32_t)(1 << 5))
+#define TEST_CONFIG_SEARCH				((uint32_t)(1 << 6))
+#define TEST_CONFIG_IS_FIND				((uint32_t)(1 << 7))
+#define TEST_CONFIG_IS_NOT				((uint32_t)(1 << 8))
+#define TEST_CONFIG_SEND				((uint32_t)(1 << 9))
+#define TEST_START						((uint32_t)(1 << 10))
+#define TEST_FINISH						((uint32_t)(1 << 11))
+#define TEST_LOG_SAVE					((uint32_t)(1 << 12))
+#define TEST_LOG_DISPLAY				((uint32_t)(1 << 13))
+#define TEST_LOG_PROCCESS_FINISHED		((uint32_t)(1 << 14))
+#define LPS_LIST_UPDATE_START			((uint32_t)(1 << 15))
+#define LPS_LIST_UPDATE_FINISHED		((uint32_t)(1 << 16))
+#define LPS_FIND_CONNECTED_START		((uint32_t)(1 << 17))
+#define LPS_FIND_CONNECTED_FINISHED		((uint32_t)(1 << 18))
+#define LPS_CONFIG_SEARCH				((uint32_t)(1 << 19))
+#define LPS_CONFIG_FINISH				((uint32_t)(1 << 20))
+#define LPS_CONFIG_START				((uint32_t)(1 << 21))
+#define LPS_CONFIG_DONE					((uint32_t)(1 << 22))
+#define LPS_CONFIG_ERROR				((uint32_t)(1 << 23))
 
 #include "rtc_hardware.h"
 #include "lps_task.h"

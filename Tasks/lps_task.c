@@ -19,6 +19,7 @@
 
 extern osSemaphoreId_t lpsRespondSem;
 extern osEventFlagsId_t testEvents;
+extern osMessageQueueId_t eventQueueHandler;
 
 #define LPS_MIN_ADDR	1
 #define LPS_MAX_ADDR	32
@@ -110,6 +111,7 @@ static HAL_StatusTypeDef lps_read_status(uint8_t addr, uint8_t *rxData, uint16_t
 static HAL_StatusTypeDef lps_ctrl_output(uint8_t addr, LpsOutputState_t state);
 static HAL_StatusTypeDef lps_find_connected(LpsStatusList_t *lpsList);
 static HAL_StatusTypeDef lps_list_init(void);
+static HAL_StatusTypeDef lps_conf_set(LpsStatus_t *lpsConfig);
 static HAL_StatusTypeDef lps_param_set(LpsStatus_t *lpsConfig, LpsParamType_t paramType, LpsParamFormat_t format);
 static void lps_param_cmd_make(char *cmdBuf, const char *cmdStr, char *paramStr, LpsParamFormat_t format);
 
@@ -120,30 +122,32 @@ void lps_respond_handler(void){
 void LpsTask(void *argument){
 	HAL_StatusTypeDef res = HAL_ERROR;
 	char lpsStatusBuf[LPS_STT_RESPOND_SIZE] = {0};
+	LpsStatus_t lpsConfig;
 	LpsStatus_t *pStatusArray = NULL;
 	uint32_t osEventFlag = 0;
+	Event_t msg = {0};
 
 	// register the lps_respond_handler() as interrupt handler
 	rs485_init();
 	rs485_reg_respond_handler(lps_respond_handler);
 
-	
-
-
-	if ( (osEventFlag = osEventFlagsWait(testEvents, LPS_FIND_CONNECTED_START, osFlagsWaitAny, osWaitForever)) & LPS_FIND_CONNECTED_START ){
+	osEventFlag = osEventFlagsWait(testEvents, LPS_FIND_CONNECTED_START | LPS_CONFIG_START, osFlagsWaitAny, osWaitForever);
+	if ( osEventFlag & LPS_FIND_CONNECTED_START ){
 
 		lps_list_init();
 		///////////убрать после отладки
 		//lps_ctrl_output(1, LPS_OUTPUT_ON);
 		/////////////////////////////////
 		osEventFlagsSet(testEvents, LPS_FIND_CONNECTED_FINISHED);
+	} else if( osEventFlag & LPS_CONFIG_START ){
+		// set flag to handle it in the loop
+		osEventFlagsSet(testEvents, LPS_CONFIG_START);
 	}
-
 
 
 	for(;;){
 
-		osEventFlag = osEventFlagsWait(testEvents, LPS_FIND_CONNECTED_START | LPS_LIST_UPDATE_START, osFlagsNoClear, osWaitForever);
+		osEventFlag = osEventFlagsWait(testEvents, LPS_FIND_CONNECTED_START | LPS_LIST_UPDATE_START | LPS_CONFIG_START, osFlagsNoClear, osWaitForever);
 
 		if ( osEventFlag & LPS_FIND_CONNECTED_START ){
 
@@ -185,8 +189,20 @@ void LpsTask(void *argument){
 			osEventFlagsClear(testEvents, LPS_LIST_UPDATE_START);
 			//osEventFlagsSet(testEvents, LPS_LIST_UPDATE_FINISHED);
 
-		} else if(0/*добавить флаг одноразовой установки конфигурации ИП*/){
-			// реализовать функцию установки конфигурации ИП
+		} else if( osEventFlag & LPS_CONFIG_START ){
+
+			osEventFlagsClear(testEvents, LPS_CONFIG_START);
+
+			if( osMessageQueueGet(eventQueueHandler, &msg, NULL, osWaitForever) == osOK ){
+				if ( msg.event == LPS_CONFIG_START ){
+					memcpy((uint8_t *)&lpsConfig, msg.eventStr, sizeof(LpsStatus_t));
+					if ( lps_conf_set(&lpsConfig) == HAL_OK ){
+						osEventFlagsSet(testEvents, LPS_CONFIG_DONE);
+					}else{
+						osEventFlagsSet(testEvents, LPS_CONFIG_ERROR);
+					}
+				}
+			}
 		}
 
 		osThreadYield();
@@ -206,7 +222,7 @@ LpsStatus_t *lps_list_get(void){
 	return lpsStatusList.statusArray;
 }
 
-HAL_StatusTypeDef lps_conf_set(LpsStatus_t *lpsConfig){
+static HAL_StatusTypeDef lps_conf_set(LpsStatus_t *lpsConfig){
 	HAL_StatusTypeDef res = HAL_ERROR;
 	LpsParamFormat_t format = LPS_PARAM_FORMAT_0;
 
