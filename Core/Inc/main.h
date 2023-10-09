@@ -30,7 +30,7 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 
-#define SOFTWARE_VER	"SW: v.1.2.2"
+#define SOFTWARE_VER	"SW: v.1.2.3"
 #define HARDWARE_VER	"HW: UEKV_V3"
 
 /* Exported functions prototypes ---------------------------------------------*/

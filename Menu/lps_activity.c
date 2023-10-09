@@ -52,11 +52,10 @@ HAL_StatusTypeDef lps_view_update(Command_t lpsAction, uint8_t *data){
                 lpsActStatusFlags = LPS_ACT_MENU_START;
             } else if ( (curCursorPos == 0) && (lpsActStatusFlags != LPS_ACT_FIND_CONNECTED) ){
 
-                LCD_Clear();
+                LCD_SetCursor( 0, 0 );
+                LCD_PrintString("                ");
                 LCD_SetCursor( 0, 0 );
                 LCD_PrintString(lpsActMenu[0]);
-                LCD_SetCursor( 0, 1 );
-                LCD_PrintString(lpsActMenu[1]);
                 LCD_SetCursor( 15, curCursorPos = 0 );
 
                 osEventFlagsSet(testEvents, LPS_FIND_CONNECTED_START);
@@ -74,9 +73,8 @@ HAL_StatusTypeDef lps_view_update(Command_t lpsAction, uint8_t *data){
                 lpsActStatusFlags = LPS_ACT_FIND_CONNECTED;
             } else if ( (curCursorPos == 1) && (lpsActStatusFlags != LPS_ACT_CONFIG_ALL) ){
 
-                LCD_Clear();
-                LCD_SetCursor( 0, 0 );
-                LCD_PrintString(lpsActMenu[0]);
+                LCD_SetCursor( 0, 1 );
+                LCD_PrintString("                ");
                 LCD_SetCursor( 0, 1 );
                 LCD_PrintString(lpsActMenu[1]);
                 LCD_SetCursor( 15, curCursorPos = 1 );

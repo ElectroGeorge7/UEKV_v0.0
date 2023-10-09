@@ -22,6 +22,7 @@
 #define TEST_ACT_TEST_IS_ACTIVE 	0x01
 #define TEST_ACT_CONFIG_IS_SET 		0x02
 #define TEST_ACT_CONFIG_TO_WRITE 	0x04
+#define TEST_ACT_EXIT_MENU			0x08
 static uint8_t testActStatusFlags = 0;
 
 #define TEST_ACT_MENU_ROW_NUM 14
@@ -29,6 +30,11 @@ static uint8_t curMenuRow = 0;
 static uint8_t curCursorPos = 0;
 static char testActMenu[TEST_ACT_MENU_ROW_NUM][32] = {0}; // cyrillic letters take 2 bytes
 TestConfig_t curConfig = {0};
+
+#define TEST_ACT_EXIT_MENU_ROW_NUM 2
+static char testActExitMenu[TEST_ACT_EXIT_MENU_ROW_NUM][32] = {"Завершить?: нет", "            да"};
+static uint8_t curExitMenuRow = 0;
+static uint8_t curExitCursorPos = 0;
 
 #define TEST_CONFIG_PART_NUM_IS_SET				0x01
 #define TEST_CONFIG_MLDR_NUM_IS_SET				0x02
@@ -63,32 +69,64 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 			;
 			break;
         case UP_CMD:
-			if ( curMenuRow != 0 ){
-				curMenuRow--;
-				if ( curMenuRow%2 ){
-					LCD_Clear();
-					LCD_SetCursor( 0, 0 );
-					LCD_PrintString(testActMenu[curMenuRow-1]);
-					LCD_SetCursor( 0, 1 );
-					LCD_PrintString(testActMenu[curMenuRow]);
-					LCD_SetCursor( 15, curCursorPos = 1 );
-				}else{
-					LCD_SetCursor( 15, curCursorPos = 0 );
+        	if (testActStatusFlags & TEST_ACT_EXIT_MENU){
+				if ( curExitMenuRow != 0 ){
+					curExitMenuRow--;
+					if ( curExitMenuRow%2 ){
+						LCD_Clear();
+						LCD_SetCursor( 0, 0 );
+						LCD_PrintString(testActExitMenu[curExitMenuRow-1]);
+						LCD_SetCursor( 0, 1 );
+						LCD_PrintString(testActExitMenu[curExitMenuRow]);
+						LCD_SetCursor( 15, curExitCursorPos = 1 );
+					}else{
+						LCD_SetCursor( 15, curExitCursorPos = 0 );
+					}
 				}
-			}
+        	}else{
+				if ( curMenuRow != 0 ){
+					curMenuRow--;
+					if ( curMenuRow%2 ){
+						LCD_Clear();
+						LCD_SetCursor( 0, 0 );
+						LCD_PrintString(testActMenu[curMenuRow-1]);
+						LCD_SetCursor( 0, 1 );
+						LCD_PrintString(testActMenu[curMenuRow]);
+						LCD_SetCursor( 15, curCursorPos = 1 );
+					}else{
+						LCD_SetCursor( 15, curCursorPos = 0 );
+					}
+				}
+        	}
             break;
         case DOWN_CMD:
-        	if ( (curMenuRow+1) < TEST_ACT_MENU_ROW_NUM){
-        		curMenuRow++;
-				if ( curMenuRow%2 ){
-					LCD_SetCursor( 15, curCursorPos = 1 );
-				}else{
-					LCD_Clear();
-					LCD_SetCursor( 0, 0 );
-					LCD_PrintString(testActMenu[curMenuRow]);
-					LCD_SetCursor( 0, 1 );
-					LCD_PrintString(testActMenu[curMenuRow+1]);
-					LCD_SetCursor( 15, curCursorPos = 0 );
+        	if (testActStatusFlags & TEST_ACT_EXIT_MENU){
+				if ( (curExitMenuRow+1) < TEST_ACT_EXIT_MENU_ROW_NUM){
+					curExitMenuRow++;
+					if ( curExitMenuRow%2 ){
+						LCD_SetCursor( 15, curExitCursorPos = 1 );
+					}else{
+						LCD_Clear();
+						LCD_SetCursor( 0, 0 );
+						LCD_PrintString(testActExitMenu[curExitMenuRow]);
+						LCD_SetCursor( 0, 1 );
+						LCD_PrintString(testActExitMenu[curExitMenuRow+1]);
+						LCD_SetCursor( 15, curExitCursorPos = 0 );
+					}
+				}
+        	}else{
+				if ( (curMenuRow+1) < TEST_ACT_MENU_ROW_NUM){
+					curMenuRow++;
+					if ( curMenuRow%2 ){
+						LCD_SetCursor( 15, curCursorPos = 1 );
+					}else{
+						LCD_Clear();
+						LCD_SetCursor( 0, 0 );
+						LCD_PrintString(testActMenu[curMenuRow]);
+						LCD_SetCursor( 0, 1 );
+						LCD_PrintString(testActMenu[curMenuRow+1]);
+						LCD_SetCursor( 15, curCursorPos = 0 );
+					}
 				}
         	}
             break;
@@ -170,35 +208,65 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 					result_check_init(curConfig);
 					testActStatusFlags |= TEST_ACT_TEST_IS_ACTIVE;
 				}
+			} else if ( testActStatusFlags & TEST_ACT_EXIT_MENU ){
+				if ( curExitCursorPos == 1){
+					result_check_deinit(curConfig);
+					testActStatusFlags = 0;
+					testConfigsSetFlag = 0;
+					curMenuRow = 0;
+					osEventFlagsSet(testEvents, TEST_FINISH);
+
+					switch(curConfig.testType){
+					case RELIABILITY_TEST:
+						res = osThreadTerminate(ubCheckTaskHandle);
+						if (res != osOK) {
+							usbprintf("Incorrect ubCheckTask termination.");
+						}
+						break;
+					case ETT_TEST:
+						res = osThreadTerminate(ettCheckTaskHandle);
+						if (res != osOK) {
+							usbprintf("Incorrect ettCheckTask termination.");
+						}
+						break;
+					default:
+						usbprintf("Incorrect test was set.");
+						activity_change(BACK_CMD);
+					}
+
+					activity_change(MENU_ACTIVITY);
+				}else{
+					LCD_Clear();
+					LCD_SetCursor( 0, 0 );
+					LCD_PrintString(testActMenu[curExitMenuRow=0]);
+					LCD_SetCursor( 0, 1 );
+					LCD_PrintString(testActMenu[1]);
+					LCD_SetCursor( 15, curExitCursorPos = 0 );
+
+					testActStatusFlags &= ~TEST_ACT_EXIT_MENU;
+				}
 			}
 
 			break;
 		case BACK_CMD:
-			result_check_deinit(curConfig);
-			testActStatusFlags = 0;
-			testConfigsSetFlag = 0;
-			osEventFlagsSet(testEvents, TEST_FINISH);
 
-			switch(curConfig.testType){
-			case RELIABILITY_TEST:
-				res = osThreadTerminate(ubCheckTaskHandle);
-				if (res != osOK) {
-					usbprintf("Incorrect ubCheckTask termination.");
+			if ( testActStatusFlags & TEST_ACT_TEST_IS_ACTIVE ){
+				if ( !(testActStatusFlags & TEST_ACT_EXIT_MENU) ){
+					LCD_SetCursor( 0, 0 );
+					LCD_PrintString(testActExitMenu[curExitMenuRow=0]);
+					LCD_SetCursor( 0, 1 );
+					LCD_PrintString(testActExitMenu[1]);
+					LCD_SetCursor( 15, curExitCursorPos = 0 );
+
+					testActStatusFlags |= TEST_ACT_EXIT_MENU;
 				}
-				break;
-			case ETT_TEST:
-				res = osThreadTerminate(ettCheckTaskHandle);
-				if (res != osOK) {
-					usbprintf("Incorrect ettCheckTask termination.");
-				}
-				break;
-			default:
-				usbprintf("Incorrect test was set.");
-				activity_change(BACK_CMD);
+
+			} else {
+				testActStatusFlags = 0;
+				testConfigsSetFlag = 0;
+				osEventFlagsSet(testEvents, TEST_FINISH);
+				activity_change(MENU_ACTIVITY);
 			}
-
-			//osThreadYield();
-			activity_change(MENU_ACTIVITY);
 			break;
 		case UPDATE_CMD:
 			if ( testActStatusFlags & TEST_ACT_TEST_IS_ACTIVE ){
@@ -212,15 +280,17 @@ HAL_StatusTypeDef test_view_update(Command_t testAction, uint8_t *data){
 
 						float temp1 = pLog->temp[0];
 						float temp2 = pLog->temp[1];
-						snprintf(testActMenu[18], 32, "темп.1: %3.0f C", temp1);
-						snprintf(testActMenu[19], 32, "темп.2: %3.0f C", temp2);
+						snprintf(testActMenu[10], 32, "темп.1: %3.0f C", temp1);
+						snprintf(testActMenu[11], 32, "темп.2: %3.0f C", temp2);
 
-						LCD_Clear();
-						LCD_SetCursor( 0, 0 );
-						LCD_PrintString(testActMenu[curMenuRow]);
-						LCD_SetCursor( 0, 1 );
-						LCD_PrintString(testActMenu[curMenuRow+1]);
-						LCD_SetCursor( 15, curCursorPos = 0 );
+						if ( !(testActStatusFlags & TEST_ACT_EXIT_MENU) ){
+							LCD_Clear();
+							LCD_SetCursor( 0, 0 );
+							LCD_PrintString(testActMenu[curMenuRow]);
+							LCD_SetCursor( 0, 1 );
+							LCD_PrintString(testActMenu[curMenuRow+1]);
+							LCD_SetCursor( 15, curCursorPos = 0 );
+						}
 
 						osEventFlagsSet(testEvents, TEST_LOG_PROCCESS_FINISHED);
 					}
